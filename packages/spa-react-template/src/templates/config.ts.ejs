@@ -1,0 +1,13 @@
+const getBaseUrl = () => {
+    <% if (buildTools.includes('vite')) { %>
+    if (import.meta.env.ENV === 'development') {
+        return 'development'
+    }
+    return 'production';
+    <% } else { %>
+    if (process.env.NODE_ENV === 'development') {
+        return 'development'
+    }
+    return 'production';
+    <% } %>
+}

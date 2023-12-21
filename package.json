@@ -1,0 +1,76 @@
+{
+    "name": "@laniakea",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "lint-staged": "lint-staged",
+        "changeset": "changeset",
+        "vp": "changeset version",
+        "release": "pnpm build && pnpm release:only",
+        "release:only": "changeset publish --registry=https://registry.npmjs.org",
+        "prepare": "husky install",
+        "eslint": "eslint ./**/*.ts --fix",
+        "build-cli": "gulp --gulpfile scripts/gulpfile.cjs buildCli",
+        "build-cli:watch": "gulp --gulpfile scripts/gulpfile.cjs buildCliWatch",
+        "build-template": "gulp --gulpfile scripts/gulpfile.cjs buildTemplate",
+        "build": "gulp --gulpfile scripts/gulpfile.cjs build"
+    },
+    "dependencies": {
+        "semver": "^7.5.1",
+        "validate-npm-package-name": "^5.0.0"
+    },
+    "devDependencies": {
+        "@changesets/cli": "^2.27.1",
+        "@commitlint/cli": "^17.7.1",
+        "@commitlint/config-conventional": "^17.7.0",
+        "@rollup/plugin-alias": "^5.1.0",
+        "@rollup/plugin-commonjs": "^25.0.5",
+        "@rollup/plugin-json": "^6.0.1",
+        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-typescript": "^11.1.5",
+        "@types/commander": "^2.12.2",
+        "@types/figlet": "^1.5.6",
+        "@types/inquirer": "^9.0.3",
+        "@types/node": "^20.4.10",
+        "@types/semver": "^7.5.0",
+        "@types/shelljs": "^0.8.12",
+        "@typescript-eslint/eslint-plugin": "^6.3.0",
+        "@typescript-eslint/parser": "^6.3.0",
+        "commitizen": "^4.3.0",
+        "cz-customizable": "^7.0.0",
+        "eslint": "8.43.0",
+        "eslint-config-prettier": "^9.0.0",
+        "eslint-plugin-prettier": "^5.0.0",
+        "gulp": "^4.0.2",
+        "husky": "^8.0.3",
+        "lint-staged": "^13.2.3",
+        "rimraf": "^5.0.1",
+        "rollup": "^4.0.2",
+        "rollup-plugin-copy": "^3.5.0",
+        "rollup-plugin-dts": "^6.1.0",
+        "rollup-plugin-ejs": "^4.0.0",
+        "rollup-plugin-polyfill-node": "^0.12.0",
+        "rollup-plugin-typescript2": "^0.36.0",
+        "tslib": "^2.6.2",
+        "typescript": "^5.1.6",
+        "vitest": "^0.33.0"
+    },
+    "lint-staged": {
+        "./**/*.ts": [
+            "eslint --fix"
+        ],
+        "./**/*.js": [
+            "eslint --fix"
+        ]
+    },
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-customizable"
+        }
+    },
+    "browserslist": [
+        "last 2 version",
+        "> 1%",
+        "not dead"
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "declaration": true,
+        "baseUrl": ".",
+        "paths": {
+            "@commands/*": ["./commands/*"],
+            "@utils/*": ["./utils/*"],
+            "@runners/*": ["./lib/runners/*"],
+            "@linters/*": ["./lib/linters/*"],
+            "@lib/*": ["./lib/*"],
+            "@compilers/*": ["./lib/compilers/*"],
+            "@constants/*": ["./constants/*"]
+        }
+    }
+}

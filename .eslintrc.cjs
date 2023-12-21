@@ -1,0 +1,35 @@
+module.exports = {
+    root: true,
+    parser: '@typescript-eslint/parser',
+    env: {
+        browser: true,
+        node: true,
+        es2020: true,
+    },
+    extends: [
+        'eslint:recommended',
+        'plugin:@typescript-eslint/recommended',
+        'plugin:prettier/recommended',
+    ],
+
+    rules: {
+        semi: ['error', 'always'],
+        quotes: ['error', 'single'],
+        eqeqeq: ['error', 'allow-null'],
+        'no-this-before-super': 'warn',
+        'no-dupe-keys': 'error',
+        'no-undef': 'error',
+        'no-with': 'error',
+        '@typescript-eslint/ban-ts-ignore': 'off',
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-unused-vars': 'warn',
+        'no-redeclare': 'error',
+        'no-const-assign': 'error',
+        '@typescript-eslint/no-var-requires': 'off',
+        'no-sparse-arrays': 'off',
+        '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off',
+        'prettier/prettier': 'off',
+    },
+};

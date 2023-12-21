@@ -1,0 +1,32 @@
+{
+    "name": "@laniakea/cli",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "keywords": [
+        "cli"
+    ],
+    "bin": {
+        "la": "./bin/index.js"
+    },
+    "type": "module",
+    "scripts": {},
+    "author": "",
+    "dependencies": {
+        "chalk": "^3.0.0",
+        "commander": "^10.0.1",
+        "detect-package-manager": "^3.0.1",
+        "ejs": "^3.1.9",
+        "execa": "^8.0.1",
+        "figlet": "^1.6.0",
+        "get-port": "^7.0.0",
+        "inquirer": "^8.2.5",
+        "latest-version": "^7.0.0",
+        "ora": "^5.4.1",
+        "prettier": "^3.0.1",
+        "shelljs": "^0.8.5",
+        "stylus-supremacy": "^2.17.5",
+        "validate-npm-package-name": "^5.0.0"
+    },
+    "license": "ISC"
+}
