@@ -37,7 +37,21 @@ class CreateAction {
             if (!this.validateProjectName(this.options.name)) {
                 return {
                     status: false,
-                    message: 'Invalid project name!',
+                    message: `Invalid project name: ${this.options.name}`,
+                };
+            }
+            if (directory) {
+                this.options.directory = directory;
+                const [mkdirErr] = await to(mkdir(`${cwd}/${directory}`, { recursive: true }));
+                if (mkdirErr) {
+                    return {
+                        status: false,
+                        message: mkdirErr.message,
+                    };
+                }
+                return {
+                    status: true,
+                    message: '',
                 };
             }
             const [readdirErr, files] = await to(readdir(`${cwd}`, { encoding: 'utf-8' }));
@@ -52,16 +66,6 @@ class CreateAction {
                     status: false,
                     message: 'Please make sure there are no files in the current directory!',
                 };
-            }
-            if (directory) {
-                this.options.directory = directory;
-                const [mkdirErr] = await to(mkdir(`${cwd}/${directory}`, { recursive: true }));
-                if (mkdirErr) {
-                    return {
-                        status: false,
-                        message: mkdirErr.message,
-                    };
-                }
             }
             return {
                 status: true,
@@ -89,13 +93,12 @@ class CreateAction {
         };
     }
     public async handle(name: string, command: CommandActionOptions) {
-        this.options = {
+        this.options = { name, ...command };
+        const { status, message } = await this.check(
             name,
-            ...command,
-        };
-        const {
-            1: { status, message },
-        } = await to(this.check(name, command.directory, command.packageManager));
+            command.directory,
+            command.packageManager,
+        );
         if (!status) {
             logger.error(message, true);
         }

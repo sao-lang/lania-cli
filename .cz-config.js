@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     // 可选类型
     types: [
         { value: 'feat', name: 'feat:     新功能' },
