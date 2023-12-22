@@ -1,19 +1,8 @@
-import path from 'path';
 import getPort from 'get-port';
+import { type TemplateOptions } from '..';
+import { resolvePath } from '../utils';
 
-interface TemplateOptions {
-    name: string;
-    buildTool: string;
-    cssProcessor: string;
-    packageTool: string;
-    lintTools: string[];
-    language: 'TypeScript' | 'JavaScript';
-}
-
-export default class Template {
-    private resolve(targetPath: string) {
-        return path.resolve(__dirname, targetPath);
-    }
+export class SpaReactTemplate {
     public getDependenciesArray(options: TemplateOptions) {
         const dependenciesArray = ['react', 'react-dom'];
         const devDependenciesArray: string[] = [options.buildTool];
@@ -94,8 +83,7 @@ export default class Template {
         return [
             () => {
                 return {
-                    templatePath: this.resolve('./templates/package.json.ejs'),
-                    fileName: 'package.json',
+                    templatePath: resolvePath('./templates/package.json.ejs'),
                     options,
                     fileType: 'json',
                     outputPath: '/package.json',
@@ -103,7 +91,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve(`./templates/App.${jsxExtName}.ejs`),
+                    templatePath: resolvePath(`./templates/App.${jsxExtName}.ejs`),
                     fileName: `App.${jsxExtName}`,
                     options,
                     fileType: jsxExtName,
@@ -112,7 +100,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve(`./templates/main.${jsxExtName}.ejs`),
+                    templatePath: resolvePath(`./templates/main.${jsxExtName}.ejs`),
                     fileName: `main.${jsxExtName}`,
                     options,
                     fileType: jsxExtName,
@@ -121,7 +109,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve(`./templates/App.${cssExtName}.ejs`),
+                    templatePath: resolvePath(`./templates/App.${cssExtName}.ejs`),
                     fileName: `App.${cssExtName}`,
                     options,
                     fileType:
@@ -131,7 +119,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve(`./templates/index.${cssExtName}.ejs`),
+                    templatePath: resolvePath(`./templates/index.${cssExtName}.ejs`),
                     fileName: `index.${cssExtName}`,
                     options,
                     fileType: cssProcessor === 'tailwindcss' ? 'css' : cssProcessor,
@@ -140,7 +128,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve('./templates/vite-env.d.ts.ejs'),
+                    templatePath: resolvePath('./templates/vite-env.d.ts.ejs'),
                     fileName: 'vite-env.d.ts',
                     options,
                     fileType: 'ts',
@@ -152,7 +140,7 @@ export default class Template {
                 const port = await getPort();
                 if (options.buildTool === 'webpack') {
                     return {
-                        templatePath: this.resolve('./templates/webpack.config.js.ejs'),
+                        templatePath: resolvePath('./templates/webpack.config.js.ejs'),
                         fileName: 'webpack.config.js',
                         options: { port, ...options },
                         fileType: 'js',
@@ -160,7 +148,7 @@ export default class Template {
                     };
                 }
                 return {
-                    templatePath: this.resolve(`./templates/index.${cssExtName}.ejs`),
+                    templatePath: resolvePath(`./templates/index.${cssExtName}.ejs`),
                     fileName: `index.${cssExtName}`,
                     options,
                     fileType:
@@ -170,7 +158,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve('./templates/lan.config.json.ejs'),
+                    templatePath: resolvePath('./templates/lan.config.json.ejs'),
                     fileName: 'lan.config.json',
                     options,
                     fileType: 'json',
@@ -179,7 +167,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve('./templates/index.html.ejs'),
+                    templatePath: resolvePath('./templates/index.html.ejs'),
                     fileName: 'index.html',
                     options,
                     fileType: 'html',
@@ -188,7 +176,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve('./templates/tsconfig.json.ejs'),
+                    templatePath: resolvePath('./templates/tsconfig.json.ejs'),
                     fileName: 'tsconfig.json',
                     options,
                     fileType: 'json',
@@ -198,7 +186,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve('./templates/tailwind.config.js.ejs'),
+                    templatePath: resolvePath('./templates/tailwind.config.js.ejs'),
                     fileName: 'tailwind.config.js',
                     options,
                     fileType: 'js',
@@ -208,7 +196,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve('./templates/tailwind.css.ejs'),
+                    templatePath: resolvePath('./templates/tailwind.css.ejs'),
                     fileName: 'tailwind.css',
                     options,
                     fileType: 'css',
@@ -218,7 +206,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve('./templates/postcss.config.js.ejs'),
+                    templatePath: resolvePath('./templates/postcss.config.js.ejs'),
                     fileName: 'postcss.config.js',
                     options,
                     fileType: 'js',
@@ -228,7 +216,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve('./templates/.env.development.ejs'),
+                    templatePath: resolvePath('./templates/.env.development.ejs'),
                     fileName: '.env.development',
                     options,
                     fileType: 'other',
@@ -238,7 +226,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve('./templates/.env.production.ejs'),
+                    templatePath: resolvePath('./templates/.env.production.ejs'),
                     fileName: '.env.production',
                     options,
                     fileType: 'other',
@@ -248,7 +236,7 @@ export default class Template {
             },
             () => {
                 return {
-                    templatePath: this.resolve(`./templates/config.${jsExtName}.ejs`),
+                    templatePath: resolvePath(`./templates/config.${jsExtName}.ejs`),
                     fileName: `config.${jsExtName}`,
                     options,
                     fileType: jsExtName,
@@ -258,3 +246,5 @@ export default class Template {
         ];
     }
 }
+
+export default SpaReactTemplate;

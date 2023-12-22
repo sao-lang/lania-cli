@@ -10,17 +10,15 @@ export type CodeType =
     | 'svelte'
     | 'css'
     | 'html'
-    | 'sass'
+    | 'scss'
     | 'less'
-    | 'stylus'
-    | 'markdown'
-    | 'angular'
+    | 'styl'
+    | 'md'
     | 'yaml'
     | 'astro'
-    | 'ignore'
     | 'other';
 
-const getParser = (type: CodeType) => {
+const transformParser = (type: CodeType) => {
     switch (type) {
         case 'js':
         case 'jsx':
@@ -38,14 +36,12 @@ const getParser = (type: CodeType) => {
             return 'html';
         case 'vue':
             return 'vue';
-        case 'sass':
+        case 'scss':
             return 'scss';
         case 'less':
             return 'less';
-        case 'markdown':
+        case 'md':
             return 'markdown';
-        case 'angular':
-            return 'angular';
         case 'yaml':
             return 'yaml';
         default:
@@ -60,10 +56,7 @@ export const codeFormat = (code: string, type: CodeType = 'json') => {
             if (type === 'other') {
                 return resolve(code);
             }
-            if (type === 'ignore') {
-                return resolve(code.replace(/ +/g, ''));
-            }
-            if (type === 'stylus') {
+            if (type === 'styl') {
                 const formateCode = stylusSupremacy.format(code as string, {
                     // eslint-disable-next-line quotes
                     quoteChar: "'",
@@ -77,7 +70,7 @@ export const codeFormat = (code: string, type: CodeType = 'json') => {
         } catch (error: any) {
             reject(error);
         }
-        const parser = getParser(type);
+        const parser = transformParser(type);
         return prettier
             .format(code, {
                 semi: true,

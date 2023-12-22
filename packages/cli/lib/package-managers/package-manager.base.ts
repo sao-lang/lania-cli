@@ -20,7 +20,6 @@ export interface PackageManagerCommands {
 export type PackageManagerName = 'npm' | 'yarn' | 'pnpm';
 
 export default class PackageManager {
-    private runner: Runner;
     private name: PackageManagerName;
     private commands: PackageManagerCommands;
     private flags: PackageManagerCommandFlags;
@@ -34,12 +33,12 @@ export default class PackageManager {
         this.name = name;
         this.commands = commands;
         this.flags = flags;
-        this.runner = new Runner();
         this.registry = registry;
     }
 
     private run(command: string, args: string[] = [], options: RunnerRunOptions = {}) {
-        return this.runner.run(`${this.name} ${command}`, args, options);
+        const runner = new Runner();
+        return runner.run(`${this.name} ${command}`, args, options);
     }
 
     private async getPackageJsonContent() {
@@ -68,7 +67,7 @@ export default class PackageManager {
 
     private async add(dependencies: string[], flag: string, options: RunnerRunOptions = {}) {
         const [err, data] = await to(
-            this.runner.run(this.commands.install, [...dependencies, flag], options),
+            this.run(this.commands.install, [...dependencies, flag], options),
         );
         if (err) {
             throw err;

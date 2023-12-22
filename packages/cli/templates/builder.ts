@@ -1,29 +1,21 @@
 import { CommandCreateOptions } from '@commands/create.command';
-import {
-    CSS_PROCESSORS,
-    LINT_TOOLS,
-    PACKAGE_TOOLS,
-    PROJECT_TYPES,
-    PROJECT_TYPE_FRAMES_MAP,
-    TEMPLATES_LIST,
-    UNIT_TEST_TOOLS,
-} from '@constants/index';
+import { CSS_PROCESSORS, LINT_TOOLS, PACKAGE_TOOLS, UNIT_TEST_TOOLS } from '@constants/index';
 import inquirer, { Answers } from 'inquirer';
-import path from 'path';
 import { createCheckboxQuestion, createListQuestion } from './questions';
 import to from '@utils/to';
 import logger from '@utils/logger';
-import PackageManagerFactory from '@lib/package-managers/package-manager.factory';
+import { TemplateFactory, type TemplateOptions } from '@laniakea/templates';
 
 export class Builder {
     private options: Record<string, any> = {};
     public async prompt(options: CommandCreateOptions) {
+        const templateList = await TemplateFactory.list();
         const choices: Answers = [
             createListQuestion({
                 type: 'list',
                 message: 'Please select project template:',
                 name: 'template',
-                choices: TEMPLATES_LIST,
+                choices: templateList,
             }),
             // createListQuestion({
             //     name: 'frame',
@@ -63,10 +55,15 @@ export class Builder {
             createListQuestion({
                 name: 'buildTool',
                 message: 'Please select a build tool:',
-                choices: ({ template }: { template: string }) =>
-                    ['spa', 'ssr', 'nodejs', 'vanilla'].some((item) => template.includes(item))
-                        ? ['webpack', 'vite']
-                        : ['rollup', 'gulp', 'tsc'],
+                choices: ({ template }: { template: string }) => {
+                    const flag = ['spa', 'ssr', 'nodejs', 'vanilla'].some((item) =>
+                        template.includes(item),
+                    );
+                    if (flag) {
+                        return ['webpack', 'vite'];
+                    }
+                    return ['rollup', 'gulp', 'tsc'];
+                },
             }),
             createListQuestion({
                 name: 'packageTool',
@@ -97,20 +94,9 @@ export class Builder {
         if (promptErr) {
             logger.error(promptErr.message, true);
         }
-        const manager = await PackageManagerFactory.create(answers.packageTool);
-        console.log({
-            cwd: path.resolve(process.cwd(), options.directory || ''),
-            directory: options.directory,
-        });
-        const data = await manager.init({
-            silent: true,
-            cwd: path.resolve(process.cwd(), options.directory || ''),
-        });
-        // const packageName = `@laniakea/${answers.template}`;
-        // await manager.addInProduction([packageName], true);
-        // const config = await import(packageName);
-        // console.log({ config });
+        const template = TemplateFactory.create(answers.template);
+        const dependencies = template.getDependenciesArray(answers as TemplateOptions);
         this.options = answers;
-        console.log({ answers, data });
+        console.log({ dependencies });
     }
 }

@@ -1,18 +1,3 @@
-// export interface TemplatePlugin {
-//     getDependenciesArray(options: TemplateOptions): {
-//         dependencies: string[];
-//         devDependencies: string[];
-//     };
-//     getOutputFileTasks(options: TemplateOptions): (() => {
-//         templatePath: string;
-//         fileName: string;
-//         options: Record<string, any>;
-//         fileType: CodeType;
-//         outputPath: string;
-//         hide?: boolean;
-//     })[];
-// }
-
 /**项目类型*/
 export type ProjectType = 'spa' | 'ssr' | 'nodejs' | 'vanilla' | 'toolkit' | 'components';
 

@@ -4,12 +4,11 @@ import ts from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
 import path from 'path';
 import copy from 'rollup-plugin-copy';
-import basePkgJson from '../package.json' assert { type: 'json', integrity: 'sha384-ABC123' };
+import packageJsonContent from '../packages/templates/package.json' assert { type: 'json', integrity: 'sha384-ABC123' };
 import { defineConfig } from 'rollup';
 import { __dirname } from './utils.js';
 
-const resolve = (p) =>
-    path.resolve(path.resolve(path.resolve(__dirname, '../packages'), process.env.TARGET), p);
+const resolve = (p) => path.resolve(path.resolve(__dirname, '../packages/templates'), p);
 
 const outputConfigs = {
     'esm-bundler': {
@@ -22,7 +21,7 @@ const outputConfigs = {
     },
 };
 const createConfig = (output) => {
-    let external = [...Object.keys(basePkgJson.dependencies || {}), 'path', 'fs', 'get-port'];
+    let external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs'];
     return {
         input: resolve('src/index.ts'),
         output,

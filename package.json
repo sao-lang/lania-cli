@@ -66,6 +66,9 @@
     "config": {
         "commitizen": {
             "path": "./node_modules/cz-customizable"
+        },
+        "cz-customizable": {
+            "config": ".czrc.cjs"
         }
     },
     "browserslist": [

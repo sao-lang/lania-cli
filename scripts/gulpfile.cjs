@@ -1,15 +1,15 @@
 const { series } = require('gulp');
 const { spawn } = require('child_process');
-const fs = require('fs');
+// const fs = require('fs');
 const path = require('path');
 
 const dirPath = path.resolve(__dirname, '../packages');
-const targets = fs.readdirSync(dirPath).filter((f) => {
-    if (!fs.statSync(`${dirPath}/${f}`).isDirectory() || f === 'cli') {
-        return false;
-    }
-    return true;
-});
+// const targets = fs.readdirSync(dirPath).filter((f) => {
+//     if (!fs.statSync(`${dirPath}/${f}`).isDirectory() || f === 'cli') {
+//         return false;
+//     }
+//     return true;
+// });
 
 const run = async (command) => {
     return new Promise((resolve) => {
@@ -30,12 +30,10 @@ const withTaskName = (name, fn) => {
     return fn;
 };
 
-const buildTemplate = (target) => {
-    return withTaskName(`build template ${target}`, async () => {
+const buildTemplate = () => {
+    return withTaskName('build templates', async () => {
         const configFilePath = path.resolve(__dirname, '../scripts/rollup.template.config.js');
-        await run(
-            `rimraf ${dirPath}/${target}/dist && rollup -c=${configFilePath} --environment TARGET:${target}`,
-        );
+        await run(`rimraf ${dirPath}/templates/dist && rollup -c=${configFilePath}`);
     });
 };
 
@@ -47,11 +45,8 @@ const buildCli = (watch) => {
 };
 
 module.exports = {
-    buildTemplate: series(...targets.map((target) => buildTemplate(target))),
+    buildTemplate: series(buildTemplate()),
     buildCli: series(buildCli(false)),
     buildCliWatch: series(buildCli(true)),
-    build: series(
-        series(buildCli(false)),
-        series(...targets.map((target) => buildTemplate(target))),
-    ),
+    build: series(buildCli(false), buildTemplate()),
 };
