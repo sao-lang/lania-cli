@@ -28,6 +28,7 @@ const resolvePlugins = () => {
                 { find: '@linters', replacement: '../cli/lib/linters' },
                 { find: '@constants', replacement: '../cli/constants' },
                 { find: '@package-managers', replacement: '../cli/lib/package-managers' },
+                { find: '@configuration', replacement: '../cli/lib/configuration' },
             ],
         }),
     ];

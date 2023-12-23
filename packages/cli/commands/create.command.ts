@@ -1,4 +1,4 @@
-import { PACKAGE_TOOLS } from '@constants/index';
+import { PACKAGE_TOOLS } from '@lib/constants/cli.constant';
 import logger from '@utils/logger';
 import to from '@utils/to';
 import { type Command } from 'commander';

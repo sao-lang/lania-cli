@@ -1,5 +1,10 @@
 import { CommandCreateOptions } from '@commands/create.command';
-import { CSS_PROCESSORS, LINT_TOOLS, PACKAGE_TOOLS, UNIT_TEST_TOOLS } from '@constants/index';
+import {
+    CSS_PROCESSORS,
+    LINT_TOOLS,
+    PACKAGE_TOOLS,
+    UNIT_TEST_TOOLS,
+} from '@lib/constants/cli.constant';
 import inquirer, { Answers } from 'inquirer';
 import { createCheckboxQuestion, createListQuestion } from './questions';
 import to from '@utils/to';

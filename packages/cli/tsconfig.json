@@ -10,9 +10,9 @@
             "@linters/*": ["./lib/linters/*"],
             "@lib/*": ["./lib/*"],
             "@compilers/*": ["./lib/compilers/*"],
-            "@constants/*": ["./constants/*"],
-
-            "@package-manager/*": ["./lib/package-managers/*"]
+            "@constants/*": ["lib/constants/*"],
+            "@package-manager/*": ["./lib/package-managers/*"],
+            "@configuration/*": ["./lib/configuration/*"]
         }
     }
 }

@@ -1,23 +1,10 @@
-import codeFormat, { type CodeType } from '@utils/code';
 import to from '@utils/to';
-import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { dirname, extname } from 'path';
 import ejs from 'ejs';
-export const mkDirsSync = (dirPath: string) => {
-    try {
-        if (existsSync(dirPath)) {
-            return true;
-        } else {
-            if (mkDirsSync(dirname(dirPath))) {
-                mkdirSync(dirPath);
-                return true;
-            }
-        }
-    } catch (e) {
-        throw e as Error;
-    }
-};
+import PrettierLinter, { PrettierSupportFileType } from '@linters/prettier.linter';
+import { mkDirs } from './compiler.util';
+
 export default class EjsCompiler {
     public async compile(
         filePath: string,
@@ -29,14 +16,27 @@ export default class EjsCompiler {
             throw readErr;
         }
         const templateCode = ejs.render(content, options);
-        const [formatErr, code] = await to(codeFormat(templateCode, extname(filePath) as CodeType));
+        const [formatErr, code] = await to(
+            PrettierLinter.formatContent(
+                templateCode,
+                {
+                    semi: true,
+                    printWidth: 200,
+                    tabWidth: 4,
+                    singleQuote: true,
+                    trailingComma: 'all',
+                    useTabs: false,
+                    jsxSingleQuote: false,
+                },
+                extname(filePath) as PrettierSupportFileType,
+            ),
+        );
         if (formatErr) {
             throw formatErr;
         }
-        try {
-            mkDirsSync(outputPath);
-        } catch (e) {
-            throw e as Error;
+        const [makeDirsErr] = await to(mkDirs(dirname(outputPath)));
+        if (makeDirsErr) {
+            throw makeDirsErr;
         }
         const [writeErr] = await to(writeFile(code, outputPath, 'utf-8'));
         if (writeErr) {

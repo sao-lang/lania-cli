@@ -69,15 +69,7 @@ export default class ConfigurationLoader {
                 ],
                 markdownlint: [
                     'markdownlint',
-                    [
-                        '.markdownlintrc',
-                        '.markdownlintrc.cjs',
-                        '.markdownlintrc.json',
-                        '.markdownlintrc.yml',
-                        '.markdownlintrc.yaml',
-                        '.markdownlint.config.js',
-                        '.markdownlint.config.cjs',
-                    ],
+                    ['.markdownlint.json', '.markdownlint.yml', '.markdownlint.yaml'],
                 ],
                 commitlint: [
                     'commitlint',
@@ -107,7 +99,7 @@ export default class ConfigurationLoader {
         if (searchErr) {
             return searchErr;
         }
-        if (result.isEmpty) {
+        if (result?.isEmpty) {
             throw new Error('No configuration found!');
         }
         return result.config as Record<string, any>;

@@ -1,11 +1,15 @@
-import ConfigurationLoader from '@lib/configuration/configuration.loader';
 import to from '@utils/to';
-import { readFile, readdir, stat } from 'fs/promises';
-import { basename, join } from 'path';
+import { readFile, stat, writeFile } from 'fs/promises';
 import prettier from 'prettier';
-import stylusSupremacy from 'prettier-plugin-stylus-supremacy';
-
-// import stylusSupremacy from 'stylus-supremacy';
+import stylus from 'prettier-plugin-stylus';
+import ejs from 'prettier-plugin-ejs';
+import svelte from 'prettier-plugin-svelte';
+import {
+    type LinterConfiguration,
+    getModuleConfig,
+    traverseFiles,
+    getFileExt,
+} from '@linters/linter.util';
 
 export type PrettierSupportFileType =
     | 'js'
@@ -22,67 +26,98 @@ export type PrettierSupportFileType =
     | 'styl'
     | 'md'
     | 'yaml'
-    | 'astro';
+    | 'astro'
+    | 'yml'
+    | 'ejs';
 
-type PrettierConfig = Record<string, any> | string;
+type PrettierLinterHandleDirOptions = {
+    fileTypes?: PrettierSupportFileType[];
+    ignorePath?: string;
+};
 
-type PrettierLinterCheckDirOptions = { fileType: PrettierSupportFileType[] };
-
-type PrettierLinterCheckFileOptions = { fileType: PrettierSupportFileType };
+type PrettierLinterCheckFileResult = {
+    filePath: string;
+    isFormatted: boolean;
+};
 
 export default class PrettierLinter {
-    private transformParser(fileType: PrettierSupportFileType) {
+    private handleFileTypes = [
+        'js',
+        'json',
+        'ts',
+        'jsx',
+        'tsx',
+        'vue',
+        'svelte',
+        'css',
+        'html',
+        'scss',
+        'less',
+        'styl',
+        'md',
+        'yaml',
+        'astro',
+        'yml',
+        'ejs',
+    ];
+    private static transformParser(fileType: PrettierSupportFileType) {
         switch (fileType) {
             case 'js':
             case 'jsx':
                 return 'babel';
-            case 'json':
-                return 'json';
             case 'ts':
             case 'tsx':
                 return 'babel-ts';
-            case 'css':
-                return 'css';
-            case 'svelte':
             case 'astro':
-            case 'html':
                 return 'html';
-            case 'vue':
-                return 'vue';
-            case 'scss':
-                return 'scss';
-            case 'less':
-                return 'less';
             case 'md':
                 return 'markdown';
-            case 'yaml':
+            case 'yml':
                 return 'yaml';
+            case 'styl':
+                return 'stylus';
+            default:
+                return fileType;
+        }
+    }
+    private static transformPlugin(fileType: PrettierSupportFileType) {
+        switch (fileType) {
+            case 'styl':
+                return stylus;
+            case 'ejs':
+                return ejs;
+            case 'svelte':
+                return svelte;
             default:
                 return undefined;
         }
     }
-    private getConfig(config: PrettierConfig) {
-        const configLoader = new ConfigurationLoader();
-        return typeof config === 'string' ? configLoader.load('prettier', config) : config;
-    }
-    private async checkFile(
-        filePath: string,
-        config: PrettierConfig,
-        { fileType }: PrettierLinterCheckFileOptions,
+    private static async getConfig(
+        config: LinterConfiguration,
+        fileType: PrettierSupportFileType,
+        ignorePath?: string,
     ) {
+        const plugins = this.transformPlugin(fileType);
         const parser = this.transformParser(fileType);
-        const configObject = this.getConfig(config);
+        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
+        if (getConfigErr) {
+            throw getConfigErr;
+        }
+        return { ...configObject, plugins, parser, ignorePath };
+    }
+    private async checkFile(filePath: string, config: LinterConfiguration, ignorePath?: string) {
+        const fileType = getFileExt(filePath) as PrettierSupportFileType;
+        const [getConfigErr, configObject] = await to(
+            PrettierLinter.getConfig(config, fileType, ignorePath),
+        );
+        if (getConfigErr) {
+            throw getConfigErr;
+        }
         const [readFileErr, fileContent] = await to(readFile(filePath, 'utf-8'));
         if (readFileErr) {
             throw readFileErr;
         }
-        const [checkErr, checkResult] = await to(
-            prettier.check(fileContent, {
-                ...configObject,
-                parser,
-                plugins: fileType === 'styl' && [stylusSupremacy],
-            }),
-        );
+        const [checkErr, checkResult] = await to(prettier.check(fileContent, configObject));
         if (checkErr) {
             throw checkErr;
         }
@@ -90,67 +125,178 @@ export default class PrettierLinter {
     }
     private async checkDir(
         path: string,
-        config: PrettierConfig,
-        { fileType }: PrettierLinterCheckDirOptions,
+        config: LinterConfiguration,
+        options?: PrettierLinterHandleDirOptions,
     ) {
-        const results: { filePath: string; isFormatted: boolean }[] = [];
-        const traverseFiles = async (dir: string) => {
-            const [readdirErr, files] = await to(readdir(dir));
-            if (readdirErr) {
-                throw readdirErr;
-            }
-            for (const file of files) {
-                const filePath = join(dir, file);
-                const [statErr, stats] = await to(stat(filePath));
-                if (statErr) {
-                    throw statErr;
-                }
-                if (stats.isDirectory()) {
-                    traverseFiles(filePath);
-                } else if (
-                    stats.isFile() &&
-                    fileType.includes(basename(filePath) as PrettierSupportFileType)
+        const { fileTypes, ignorePath } = options || {};
+        const results: PrettierLinterCheckFileResult[] = [];
+        const [traverseFilesErr] = await to(
+            traverseFiles(path, async (filePath: string) => {
+                const ext = getFileExt(filePath) as PrettierSupportFileType;
+                if (
+                    (!fileTypes && this.handleFileTypes.includes(ext)) ||
+                    (fileTypes && fileTypes.includes(ext))
                 ) {
                     const [checkFileErr, result] = await to(
-                        this.checkFile(filePath, config, {
-                            fileType: basename(filePath) as PrettierSupportFileType,
-                        }),
+                        this.checkFile(filePath, config, ignorePath),
                     );
                     if (checkFileErr) {
                         throw checkFileErr;
                     }
                     results.push(result);
                 }
-            }
-        };
-        traverseFiles(path);
+            }),
+        );
+        if (traverseFilesErr) {
+            throw traverseFilesErr;
+        }
         return results;
     }
-    public async check(
-        filePath: string,
-        config: Record<string, any> | string,
-        options: { fileType: PrettierSupportFileType[] },
-    ) {
-        const [statErr, stats] = await to(stat(filePath));
-        if (statErr) {
-            throw statErr;
+    private async formatFile(filePath: string, config: LinterConfiguration, ignorePath?: string) {
+        const fileType = getFileExt(filePath) as PrettierSupportFileType;
+        const [getConfigErr, configObject] = await to(
+            PrettierLinter.getConfig(config, fileType, ignorePath),
+        );
+        if (getConfigErr) {
+            throw getConfigErr;
         }
-        if (stats.isDirectory()) {
-            const [checkDirErr, results] = await to(this.checkDir(filePath, config, options));
-            if (checkDirErr) {
-                throw checkDirErr;
-            }
-            return results;
-        } else {
-            const [checkFileErr, result] = await to(
-                this.checkFile(filePath, config, { fileType: options.fileType[0] }),
-            );
-            if (checkFileErr) {
-                throw checkFileErr;
-            }
-            return [result];
+        const [readFileErr, fileContent] = await to(readFile(filePath, 'utf-8'));
+        if (readFileErr) {
+            throw readFileErr;
+        }
+        const [formatErr, formattedContent] = await to(prettier.format(fileContent, configObject));
+        if (formatErr) {
+            throw formatErr;
+        }
+        const [writeFileErr] = await to(writeFile(filePath, formattedContent, 'utf-8'));
+        if (writeFileErr) {
+            throw writeFileErr;
         }
     }
-    public async format(content: string) {}
-    public async lint(filePath: string) {}
+    private async formateDir(
+        path: string,
+        config: LinterConfiguration,
+        options?: PrettierLinterHandleDirOptions,
+    ) {
+        const { fileTypes, ignorePath } = options || {};
+        const [traverseFilesErr] = await to(
+            traverseFiles(path, async (filePath: string) => {
+                const ext = getFileExt(filePath) as PrettierSupportFileType;
+                if (
+                    (!fileTypes && this.handleFileTypes.includes(ext)) ||
+                    (fileTypes && fileTypes.includes(ext))
+                ) {
+                    const [formateFileErr] = await to(
+                        this.formatFile(filePath, config, ignorePath),
+                    );
+                    if (formateFileErr) {
+                        throw formateFileErr;
+                    }
+                }
+            }),
+        );
+        if (traverseFilesErr) {
+            throw traverseFilesErr;
+        }
+    }
+    public async check(
+        filePaths: string | string[],
+        config: LinterConfiguration,
+        options?: PrettierLinterHandleDirOptions,
+    ) {
+        filePaths = Array.isArray(filePaths) ? filePaths : [filePaths];
+        const results: PrettierLinterCheckFileResult[][] = [];
+        for (const filePath of filePaths) {
+            const [statErr, stats] = await to(stat(filePath));
+            if (statErr) {
+                throw statErr;
+            }
+            if (stats.isDirectory()) {
+                const [checkDirErr, result] = await to(this.checkDir(filePath, config, options));
+                if (checkDirErr) {
+                    throw checkDirErr;
+                }
+                results.push(result);
+            } else {
+                const [checkFileErr, result] = await to(this.checkFile(filePath, config));
+                if (checkFileErr) {
+                    throw checkFileErr;
+                }
+                results.push([result]);
+            }
+        }
+        return results;
+    }
+    public static async formatContent(
+        content: string,
+        config: LinterConfiguration,
+        fileType: PrettierSupportFileType,
+    ) {
+        const [getConfigErr, configObject] = await to(this.getConfig(config, fileType));
+        if (getConfigErr) {
+            throw getConfigErr;
+        }
+        const [formateErr, code] = await to(prettier.format(content, configObject));
+        if (formateErr) {
+            throw formateErr;
+        }
+        return code;
+    }
+    public async formate(
+        filePaths: string | string[],
+        config: LinterConfiguration,
+        options?: PrettierLinterHandleDirOptions,
+    ) {
+        filePaths = Array.isArray(filePaths) ? filePaths : [filePaths];
+        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
+        if (getConfigErr) {
+            throw getConfigErr;
+        }
+        for (const filePath of filePaths) {
+            const [statErr, stats] = await to(stat(filePath));
+            if (statErr) {
+                throw statErr;
+            }
+            if (stats.isDirectory()) {
+                const [formateDirErr] = await to(this.formateDir(filePath, configObject, options));
+                if (formateDirErr) {
+                    throw formateDirErr;
+                }
+            } else {
+                const [formateFileErr] = await to(this.formatFile(filePath, configObject));
+                if (formateFileErr) {
+                    throw formateFileErr;
+                }
+            }
+        }
+    }
+    public async lint(
+        filePaths: string | string[],
+        config: Record<string, any> | string,
+        options?: PrettierLinterHandleDirOptions & { write?: boolean },
+    ) {
+        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
+        if (getConfigErr) {
+            throw getConfigErr;
+        }
+        const [checkErr, results] = await to(this.check(filePaths, configObject, options));
+        if (checkErr) {
+            throw checkErr;
+        }
+        let count = 0;
+        if (options?.write) {
+            for (const result of results) {
+                for (const { filePath, isFormatted } of result) {
+                    if (!isFormatted) {
+                        count++;
+                        const [formatErr] = await to(this.formatFile(filePath, configObject));
+                        if (formatErr) {
+                            throw formatErr;
+                        }
+                    }
+                }
+            }
+        }
+        return count;
+    }
 }
