@@ -1,8 +1,8 @@
 import getPort from 'get-port';
-import { type TemplateOptions } from '..';
+import { OutputFileTask, Template, type TemplateOptions } from '..';
 import { resolvePath } from '../utils';
 
-export class SpaReactTemplate {
+export class SpaReactTemplate implements Template {
     public getDependenciesArray(options: TemplateOptions) {
         const dependenciesArray = ['react', 'react-dom'];
         const devDependenciesArray: string[] = [options.buildTool];
@@ -85,53 +85,41 @@ export class SpaReactTemplate {
                 return {
                     templatePath: resolvePath('./templates/package.json.ejs'),
                     options,
-                    fileType: 'json',
                     outputPath: '/package.json',
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath(`./templates/App.${jsxExtName}.ejs`),
-                    fileName: `App.${jsxExtName}`,
                     options,
-                    fileType: jsxExtName,
                     outputPath: `/src/App.${jsxExtName}`,
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath(`./templates/main.${jsxExtName}.ejs`),
-                    fileName: `main.${jsxExtName}`,
                     options,
-                    fileType: jsxExtName,
                     outputPath: `/src/main.${jsxExtName}`,
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath(`./templates/App.${cssExtName}.ejs`),
-                    fileName: `App.${cssExtName}`,
                     options,
-                    fileType:
-                        !cssProcessor || cssProcessor === 'tailwindcss' ? 'css' : cssProcessor,
                     outputPath: `/src/App.${cssExtName}`,
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath(`./templates/index.${cssExtName}.ejs`),
-                    fileName: `index.${cssExtName}`,
                     options,
-                    fileType: cssProcessor === 'tailwindcss' ? 'css' : cssProcessor,
                     outputPath: `/src/index.${cssExtName}`,
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath('./templates/vite-env.d.ts.ejs'),
-                    fileName: 'vite-env.d.ts',
                     options,
-                    fileType: 'ts',
                     outputPath: '/src/vite-env.d.ts',
                     hide: options.buildTool !== 'vite',
                 };
@@ -141,45 +129,34 @@ export class SpaReactTemplate {
                 if (options.buildTool === 'webpack') {
                     return {
                         templatePath: resolvePath('./templates/webpack.config.js.ejs'),
-                        fileName: 'webpack.config.js',
                         options: { port, ...options },
-                        fileType: 'js',
                         outputPath: '/webpack.config.js',
                     };
                 }
                 return {
                     templatePath: resolvePath(`./templates/index.${cssExtName}.ejs`),
-                    fileName: `index.${cssExtName}`,
                     options,
-                    fileType:
-                        !cssProcessor || cssProcessor === 'tailwindcss' ? 'css' : cssProcessor,
                     outputPath: `/src/index.${cssExtName}`,
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath('./templates/lan.config.json.ejs'),
-                    fileName: 'lan.config.json',
                     options,
-                    fileType: 'json',
                     outputPath: '/lan.config.json',
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath('./templates/index.html.ejs'),
-                    fileName: 'index.html',
                     options,
-                    fileType: 'html',
                     outputPath: '/index.html',
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath('./templates/tsconfig.json.ejs'),
-                    fileName: 'tsconfig.json',
                     options,
-                    fileType: 'json',
                     outputPath: '/tsconfig.json',
                     hide: !useTs,
                 };
@@ -187,9 +164,7 @@ export class SpaReactTemplate {
             () => {
                 return {
                     templatePath: resolvePath('./templates/tailwind.config.js.ejs'),
-                    fileName: 'tailwind.config.js',
                     options,
-                    fileType: 'js',
                     outputPath: '/tailwind.config.js',
                     hide: options.cssProcessor !== 'tailwindcss',
                 };
@@ -197,29 +172,22 @@ export class SpaReactTemplate {
             () => {
                 return {
                     templatePath: resolvePath('./templates/tailwind.css.ejs'),
-                    fileName: 'tailwind.css',
                     options,
                     fileType: 'css',
-                    outputPath: '/src/tailwind.css',
                     hide: options.cssProcessor !== 'tailwindcss',
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath('./templates/postcss.config.js.ejs'),
-                    fileName: 'postcss.config.js',
                     options,
-                    fileType: 'js',
-                    outputPath: '/postcss.config.js',
                     hide: options.cssProcessor !== 'tailwindcss',
                 };
             },
             () => {
                 return {
                     templatePath: resolvePath('./templates/.env.development.ejs'),
-                    fileName: '.env.development',
                     options,
-                    fileType: 'other',
                     outputPath: '/env/.env.development',
                     hide: options.buildTool !== 'vite',
                 };
@@ -227,9 +195,7 @@ export class SpaReactTemplate {
             () => {
                 return {
                     templatePath: resolvePath('./templates/.env.production.ejs'),
-                    fileName: '.env.production',
                     options,
-                    fileType: 'other',
                     outputPath: '/env/.env.production',
                     hide: options.buildTool !== 'vite',
                 };
@@ -237,13 +203,11 @@ export class SpaReactTemplate {
             () => {
                 return {
                     templatePath: resolvePath(`./templates/config.${jsExtName}.ejs`),
-                    fileName: `config.${jsExtName}`,
                     options,
-                    fileType: jsExtName,
                     outputPath: `/src/config/index.${jsExtName}`,
                 };
             },
-        ];
+        ] as (() => OutputFileTask)[] | (() => Promise<OutputFileTask>)[];
     }
 }
 

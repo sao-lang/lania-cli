@@ -11,14 +11,28 @@ export interface TemplateOptions {
     packageTool: string;
     lintTools: string[];
     language: 'TypeScript' | 'JavaScript';
+    port?: number;
+    [x: string]: any;
+}
+
+export interface OutputFileTask {
+    outputPath: string;
+    options: TemplateOptions;
+    templatePath: string;
+    hide?: boolean;
 }
 
 export interface Template {
-    getDependenciesArray(options: TemplateOptions): string[];
-    // getOutputFileTasks(options: TemplateOptions): {}[];
+    getDependenciesArray(options: TemplateOptions): {
+        dependencies: string[];
+        devDependencies: string[];
+    };
+    getOutputFileTasks(
+        options: TemplateOptions,
+    ): (() => OutputFileTask | Promise<OutputFileTask>)[];
 }
 
-class TemplateFactory {
+export class TemplateFactory {
     public static create(name: string) {
         switch (name) {
             case 'spa-react-template':
@@ -42,5 +56,3 @@ class TemplateFactory {
         }
     }
 }
-
-export { SpaReactTemplate, TemplateFactory };

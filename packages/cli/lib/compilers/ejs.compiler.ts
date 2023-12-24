@@ -4,6 +4,7 @@ import { dirname, extname } from 'path';
 import ejs from 'ejs';
 import PrettierLinter, { PrettierSupportFileType } from '@linters/prettier.linter';
 import { mkDirs } from './compiler.util';
+import { getFileExt } from '@linters/linter.util';
 
 export default class EjsCompiler {
     public async compile(
@@ -16,6 +17,19 @@ export default class EjsCompiler {
             throw readErr;
         }
         const templateCode = ejs.render(content, options);
+        const fileTypes = PrettierLinter.listFileTypes();
+        const ext = getFileExt<PrettierSupportFileType>(filePath);
+        if (!fileTypes.includes(ext)) {
+            const [makeDirsErr] = await to(mkDirs(dirname(outputPath)));
+            if (makeDirsErr) {
+                throw makeDirsErr;
+            }
+            const [writeErr] = await to(writeFile(templateCode, outputPath, 'utf-8'));
+            if (writeErr) {
+                throw writeErr;
+            }
+            return;
+        }
         const [formatErr, code] = await to(
             PrettierLinter.formatContent(
                 templateCode,
@@ -28,7 +42,7 @@ export default class EjsCompiler {
                     useTabs: false,
                     jsxSingleQuote: false,
                 },
-                extname(filePath) as PrettierSupportFileType,
+                ext,
             ),
         );
         if (formatErr) {

@@ -5,15 +5,19 @@ import {
     PACKAGE_TOOLS,
     UNIT_TEST_TOOLS,
 } from '@lib/constants/cli.constant';
-import inquirer, { Answers } from 'inquirer';
+import inquirer, { type Answers } from 'inquirer';
 import { createCheckboxQuestion, createListQuestion } from './questions';
 import to from '@utils/to';
 import logger from '@utils/logger';
-import { TemplateFactory, type TemplateOptions } from '@laniakea/templates';
+import { TemplateFactory, type TemplateOptions, type Template } from '@laniakea/templates';
+import latestVersion from 'latest-version';
+import loading from '@utils/loading';
+import EjsCompiler from '@lib/compilers/ejs.compiler';
 
 export class Builder {
     private options: Record<string, any> = {};
-    public async prompt(options: CommandCreateOptions) {
+    private template: Template;
+    private async prompt(options: CommandCreateOptions) {
         const templateList = await TemplateFactory.list();
         const choices: Answers = [
             createListQuestion({
@@ -22,19 +26,6 @@ export class Builder {
                 name: 'template',
                 choices: templateList,
             }),
-            // createListQuestion({
-            //     name: 'frame',
-            //     message: 'Please select a frame:',
-            //     choices: ({ type }: { type: string }) => {
-            //         return [...PROJECT_TYPE_FRAMES_MAP[type], 'no'];
-            //     },
-            //     when: ({ type }: { type: string }) => {
-            //         if (['toolkit'].includes(type)) {
-            //             return false;
-            //         }
-            //         return true;
-            //     },
-            // }),
             createListQuestion({
                 message: 'Please select a css processor:',
                 name: 'cssProcessor',
@@ -94,14 +85,70 @@ export class Builder {
         }
         return answers;
     }
+    private async getDependencies(options: TemplateOptions) {
+        const { dependencies, devDependencies } = this.template.getDependenciesArray(
+            options as TemplateOptions,
+        );
+        const dependenciesMap: Record<string, string> = {};
+        const devDependenciesMap: Record<string, string> = {};
+        for (const dependency of dependencies) {
+            const [versionErr, version] = await to(latestVersion(dependency));
+            if (versionErr) {
+                logger.error(versionErr.message, true);
+            }
+            if (version) {
+                dependenciesMap[dependency] = version;
+            }
+        }
+        for (const devDependency of devDependencies) {
+            const [versionErr, version] = await to(latestVersion(devDependency));
+            if (versionErr) {
+                logger.error(versionErr.message, true);
+            }
+            if (version) {
+                devDependenciesMap[devDependency] = version;
+            }
+        }
+        return { dependencies: dependenciesMap, devDependencies: devDependenciesMap };
+    }
+    private async outputFiles(options: TemplateOptions) {
+        const tasks = this.template.getOutputFileTasks(options);
+        const compiler = new EjsCompiler();
+        for (const task of tasks) {
+            const { templatePath, outputPath, options, hide } = await task();
+            if (hide) {
+                continue;
+            }
+            // loading(`Generating ${outputPath}...`, async () => {
+            //     const [] = await to(compiler.compile(templatePath, outputPath, options));
+            // });
+        }
+    }
     public async build(options: CommandCreateOptions) {
-        const [promptErr, answers] = await to(this.prompt(options));
+        const [promptErr, answers] = await to<TemplateOptions>(this.prompt(options) as any);
         if (promptErr) {
             logger.error(promptErr.message, true);
         }
-        const template = TemplateFactory.create(answers.template);
-        const dependencies = template.getDependenciesArray(answers as TemplateOptions);
+        this.template = TemplateFactory.create(answers.template);
         this.options = answers;
-        console.log({ dependencies });
+        await loading('Preparing dependencies...', async () => {
+            const [getErr, result] = await to(this.getDependencies(answers));
+            if (getErr) {
+                return {
+                    status: 'fail',
+                    message: 'Failed to prepare dependencies',
+                    error: getErr,
+                };
+            }
+            this.options = { ...this.options, ...result };
+            return {
+                status: 'succeed',
+                message: 'Successfully prepared dependencies',
+                error: null,
+            };
+        });
+
+        // console.log({ dependencies, devDependencies });
+        this.options = answers;
     }
 }

@@ -15,7 +15,10 @@ type StyleLinterCheckFileResult = {
         endColumn: number;
         endLine: number;
         column: number;
+        type: 'error' | 'warning';
     }[];
+    errorCount: number;
+    warningCount: number;
 };
 type StyleLinterHandleDirOptions = {
     fileTypes?: StyleLinterSupportFileType[];
@@ -23,60 +26,66 @@ type StyleLinterHandleDirOptions = {
     fix?: boolean;
 };
 type StyleLinterSupportFileType = 'css' | 'styl' | 'sass' | 'less' | 'vue' | 'svelte' | 'astro';
+
+const lintFunc = async (config: LinterConfiguration, options: StyleLinterHandleDirOptions = {}) => {
+    const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
+    if (getConfigErr) {
+        throw getConfigErr;
+    }
+    return (filePath: string) =>
+        stylelint.lint({ files: filePath, config: configObject, ...options });
+};
+
 export default class StyleLinter {
     private lintFileTypes = ['css', 'styl', 'sass', 'less', 'vue', 'svelte', 'astro'];
     private async checkFile(
         filePath: string,
-        config: LinterConfiguration,
-        ignorePath?: string,
-        fix?: boolean,
+        lint: (filePath: string) => Promise<stylelint.LinterResult>,
     ) {
-        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
-        if (getConfigErr) {
-            throw getConfigErr;
-        }
-        const [lintErr, lintResult] = await to(
-            stylelint.lint({
-                files: filePath,
-                config: configObject,
-                ignorePath,
-                fix,
-                formatter: 'github',
-            }),
-        );
+        const [lintErr, lintResult] = await to(lint(filePath));
         if (lintErr) {
             throw lintErr;
         }
         const {
             results: [result],
         } = lintResult;
-        const { warnings } = result;
+        const { warnings, parseErrors } = result;
+        const errorCount = parseErrors.length;
+        const warningCount = warnings.length;
         return {
             filePath,
             output:
-                warnings.length > 0
-                    ? warnings.map(({ line, endLine, column, endColumn, text, rule }) => ({
-                          line,
-                          endLine,
-                          endColumn,
-                          description: text,
-                          column,
-                          rule,
-                      }))
-                    : null,
+                warningCount === 0 && errorCount === 0
+                    ? null
+                    : [
+                          ...warnings.map(({ line, endLine, column, endColumn, text }) => ({
+                              line,
+                              endLine,
+                              endColumn,
+                              description: text,
+                              column,
+                              type: 'warning',
+                          })),
+                          ...parseErrors.map(({ line, endLine, column, endColumn, text }) => ({
+                              line,
+                              endLine,
+                              endColumn,
+                              description: text,
+                              column,
+                              type: 'error',
+                          })),
+                      ],
+            warningCount,
+            errorCount,
         } as StyleLinterCheckFileResult;
     }
     private async checkDir(
         path: string,
-        config: LinterConfiguration,
+        lint: (filePath: string) => Promise<stylelint.LinterResult>,
         options?: StyleLinterHandleDirOptions,
     ) {
-        const { fileTypes, ignorePath, fix } = options || {};
+        const { fileTypes } = options || {};
         const results: StyleLinterCheckFileResult[] = [];
-        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
-        if (getConfigErr) {
-            throw getConfigErr;
-        }
         const [traverseFilesErr] = await to(
             traverseFiles(path, async (filePath) => {
                 const ext = getFileExt(filePath) as StyleLinterSupportFileType;
@@ -84,9 +93,7 @@ export default class StyleLinter {
                     (!fileTypes && this.lintFileTypes.includes(ext)) ||
                     (fileTypes && fileTypes.includes(ext))
                 ) {
-                    const [checkFileErr, result] = await to(
-                        this.checkFile(filePath, configObject, ignorePath, fix),
-                    );
+                    const [checkFileErr, result] = await to(this.checkFile(filePath, lint));
                     if (checkFileErr) {
                         throw checkFileErr;
                     }
@@ -99,17 +106,12 @@ export default class StyleLinter {
         }
         return results;
     }
-
     public async check(
         filePaths: string | string[],
-        config: Record<string, any> | string,
+        config: LinterConfiguration,
         options?: StyleLinterHandleDirOptions,
     ) {
         filePaths = Array.isArray(filePaths) ? filePaths : [filePaths];
-        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
-        if (getConfigErr) {
-            throw getConfigErr;
-        }
         const results: StyleLinterCheckFileResult[][] = [];
         for (const filePath of filePaths) {
             const [statErr, stats] = await to(stat(filePath));
@@ -118,7 +120,7 @@ export default class StyleLinter {
             }
             if (stats.isDirectory()) {
                 const [checkDirErr, result] = await to(
-                    this.checkDir(filePath, configObject, options),
+                    this.checkDir(filePath, await lintFunc(config, options), options),
                 );
                 if (checkDirErr) {
                     throw checkDirErr;
@@ -126,7 +128,7 @@ export default class StyleLinter {
                 results.push(result);
             } else {
                 const [checkFileErr, result] = await to(
-                    this.checkFile(filePath, configObject, options.ignorePath, options.fix),
+                    this.checkFile(filePath, await lintFunc(config, options)),
                 );
 
                 if (checkFileErr) {
@@ -142,11 +144,7 @@ export default class StyleLinter {
         config: LinterConfiguration,
         options?: StyleLinterHandleDirOptions,
     ) {
-        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
-        if (getConfigErr) {
-            throw getConfigErr;
-        }
-        const [checkErr, results] = await to(this.check(filePaths, configObject, options));
+        const [checkErr, results] = await to(this.check(filePaths, config, options));
         if (checkErr) {
             throw checkErr;
         }
