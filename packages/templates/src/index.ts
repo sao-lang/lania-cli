@@ -18,7 +18,8 @@ export interface TemplateOptions {
 export interface OutputFileTask {
     outputPath: string;
     options: TemplateOptions;
-    templatePath: string;
+    templatePath?: string;
+    content?: string;
     hide?: boolean;
 }
 

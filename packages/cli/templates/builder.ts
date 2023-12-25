@@ -8,7 +8,6 @@ import {
 import inquirer, { type Answers } from 'inquirer';
 import { createCheckboxQuestion, createListQuestion } from './questions';
 import to from '@utils/to';
-import logger from '@utils/logger';
 import { TemplateFactory, type TemplateOptions, type Template } from '@laniakea/templates';
 import latestVersion from 'latest-version';
 import loading from '@utils/loading';
@@ -73,10 +72,7 @@ export class Builder {
                 },
             }),
         ];
-        const [promptErr, answers] = await to(inquirer.prompt(choices));
-        if (promptErr) {
-            throw promptErr;
-        }
+        const answers = await inquirer.prompt(choices);
         if (answers.frame === 'no') {
             answers.frame = undefined;
         }
@@ -92,45 +88,54 @@ export class Builder {
         const dependenciesMap: Record<string, string> = {};
         const devDependenciesMap: Record<string, string> = {};
         for (const dependency of dependencies) {
-            const [versionErr, version] = await to(latestVersion(dependency));
-            if (versionErr) {
-                logger.error(versionErr.message, true);
-            }
+            const version = await latestVersion(dependency);
             if (version) {
                 dependenciesMap[dependency] = version;
             }
         }
         for (const devDependency of devDependencies) {
-            const [versionErr, version] = await to(latestVersion(devDependency));
-            if (versionErr) {
-                logger.error(versionErr.message, true);
-            }
+            const version = await latestVersion(devDependency);
             if (version) {
                 devDependenciesMap[devDependency] = version;
             }
         }
         return { dependencies: dependenciesMap, devDependencies: devDependenciesMap };
     }
-    private async outputFiles(options: TemplateOptions) {
+    private async outputFiles(options: Record<string, any>) {
+        // @ts-ignore
         const tasks = this.template.getOutputFileTasks(options);
         const compiler = new EjsCompiler();
         for (const task of tasks) {
-            const { templatePath, outputPath, options, hide } = await task();
-            if (hide) {
+            // @ts-ignore
+            // eslint-disable-next-line prefer-const
+            let { outputPath, options, hide, content } = await task();
+            if (hide || !content) {
                 continue;
             }
-            // loading(`Generating ${outputPath}...`, async () => {
-            //     const [] = await to(compiler.compile(templatePath, outputPath, options));
-            // });
+            outputPath = options.directory ? `${options.directory}/${outputPath}` : outputPath;
+            await loading(`Generating ${outputPath}...`, async () => {
+                const [compileErr] = await to(
+                    compiler.compile(content, `${process.cwd()}/${outputPath}`, options),
+                );
+                if (compileErr) {
+                    return {
+                        error: compileErr,
+                        status: 'fail',
+                        message: `Failed to generate ${outputPath}`,
+                    };
+                }
+                return {
+                    error: null,
+                    status: 'succeed',
+                    message: `Successfully generated ${outputPath}`,
+                };
+            });
         }
     }
     public async build(options: CommandCreateOptions) {
-        const [promptErr, answers] = await to<TemplateOptions>(this.prompt(options) as any);
-        if (promptErr) {
-            logger.error(promptErr.message, true);
-        }
+        const answers = (await this.prompt(options)) as any;
         this.template = TemplateFactory.create(answers.template);
-        this.options = answers;
+        this.options = { ...answers, ...options };
         await loading('Preparing dependencies...', async () => {
             const [getErr, result] = await to(this.getDependencies(answers));
             if (getErr) {
@@ -147,8 +152,9 @@ export class Builder {
                 error: null,
             };
         });
-
+        // @ts-ignore
+        await this.outputFiles({ ...this.options });
         // console.log({ dependencies, devDependencies });
-        this.options = answers;
+        // this.options = answers;
     }
 }

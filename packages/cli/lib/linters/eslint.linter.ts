@@ -38,10 +38,7 @@ type EsLinterCheckFileResult = {
 export default class EsLinter {
     private lintFileTypes = ['ts', 'tsx', 'js', 'jsx', 'vue', 'astro', 'svelte', 'cjs', 'mjs'];
     private async checkFile(filePath: string, linter: ESLint) {
-        const [lintFilesErr, results] = await to(linter.lintFiles(filePath));
-        if (lintFilesErr) {
-            throw lintFilesErr;
-        }
+        const results = await linter.lintFiles(filePath);
         const { messages, errorCount, warningCount } = results[0];
         const output = messages.map(({ message, line, endColumn, endLine, column, severity }) => ({
             description: message,
@@ -61,24 +58,16 @@ export default class EsLinter {
     private async checkDir(path: string, linter: ESLint, options?: EsLinterHandleDirOptions) {
         const { fileTypes } = options || {};
         const results: EsLinterCheckFileResult[] = [];
-        const [traverseFilesErr] = await to(
-            traverseFiles(path, async (filePath) => {
-                const ext = getFileExt(filePath) as EsLinterSupportFileType;
-                if (
-                    (!fileTypes && this.lintFileTypes.includes(ext)) ||
-                    (fileTypes && fileTypes.includes(ext))
-                ) {
-                    const [checkFileErr, result] = await to(this.checkFile(filePath, linter));
-                    if (checkFileErr) {
-                        throw checkFileErr;
-                    }
-                    results.push(result);
-                }
-            }),
-        );
-        if (traverseFilesErr) {
-            throw traverseFilesErr;
-        }
+        await traverseFiles(path, async (filePath) => {
+            const ext = getFileExt(filePath) as EsLinterSupportFileType;
+            if (
+                (!fileTypes && this.lintFileTypes.includes(ext)) ||
+                (fileTypes && fileTypes.includes(ext))
+            ) {
+                const result = await this.checkFile(filePath, linter);
+                results.push(result);
+            }
+        });
         return results;
     }
     public async check(
@@ -89,10 +78,7 @@ export default class EsLinter {
     ) {
         filePaths = Array.isArray(filePaths) ? filePaths : [filePaths];
         const results: EsLinterCheckFileResult[][] = [];
-        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
-        if (getConfigErr) {
-            throw getConfigErr;
-        }
+        const configObject = await getModuleConfig(config);
         linter =
             linter ||
             new ESLint({
@@ -101,21 +87,12 @@ export default class EsLinter {
                 fix: options?.fix,
             });
         for (const filePath of filePaths) {
-            const [statErr, stats] = await to(stat(filePath));
-            if (statErr) {
-                throw statErr;
-            }
+            const stats = await stat(filePath);
             if (stats.isDirectory()) {
-                const [checkDirErr, result] = await to(this.checkDir(filePath, linter, options));
-                if (checkDirErr) {
-                    throw checkDirErr;
-                }
+                const result = await this.checkDir(filePath, linter, options);
                 results.push(result);
             } else {
-                const [checkFileErr, result] = await to(this.checkFile(filePath, linter));
-                if (checkFileErr) {
-                    throw checkFileErr;
-                }
+                const result = await this.checkFile(filePath, linter);
                 results.push([result]);
             }
         }
@@ -127,19 +104,13 @@ export default class EsLinter {
         options?: EsLinterHandleDirOptions,
     ) {
         filePaths = Array.isArray(filePaths) ? filePaths : [filePaths];
-        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
-        if (getConfigErr) {
-            throw getConfigErr;
-        }
+        const configObject = await getModuleConfig(config);
         const linter = new ESLint({
             overrideConfig: configObject,
             ignorePath: options?.ignorePath,
             fix: options?.fix,
         });
-        const [checkErr, results] = await to(this.check(filePaths, configObject, options, linter));
-        if (checkErr) {
-            throw checkErr;
-        }
+        const results = await this.check(filePaths, configObject, options, linter);
         if (!options?.fix) {
             return results;
         }
@@ -148,19 +119,10 @@ export default class EsLinter {
                 if (!output || errorCount === 0) {
                     continue;
                 }
-                const [readFileErr, content] = await to(readFile(filePath, 'utf-8'));
-                if (readFileErr) {
-                    throw readFileErr;
-                }
-                const [lintErr, lintContent] = await to(linter.lintText(content));
-                if (lintErr) {
-                    throw lintErr;
-                }
-                const { output: lintOutput, source } = lintContent[0];
-                const [writeFileErr] = await to(writeFile(filePath, lintOutput || source, 'utf-8'));
-                if (writeFileErr) {
-                    throw writeFileErr;
-                }
+                const content = await readFile(filePath, 'utf-8');
+                const lintContent = await linter.lintText(content);
+                const { output: lintOutput } = lintContent[0];
+                lintOutput && (await writeFile(filePath, lintOutput, 'utf-8'));
             }
         }
         return results;

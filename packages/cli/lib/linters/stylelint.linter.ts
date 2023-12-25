@@ -28,10 +28,7 @@ type StyleLinterHandleDirOptions = {
 type StyleLinterSupportFileType = 'css' | 'styl' | 'sass' | 'less' | 'vue' | 'svelte' | 'astro';
 
 const lintFunc = async (config: LinterConfiguration, options: StyleLinterHandleDirOptions = {}) => {
-    const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
-    if (getConfigErr) {
-        throw getConfigErr;
-    }
+    const configObject = await getModuleConfig(config);
     return (filePath: string) =>
         stylelint.lint({ files: filePath, config: configObject, ...options });
 };
@@ -42,10 +39,7 @@ export default class StyleLinter {
         filePath: string,
         lint: (filePath: string) => Promise<stylelint.LinterResult>,
     ) {
-        const [lintErr, lintResult] = await to(lint(filePath));
-        if (lintErr) {
-            throw lintErr;
-        }
+        const lintResult = await lint(filePath);
         const {
             results: [result],
         } = lintResult;
@@ -86,24 +80,16 @@ export default class StyleLinter {
     ) {
         const { fileTypes } = options || {};
         const results: StyleLinterCheckFileResult[] = [];
-        const [traverseFilesErr] = await to(
-            traverseFiles(path, async (filePath) => {
-                const ext = getFileExt(filePath) as StyleLinterSupportFileType;
-                if (
-                    (!fileTypes && this.lintFileTypes.includes(ext)) ||
-                    (fileTypes && fileTypes.includes(ext))
-                ) {
-                    const [checkFileErr, result] = await to(this.checkFile(filePath, lint));
-                    if (checkFileErr) {
-                        throw checkFileErr;
-                    }
-                    results.push(result);
-                }
-            }),
-        );
-        if (traverseFilesErr) {
-            throw traverseFilesErr;
-        }
+        await traverseFiles(path, async (filePath) => {
+            const ext = getFileExt(filePath) as StyleLinterSupportFileType;
+            if (
+                (!fileTypes && this.lintFileTypes.includes(ext)) ||
+                (fileTypes && fileTypes.includes(ext))
+            ) {
+                const result = await this.checkFile(filePath, lint);
+                results.push(result);
+            }
+        });
         return results;
     }
     public async check(
@@ -114,26 +100,16 @@ export default class StyleLinter {
         filePaths = Array.isArray(filePaths) ? filePaths : [filePaths];
         const results: StyleLinterCheckFileResult[][] = [];
         for (const filePath of filePaths) {
-            const [statErr, stats] = await to(stat(filePath));
-            if (statErr) {
-                throw statErr;
-            }
+            const stats = await stat(filePath);
             if (stats.isDirectory()) {
-                const [checkDirErr, result] = await to(
-                    this.checkDir(filePath, await lintFunc(config, options), options),
+                const result = await this.checkDir(
+                    filePath,
+                    await lintFunc(config, options),
+                    options,
                 );
-                if (checkDirErr) {
-                    throw checkDirErr;
-                }
                 results.push(result);
             } else {
-                const [checkFileErr, result] = await to(
-                    this.checkFile(filePath, await lintFunc(config, options)),
-                );
-
-                if (checkFileErr) {
-                    throw checkFileErr;
-                }
+                const result = await this.checkFile(filePath, await lintFunc(config, options));
                 results.push([result]);
             }
         }
@@ -144,10 +120,7 @@ export default class StyleLinter {
         config: LinterConfiguration,
         options?: StyleLinterHandleDirOptions,
     ) {
-        const [checkErr, results] = await to(this.check(filePaths, config, options));
-        if (checkErr) {
-            throw checkErr;
-        }
+        const results = await this.check(filePaths, config, options);
         return results;
     }
 }

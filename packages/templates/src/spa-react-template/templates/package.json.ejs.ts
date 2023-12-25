@@ -1,10 +1,10 @@
-{
+export default `{
     "name": "<%= name %>",
     "version": "1.0.0",
     "main": "index.js",
     "private": true,
     "scripts": {
-        <% if (buildTools.includes('webpack')) { %>"analyzer": "npx webpack-bundle-analyzer ./dist/stats.json",<% } %>
+        <% if (buildTool === 'webpack') { %>"analyzer": "npx webpack-bundle-analyzer ./dist/stats.json",<% } %>
         "dev": "lan dev",
         "build": "lan build"
     },
@@ -20,4 +20,4 @@
             "<%= key %>": "<%= value %>"<% if(devDependenciesArray.length - 1 !== index) { %>,<% } %>
         <% }) %>
     }
-}
+}`;

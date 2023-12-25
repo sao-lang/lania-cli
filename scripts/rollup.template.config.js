@@ -31,15 +31,15 @@ const createConfig = (output) => {
             ts({ tsconfig: path.resolve(__dirname, '../tsconfig.template.json') }),
             cjs(),
             nodeResolve({ preferBuiltins: true }),
-            output.format === 'cjs' &&
-                copy({
-                    targets: [
-                        {
-                            src: `../packages/${process.env.TARGET}/src/templates/*.ejs`,
-                            dest: `../packages/${process.env.TARGET}/dist/src/templates`,
-                        },
-                    ],
-                }),
+            // output.format === 'js' &&
+            //     copy({
+            //         targets: [
+            //             {
+            //                 src: `../packages/templates/src/templates/*.ejs`,
+            //                 dest: `../packages/${process.env.TARGET}/dist/src/templates`,
+            //             },
+            //         ],
+            //     }),
         ].filter(Boolean),
     };
 };

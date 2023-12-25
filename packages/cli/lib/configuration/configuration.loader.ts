@@ -1,4 +1,3 @@
-import to from '@utils/to';
 import { cosmiconfig } from 'cosmiconfig';
 export type ConfigurationLoadType =
     | 'npm'
@@ -94,11 +93,7 @@ export default class ConfigurationLoader {
             module = moduleName.module;
             searchPlaces = moduleName.searchPlaces;
         }
-
-        const [searchErr, result] = await to(cosmiconfig(module, { searchPlaces }).search(path));
-        if (searchErr) {
-            return searchErr;
-        }
+        const result = await cosmiconfig(module, { searchPlaces }).search(path);
         if (result?.isEmpty) {
             throw new Error('No configuration found!');
         }

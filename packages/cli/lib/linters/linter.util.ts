@@ -1,5 +1,4 @@
 import ConfigurationLoader, { ConfigurationLoadType } from '@configuration/configuration.loader';
-import to from '@utils/to';
 import { readdir, stat } from 'fs/promises';
 import { extname, join } from 'path';
 
@@ -7,26 +6,17 @@ export type LinterConfiguration = ConfigurationLoadType | Record<string, any>;
 
 export const getModuleConfig = async (config: LinterConfiguration) => {
     if (typeof config === 'string') {
-        const [loadErr, moduleConfig] = await to(new ConfigurationLoader().load(config));
-        if (loadErr) {
-            throw loadErr;
-        }
+        const moduleConfig = await new ConfigurationLoader().load(config);
         return moduleConfig as Record<string, any>;
     }
     return config;
 };
 
 export const traverseFiles = async (dir: string, cb?: (filePath: string) => Promise<void>) => {
-    const [readdirErr, files] = await to(readdir(dir));
-    if (readdirErr) {
-        throw readdirErr;
-    }
+    const files = await readdir(dir);
     for (const file of files) {
         const filePath = join(dir, file);
-        const [statErr, stats] = await to(stat(filePath));
-        if (statErr) {
-            throw statErr;
-        }
+        const stats = await stat(filePath);
         if (stats.isDirectory()) {
             traverseFiles(filePath);
         } else if (stats.isFile()) {

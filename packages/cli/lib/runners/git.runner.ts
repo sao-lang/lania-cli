@@ -1,4 +1,3 @@
-import to from '@utils/to';
 import Runner, { RunnerRunOptions } from './runner.base';
 
 export default class GitRunner {
@@ -7,51 +6,33 @@ export default class GitRunner {
         return this.runner.run(`git ${command}`, args, options);
     }
 
-    public async init(silent: boolean = false) {
-        const [err] = await to(this.run('init', [], { silent }));
-        if (err) {
-            throw err;
-        }
+    public async init(options: RunnerRunOptions) {
+        await this.run('init', [], options);
         return true;
     }
 
-    public async add(file: string, silent: boolean = false) {
-        const [err] = await to(this.run('add', [file], { silent }));
-        if (err) {
-            throw err;
-        }
+    public async add(file: string, options: RunnerRunOptions) {
+        await this.run('add', [file], options);
         return true;
     }
 
-    public async commit(message: string, silent: boolean = false) {
-        const [err] = await to(this.run('commit', ['-m', message], { silent }));
-        if (err) {
-            throw err;
-        }
+    public async commit(message: string, options: RunnerRunOptions) {
+        await this.run('commit', ['-m', message], options);
         return true;
     }
 
-    public async addRemote(name: string, url: string, silent: boolean = false) {
-        const [err] = await to(this.run('remote', ['add', name, url], { silent }));
-        if (err) {
-            throw err;
-        }
+    public async addRemote(name: string, url: string, options: RunnerRunOptions) {
+        await this.run('remote', ['add', name, url], options);
         return true;
     }
 
-    public async push(remote: string, branch: string, silent: boolean = false) {
-        const [err] = await to(this.run('push', [remote, branch], { silent }));
-        if (err) {
-            throw err;
-        }
+    public async push(remote: string, branch: string, options: RunnerRunOptions) {
+        await this.run('push', [remote, branch], options);
         return true;
     }
 
-    public async pull(remote: string, branch: string, silent: boolean = false) {
-        const [err] = await to(this.run('pull', [remote, branch], { silent }));
-        if (err) {
-            throw err;
-        }
+    public async pull(remote: string, branch: string, options: RunnerRunOptions) {
+        await this.run('pull', [remote, branch], options);
         return true;
     }
 }

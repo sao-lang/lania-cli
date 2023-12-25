@@ -5,8 +5,7 @@ import {
     type LinterConfiguration,
     getFileExt,
 } from './linter.util';
-import to from '@utils/to';
-import { readFile, stat, writeFile } from 'fs/promises';
+import { stat } from 'fs/promises';
 
 type TextLinterCheckFileResult = {
     filePath: string;
@@ -30,10 +29,7 @@ type TextLinterSupportFileType = 'txt' | 'md';
 export class TextLinter {
     private handleFileTypes = ['md', 'txt'];
     private async checkFile(filePath: string, linter: ReturnType<typeof createLinter>) {
-        const [lintErr, result] = await to(linter.lintFiles([filePath]));
-        if (lintErr) {
-            throw lintErr;
-        }
+        const result = await linter.lintFiles([filePath]);
         const output = result[0].messages
             .filter(({ severity }) => [1, 2].includes(severity))
             .map(({ loc, message, severity }) => ({
@@ -58,24 +54,16 @@ export class TextLinter {
     ) {
         const results: TextLinterCheckFileResult[] = [];
         const { fileTypes } = options || {};
-        const [traverseFilesErr] = await to(
-            traverseFiles(path, async (filePath) => {
-                const ext = getFileExt(filePath) as TextLinterSupportFileType;
-                if (
-                    (!fileTypes && this.handleFileTypes.includes(ext)) ||
-                    (fileTypes && fileTypes.includes(ext))
-                ) {
-                    const [checkFileErr, result] = await to(this.checkFile(filePath, linter));
-                    if (checkFileErr) {
-                        throw checkFileErr;
-                    }
-                    results.push(result);
-                }
-            }),
-        );
-        if (traverseFilesErr) {
-            throw traverseFilesErr;
-        }
+        await traverseFiles(path, async (filePath) => {
+            const ext = getFileExt(filePath) as TextLinterSupportFileType;
+            if (
+                (!fileTypes && this.handleFileTypes.includes(ext)) ||
+                (fileTypes && fileTypes.includes(ext))
+            ) {
+                const result = await this.checkFile(filePath, linter);
+                results.push(result);
+            }
+        });
         return results;
     }
     public async check(
@@ -87,35 +75,19 @@ export class TextLinter {
         filePaths = Array.isArray(filePaths) ? filePaths : [filePaths];
         const results: TextLinterCheckFileResult[][] = [];
         for (const filePath of filePaths) {
-            const [statErr, stats] = await to(stat(filePath));
-            if (statErr) {
-                throw statErr;
-            }
-            const [getConfigErr, configObject] = await to<Record<string, any>>(
-                getModuleConfig(config),
-            );
-            if (getConfigErr) {
-                throw getConfigErr;
-            }
-            const textLinter =
+            const stats = await stat(filePath);
+            const configObject = await getModuleConfig(config);
+            linter =
                 linter ||
                 createLinter({
                     ignoreFilePath: options.ignorePath,
                     descriptor: await loadTextlintrc(configObject),
                 });
             if (stats.isDirectory()) {
-                const [checkDirErr, result] = await to(
-                    this.checkDir(filePath, textLinter, options),
-                );
-                if (checkDirErr) {
-                    throw checkDirErr;
-                }
+                const result = await this.checkDir(filePath, linter, options);
                 results.push(result);
             } else {
-                const [checkFileErr, result] = await to(this.checkFile(filePath, textLinter));
-                if (checkFileErr) {
-                    throw checkFileErr;
-                }
+                const result = await this.checkFile(filePath, linter);
                 results.push([result]);
             }
         }
@@ -127,18 +99,12 @@ export class TextLinter {
         options?: TextLinterHandleDirOptions,
     ) {
         filePaths = Array.isArray(filePaths) ? filePaths : [filePaths];
-        const [getConfigErr, configObject] = await to<Record<string, any>>(getModuleConfig(config));
-        if (getConfigErr) {
-            throw getConfigErr;
-        }
+        const configObject = await getModuleConfig(config);
         const linter = createLinter({
             ignoreFilePath: options.ignorePath,
             descriptor: await loadTextlintrc(configObject),
         });
-        const [checkErr, results] = await to(this.check(filePaths, configObject, options, linter));
-        if (checkErr) {
-            throw checkErr;
-        }
+        const results = await this.check(filePaths, configObject, options, linter);
         if (!options?.fix) {
             return results;
         }
@@ -147,15 +113,7 @@ export class TextLinter {
                 if (!output || errorCount === 0) {
                     continue;
                 }
-                const [lintErr] = await to(linter.fixFiles([filePath]));
-                if (lintErr) {
-                    throw lintErr;
-                }
-                // const { output: lintOutput, source } = lintContent[0];
-                // const [writeFileErr] = await to(writeFile(filePath, lintOutput || source, 'utf-8'));
-                // if (writeFileErr) {
-                //     throw writeFileErr;
-                // }
+                await linter.lintFiles([filePath]);
             }
         }
         return results;

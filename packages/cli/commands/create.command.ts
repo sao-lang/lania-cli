@@ -1,6 +1,4 @@
 import { PACKAGE_TOOLS } from '@lib/constants/cli.constant';
-import logger from '@utils/logger';
-import to from '@utils/to';
 import { type Command } from 'commander';
 import { mkdir, readdir } from 'fs/promises';
 import path from 'path';
@@ -42,25 +40,13 @@ class CreateAction {
             }
             if (directory) {
                 this.options.directory = directory;
-                const [mkdirErr] = await to(mkdir(`${cwd}/${directory}`, { recursive: true }));
-                if (mkdirErr) {
-                    return {
-                        status: false,
-                        message: mkdirErr.message,
-                    };
-                }
+                await mkdir(`${cwd}/${directory}`, { recursive: true });
                 return {
                     status: true,
                     message: '',
                 };
             }
-            const [readdirErr, files] = await to(readdir(`${cwd}`, { encoding: 'utf-8' }));
-            if (readdirErr) {
-                return {
-                    status: false,
-                    message: readdirErr.message,
-                };
-            }
+            const files = await readdir(cwd, { encoding: 'utf-8' });
             if (files.length > 0) {
                 return {
                     status: false,
@@ -80,13 +66,7 @@ class CreateAction {
         }
         this.options.name = name;
         this.options.directory = directory || name;
-        const [mkdirErr] = await to(mkdir(`${cwd}/${this.options.directory}`, { recursive: true }));
-        if (mkdirErr) {
-            return {
-                status: false,
-                message: mkdirErr.message,
-            };
-        }
+        await mkdir(`${cwd}/${this.options.directory}`, { recursive: true });
         return {
             status: true,
             message: '',
@@ -100,7 +80,7 @@ class CreateAction {
             command.packageManager,
         );
         if (!status) {
-            logger.error(message, true);
+            throw new Error(message);
         }
         new Builder().build({ ...this.options, name });
     }

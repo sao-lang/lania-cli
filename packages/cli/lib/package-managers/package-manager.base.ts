@@ -42,37 +42,19 @@ export default class PackageManager {
     }
 
     private async getPackageJsonContent() {
-        const [readErr, content] = await to(readFile(`${process.cwd()}/package.json`, 'utf-8'));
-        if (readErr) {
-            throw readErr;
-        }
-        return content;
+        return JSON.parse(await readFile(`${process.cwd()}/package.json`, 'utf-8'));
     }
 
     public async install(options: RunnerRunOptions = {}) {
-        const [err, data] = await to(this.run(this.commands.init, [this.flags.initFlag], options));
-        if (err) {
-            throw err;
-        }
-        return data;
+        return await this.run(this.commands.init, [this.flags.initFlag], options);
     }
 
     public async init(options: RunnerRunOptions = {}) {
-        const [err, data] = await to(this.run(this.commands.init, [this.flags.initFlag], options));
-        if (err) {
-            throw err;
-        }
-        return data;
+        return await this.run(this.commands.init, [this.flags.initFlag], options);
     }
 
     private async add(dependencies: string[], flag: string, options: RunnerRunOptions = {}) {
-        const [err, data] = await to(
-            this.run(this.commands.install, [...dependencies, flag], options),
-        );
-        if (err) {
-            throw err;
-        }
-        return data;
+        return await this.run(this.commands.install, [...dependencies, flag], options);
     }
 
     public addInProduction(dependencies: string[], options: RunnerRunOptions = {}) {
@@ -84,21 +66,15 @@ export default class PackageManager {
     }
 
     public async version(options: RunnerRunOptions = {}) {
-        const [err, data] = await to(this.run('--version', [], options));
-        if (err) {
-            throw err;
-        }
-        return data;
+        return await this.run('--version', [], options);
     }
 
     private async update(dependencies: string[], flag: string, options: RunnerRunOptions = {}) {
-        const [err, data] = await to(
-            this.run(this.commands.update, [...dependencies, flag, this.registry], options),
+        return await this.run(
+            this.commands.update,
+            [...dependencies, flag, this.registry],
+            options,
         );
-        if (err) {
-            throw err;
-        }
-        return data;
     }
 
     public async updateInProduction(dependencies: string[], options: RunnerRunOptions = {}) {
@@ -110,50 +86,26 @@ export default class PackageManager {
     }
 
     public async remove(dependencies: string[], options: RunnerRunOptions = {}) {
-        const [err, data] = await to(this.run(this.commands.remove, dependencies, options));
-        if (err) {
-            throw err;
-        }
-        return data;
+        return await this.run(this.commands.remove, dependencies, options);
     }
 
     public async upgradeInProduction(dependencies: string[], options: RunnerRunOptions = {}) {
-        const [removeErr, data1] = await to(this.remove(dependencies, options));
-        if (removeErr) {
-            throw removeErr;
-        }
-        const [addErr, data2] = await to(this.addInProduction(dependencies, options));
-        if (addErr) {
-            throw addErr;
-        }
+        const data1 = await this.remove(dependencies, options);
+        const data2 = await this.addInProduction(dependencies, options);
         return data1 + data2;
     }
 
     public async upgradeInDevelopment(devDependencies: string[], options: RunnerRunOptions = {}) {
-        const [removeErr, data1] = await to(this.remove(devDependencies, options));
-        if (removeErr) {
-            throw removeErr;
-        }
-        const [addErr, data2] = await to(this.addInDevelopment(devDependencies, options));
-        if (addErr) {
-            throw addErr;
-        }
+        const data1 = await this.remove(devDependencies, options);
+        const data2 = await this.addInDevelopment(devDependencies, options);
         return data1 + data2;
     }
 
     public async getDependencies() {
-        const [err, content] = await to(this.getPackageJsonContent());
-        if (err) {
-            throw err;
-        }
-        return JSON.parse(content).dependencies;
+        return (await this.getPackageJsonContent()).dependencies;
     }
 
     public async getDevDependencies() {
-        const [err, content] = await to(this.getPackageJsonContent());
-        if (err) {
-            throw err;
-        }
-        return JSON.parse(content).devDependencies;
+        return (await this.getPackageJsonContent()).devDependencies;
     }
 }

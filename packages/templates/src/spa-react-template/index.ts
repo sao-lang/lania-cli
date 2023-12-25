@@ -1,6 +1,7 @@
 import getPort from 'get-port';
 import { OutputFileTask, Template, type TemplateOptions } from '..';
 import { resolvePath } from '../utils';
+import packageJsonEjs from './templates/package.json.ejs';
 
 export class SpaReactTemplate implements Template {
     public getDependenciesArray(options: TemplateOptions) {
@@ -83,9 +84,10 @@ export class SpaReactTemplate implements Template {
         return [
             () => {
                 return {
-                    templatePath: resolvePath('./templates/package.json.ejs'),
+                    // templatePath: ,
                     options,
                     outputPath: '/package.json',
+                    content: packageJsonEjs,
                 };
             },
             () => {
