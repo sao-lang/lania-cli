@@ -1,5 +1,6 @@
+export default `
 const getBaseUrl = () => {
-    <% if (buildTools.includes('vite')) { %>
+    <% if (buildTool === 'vite') { %>
     if (import.meta.env.ENV === 'development') {
         return 'development'
     }
@@ -10,4 +11,4 @@ const getBaseUrl = () => {
     }
     return 'production';
     <% } %>
-}
+}`;

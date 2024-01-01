@@ -46,7 +46,7 @@ export default class PackageManager {
     }
 
     public async install(options: RunnerRunOptions = {}) {
-        return await this.run(this.commands.init, [this.flags.initFlag], options);
+        return await this.run(this.commands.install, [this.flags.initFlag], options);
     }
 
     public async init(options: RunnerRunOptions = {}) {

@@ -1,3 +1,4 @@
+export default `
 <!doctype html>
 <html lang="en">
 
@@ -12,9 +13,9 @@
 
     <body>
         <div id="root"></div>
-        <% if ((buildTools).includes('vite')) {  %>
+        <% if (buildTool === 'vite') {  %>
             <script type="module" src="/src/main.tsx"></script>
         <% } %>
     </body>
 
-</html>
+</html>`;

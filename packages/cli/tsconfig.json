@@ -12,7 +12,8 @@
             "@compilers/*": ["./lib/compilers/*"],
             "@constants/*": ["lib/constants/*"],
             "@package-manager/*": ["./lib/package-managers/*"],
-            "@configuration/*": ["./lib/configuration/*"]
+            "@configuration/*": ["./lib/configuration/*"],
+            "@engines/*": ["./lib/engines/*"]
         }
     }
 }

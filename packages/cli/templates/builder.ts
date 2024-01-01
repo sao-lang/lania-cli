@@ -8,13 +8,15 @@ import {
 import inquirer, { type Answers } from 'inquirer';
 import { createCheckboxQuestion, createListQuestion } from './questions';
 import to from '@utils/to';
+// @ts-ignore
 import { TemplateFactory, type TemplateOptions, type Template } from '@laniakea/templates';
 import latestVersion from 'latest-version';
 import loading from '@utils/loading';
-import EjsCompiler from '@lib/compilers/ejs.compiler';
+import EjsEngine from '@lib/engines/ejs.engine';
+import PackageManagerFactory from '@lib/package-managers/package-manager.factory';
 
 export class Builder {
-    private options: Record<string, any> = {};
+    private options: TemplateOptions = {} as any;
     private template: Template;
     private async prompt(options: CommandCreateOptions) {
         const templateList = await TemplateFactory.list();
@@ -101,21 +103,22 @@ export class Builder {
         }
         return { dependencies: dependenciesMap, devDependencies: devDependenciesMap };
     }
-    private async outputFiles(options: Record<string, any>) {
-        // @ts-ignore
+    private async outputFiles(options: TemplateOptions) {
         const tasks = this.template.getOutputFileTasks(options);
-        const compiler = new EjsCompiler();
+        const engine = new EjsEngine();
         for (const task of tasks) {
-            // @ts-ignore
             // eslint-disable-next-line prefer-const
-            let { outputPath, options, hide, content } = await task();
+            let { outputPath, options: taskOptions, hide, content } = await task();
             if (hide || !content) {
                 continue;
             }
-            outputPath = options.directory ? `${options.directory}/${outputPath}` : outputPath;
+            outputPath = options.directory ? `${options.directory}${outputPath}` : outputPath;
             await loading(`Generating ${outputPath}...`, async () => {
                 const [compileErr] = await to(
-                    compiler.compile(content, `${process.cwd()}/${outputPath}`, options),
+                    engine.render(content, `${process.cwd()}${outputPath}`, {
+                        ...options,
+                        ...taskOptions,
+                    }),
                 );
                 if (compileErr) {
                     return {
@@ -132,12 +135,32 @@ export class Builder {
             });
         }
     }
+    private async downloadDependencies() {
+        await loading('Downloading dependencies...', async () => {
+            const packageManager = await PackageManagerFactory.create(
+                this.options.packageTool as any,
+            );
+            const [installErr] = await to(packageManager.install({ silent: true }));
+            if (installErr) {
+                return {
+                    error: installErr,
+                    status: 'fail',
+                    message: 'Failed to download dependencies!',
+                };
+            }
+            return {
+                error: null,
+                status: 'succeed',
+                message: 'Successfully downloaded dependencies!',
+            };
+        });
+    }
     public async build(options: CommandCreateOptions) {
         const answers = (await this.prompt(options)) as any;
         this.template = TemplateFactory.create(answers.template);
         this.options = { ...answers, ...options };
         await loading('Preparing dependencies...', async () => {
-            const [getErr, result] = await to(this.getDependencies(answers));
+            const [getErr, result] = await to(this.getDependencies(this.options));
             if (getErr) {
                 return {
                     status: 'fail',
@@ -152,8 +175,8 @@ export class Builder {
                 error: null,
             };
         });
-        // @ts-ignore
-        await this.outputFiles({ ...this.options });
+        await this.outputFiles(this.options);
+        await this.downloadDependencies();
         // console.log({ dependencies, devDependencies });
         // this.options = answers;
     }

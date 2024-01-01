@@ -15,10 +15,7 @@
         "build-template": "gulp --gulpfile scripts/gulpfile.cjs buildTemplate",
         "build": "gulp --gulpfile scripts/gulpfile.cjs build"
     },
-    "dependencies": {
-        "semver": "^7.5.1",
-        "validate-npm-package-name": "^5.0.0"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@changesets/cli": "^2.27.1",
         "@commitlint/cli": "^17.7.1",

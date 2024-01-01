@@ -1,3 +1,4 @@
+export default `
 const path = require('path');
 const { Configuration } = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -27,7 +28,7 @@ const getStyleLoaders = preProcessor => {
     ].filter(Boolean);
 };
 module.exports = {
-    entry: './src/main.<%if (useTs) {%>tsx<% } else { %>jsx<%}%>',
+    entry: './src/main.<%if (language === 'TypeScript') {%>tsx<% } else { %>jsx<%}%>',
     output: {
         path: isProduction ? path.resolve(__dirname, '../dist') : undefined,
         filename: isProduction ? 'static/js/[name].[contenthash:10].js' : 'static/js/[name].js',
@@ -42,15 +43,15 @@ module.exports = {
             {
                 oneOf: [
                     {
-                        test: /\.css$/,
+                        test: /\\.css$/,
                         use: getStyleLoaders(),
                     },
                     <% const postProcessors = ['sass', 'less', 'stylus']; %>
                     <%
                         const cssProcessorRegMap = {
-                            sass: `\.s[ac]ss$`,
-                            less: `\.less$`,
-                            stylus: `\.styl$`,
+                            sass: \`\\.s[ac]ss$\`,
+                            less: \`\\.less$\`,
+                            stylus: \`\\.styl$\`,
                         };
                     %>
                     <%if (useCssProcessor && postProcessors.includes(cssProcessor) ) {%>
@@ -60,7 +61,7 @@ module.exports = {
                         },
                     <%}%>
                     {
-                        test: /\.(png|jpe?g|gif|webp|svg|ico)$/,
+                        test: /\\.(png|jpe?g|gif|webp|svg|ico)$/,
                         type: 'asset',
                         parser: {
                             dataUrlCondition: {
@@ -72,7 +73,7 @@ module.exports = {
                         },
                     },
                     {
-                        test: /\.(woff2?|eot|ttf|otf|mp3|mp4|avi|mkv)$/,
+                        test: /\\.(woff2?|eot|ttf|otf|mp3|mp4|avi|mkv)$/,
                         type: 'asset/resource',
                         generator: {
                             filename: 'media/[name].[hash:8][ext]',
@@ -81,7 +82,7 @@ module.exports = {
                     {
                         oneOf: [
                             {
-                                test: /\.(jsx|js<% if (useTs) {%>|tsx|ts<% } %>)?$/,
+                                test: /\\.(jsx|js<% if (useTs) {%>|tsx|ts<% } %>)?$/,
                                 exclude: /node_modules/,
                                 use: [
                                     { loader: 'thread-loader' },
@@ -91,7 +92,7 @@ module.exports = {
                                             presets: [
                                                 '@babel/preset-env',
                                                 '@babel/preset-react',
-                                                <% if (useTs) { %> '@babel/preset-typescript' <% } %>
+                                                <% if (language === 'TypeScript') { %> '@babel/preset-typescript' <% } %>
                                             ],
                                             cacheDirectory: true,
                                             cacheCompression: false,
@@ -173,7 +174,7 @@ module.exports = {
             },
         },
         runtimeChunk: {
-            name: entrypoint => `runtime-${entrypoint.name}`,
+            name: entrypoint => \`runtime-\${entrypoint.name}\`,
         },
     },
     resolve: {
@@ -197,4 +198,4 @@ module.exports = {
         maxEntrypointSize: 512000,
         maxAssetSize: 512000
     }
-};
+};`;

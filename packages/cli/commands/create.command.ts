@@ -1,4 +1,6 @@
 import { PACKAGE_TOOLS } from '@lib/constants/cli.constant';
+import logger from '@utils/logger';
+import to from '@utils/to';
 import { type Command } from 'commander';
 import { mkdir, readdir } from 'fs/promises';
 import path from 'path';
@@ -67,6 +69,15 @@ class CreateAction {
         this.options.name = name;
         this.options.directory = directory || name;
         await mkdir(`${cwd}/${this.options.directory}`, { recursive: true });
+        // const files = await readdir(cwd, { encoding: 'utf-8' });
+        // if (files.length > 0) {
+        //     return {
+        //         status: false,
+        //         message: `Please make sure there are no files in the ${process.cwd()}/${
+        //             this.options.directory
+        //         }`,
+        //     };
+        // }
         return {
             status: true,
             message: '',
@@ -102,7 +113,10 @@ export default class CreateCommand {
             )
             .alias('-c')
             .action(async (name, command: CommandActionOptions) => {
-                new CreateAction().handle(name, command);
+                const [handleErr] = await to(new CreateAction().handle(name, command));
+                if (handleErr) {
+                    logger.error(handleErr.message, true);
+                }
             });
     }
 }

@@ -1,3 +1,4 @@
+export default `
 {
     "name": "<%= name %>",
     "type": "<%= type %>",
@@ -8,4 +9,4 @@
     "cssProcessor":"<%= cssProcessor %>",
     "buildTools": <%- JSON.stringify(buildTools) %>,
     "frame": "<%= frame %>",
-}
+}`;

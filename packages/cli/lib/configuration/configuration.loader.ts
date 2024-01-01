@@ -18,7 +18,7 @@ export type ConfigurationLoadType =
 
 export default class ConfigurationLoader {
     public async load(
-        moduleName: ConfigurationLoadType | { module: string; searchPlaces: string[] },
+        moduleName: ConfigurationLoadType | { module: string; searchPlaces?: string[] },
         path?: string,
     ) {
         let module = '';

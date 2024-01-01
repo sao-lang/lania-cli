@@ -1,3 +1,4 @@
+export default `
 {
     "compilerOptions": {
         "target": "ES2020",
@@ -22,4 +23,4 @@
     },
     "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
     "exclude": ["node_modules", "dist", "build"]
-}
+}`;

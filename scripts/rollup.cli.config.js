@@ -29,6 +29,7 @@ const resolvePlugins = () => {
                 { find: '@constants', replacement: '../cli/constants' },
                 { find: '@package-managers', replacement: '../cli/lib/package-managers' },
                 { find: '@configuration', replacement: '../cli/lib/configuration' },
+                { find: '@engines', replacement: '../cli/lib/engines' },
             ],
         }),
     ];

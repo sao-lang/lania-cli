@@ -16,10 +16,10 @@ export default class Runner {
                 cwd: options.cwd || process.cwd(),
             });
             const childProcess = $$`${command} ${args.join(' ')}`;
+            let message = '';
             if (isSilent) {
                 childProcess.stdout.on('data', (data) => {
-                    const message = data.toString().replace(/\r\n|\n/, '\n');
-                    return resolve(message);
+                    message += data.toString().replace(/\r\n|\n/, '\n');
                 });
             }
             childProcess.on('error', (err) => {
@@ -27,7 +27,7 @@ export default class Runner {
             });
             childProcess.on('close', (code) => {
                 if (code === 0) {
-                    return resolve(null);
+                    return resolve(isSilent ? message : null);
                 }
                 const err = new Error(`Failed to execute command: ${command}`);
                 return reject(err);

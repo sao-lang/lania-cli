@@ -12,6 +12,9 @@ export interface TemplateOptions {
     lintTools: string[];
     language: 'TypeScript' | 'JavaScript';
     port?: number;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+    template?: string;
     [x: string]: any;
 }
 

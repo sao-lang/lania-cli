@@ -1,12 +1,13 @@
-export default `{
+export default `
+{
     "name": "<%= name %>",
     "version": "1.0.0",
     "main": "index.js",
     "private": true,
     "scripts": {
         <% if (buildTool === 'webpack') { %>"analyzer": "npx webpack-bundle-analyzer ./dist/stats.json",<% } %>
-        "dev": "lan dev",
-        "build": "lan build"
+        "dev": "la dev",
+        "build": "la build"
     },
     "dependencies": {
         <% const dependenciesArray = Object.entries(dependencies); %>
