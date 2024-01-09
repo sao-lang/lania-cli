@@ -60,28 +60,30 @@ const transformPlugin = (fileType: PrettierSupportFileType) => {
     }
 };
 
+const fileTypes: PrettierSupportFileType[] = [
+    'js',
+    'json',
+    'ts',
+    'jsx',
+    'tsx',
+    'vue',
+    'svelte',
+    'css',
+    'html',
+    'scss',
+    'less',
+    'styl',
+    'md',
+    'yaml',
+    'astro',
+    'yml',
+    'ejs',
+];
+
 export default class PrettierLinter extends Linter {
     constructor() {
         const linter = {
-            fileTypes: [
-                'js',
-                'json',
-                'ts',
-                'jsx',
-                'tsx',
-                'vue',
-                'svelte',
-                'css',
-                'html',
-                'scss',
-                'less',
-                'styl',
-                'md',
-                'yaml',
-                'astro',
-                'yml',
-                'ejs',
-            ] as PrettierSupportFileType[],
+            fileTypes,
             lint: async (config: LinterConfiguration) => {
                 const configObject = getModuleConfig(config);
                 return async (path: string) => {
@@ -125,6 +127,9 @@ export default class PrettierLinter extends Linter {
             },
         };
         super(linter);
+    }
+    public static listFileTypes() {
+        return fileTypes;
     }
     public static async formatContent(
         content: string,

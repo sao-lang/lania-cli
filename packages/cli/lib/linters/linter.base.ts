@@ -21,7 +21,7 @@ export interface LinterHandleDirOptions {
     ignorePath?: string;
     fileTypes?: string[];
 }
-export interface LinterInterface {
+export interface BaseLinterInterface {
     fix: (
         config: LinterConfiguration,
         options?: LinterHandleDirOptions,
@@ -33,8 +33,8 @@ export interface LinterInterface {
     fileTypes: string[];
 }
 export default class Linter {
-    private linter: LinterInterface;
-    constructor(linter: LinterInterface) {
+    private linter: BaseLinterInterface;
+    constructor(linter: BaseLinterInterface) {
         this.linter = linter;
     }
     private async lintDir(
