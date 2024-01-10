@@ -8,7 +8,6 @@ export interface RunnerRunOptions {
 export default class Runner {
     public async run(command: string, args: string[] = [], options: RunnerRunOptions = {}) {
         return new Promise((resolve: (value: string) => void, reject) => {
-            // console.log({ command, args, options });
             const isSilent = options.silent === true;
             const $$ = $({
                 shell: true,

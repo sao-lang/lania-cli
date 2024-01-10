@@ -94,8 +94,8 @@ export default class ConfigurationLoader {
             searchPlaces = moduleName.searchPlaces;
         }
         const result = await cosmiconfig(module, { searchPlaces }).search(path);
-        if (result?.isEmpty) {
-            throw new Error('No configuration found!');
+        if (!result || result?.isEmpty) {
+            return {} as Record<string, any>;
         }
         return result.config as Record<string, any>;
     }

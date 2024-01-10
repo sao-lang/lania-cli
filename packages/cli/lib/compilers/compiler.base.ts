@@ -1,9 +1,11 @@
 import ConfigurationLoader, {
-    ConfigurationLoadType,
+    type ConfigurationLoadType,
 } from '@lib/configuration/configuration.loader';
+import deepmerge from 'deepmerge';
+import path from 'path';
 export interface ConfigOption {
     module: ConfigurationLoadType | { module: string; searchPlaces?: string[] };
-    configDir?: string;
+    configPath?: string;
 }
 
 export interface BaseCompilerInterface<Config = Record<string, any>, BuildOutput = any> {
@@ -12,10 +14,10 @@ export interface BaseCompilerInterface<Config = Record<string, any>, BuildOutput
     closeServer: () => void;
 }
 
-export default class Compiler {
+export default class Compiler<Config = any> {
     private configOption: ConfigOption;
     private config: Record<string, any> = {};
-    private baseCompiler: BaseCompilerInterface;
+    private baseCompiler: BaseCompilerInterface<Config>;
     constructor(
         baseCompiler: BaseCompilerInterface,
         option: ConfigOption,
@@ -26,14 +28,30 @@ export default class Compiler {
         this.config = { ...config };
     }
     private async getConfig() {
-        const { module, configDir } = this.configOption;
-        const config = await new ConfigurationLoader().load(module, configDir);
-        return { ...this.config, ...config };
+        const { module, configPath } = this.configOption || {};
+
+        if (!module) {
+            return this.config;
+        }
+        if (configPath && typeof module === 'string') {
+            const dirname = path.dirname(configPath);
+            const basename = path.basename(configPath);
+            const configResult = await new ConfigurationLoader().load(
+                { module, searchPlaces: [basename] },
+                dirname,
+            );
+            return { ...configResult, ...this.config };
+        }
+        const configResult = await new ConfigurationLoader().load(module, configPath);
+        return configResult;
     }
-    public async build(baseConfig: Record<string, any> = {}) {
+    public async build(baseConfig?: Config) {
         const config = await this.getConfig();
-        await this.baseCompiler.build({ ...config, ...baseConfig });
+        return await this.baseCompiler.build({ ...config, ...baseConfig } as Config);
     }
-    public createServer() {}
+    public async createServer(baseConfig?: Config) {
+        const config = await this.getConfig();
+        await this.baseCompiler.createServer({ ...config, ...(baseConfig || {}) } as Config);
+    }
     public closeServer() {}
 }

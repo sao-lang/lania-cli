@@ -177,7 +177,5 @@ export class Builder {
         });
         await this.outputFiles(this.options);
         await this.downloadDependencies();
-        // console.log({ dependencies, devDependencies });
-        // this.options = answers;
     }
 }

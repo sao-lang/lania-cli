@@ -1,41 +1,42 @@
-import vite, { type InlineConfig, build } from 'vite';
-import Compiler, { type ConfigOption, type BaseCompilerInterface } from './compiler.base';
-export default class ViteCompiler extends Compiler {
-    constructor(configOption?: ConfigOption, config: Record<string, any> = {}) {
-        const baseCompiler: BaseCompilerInterface = {
-            build: async (config: InlineConfig) => {
-                const output = await build(config);
+import {
+    type InlineConfig,
+    build as viteBuild,
+    createServer as viteCreateServer,
+    type ViteDevServer,
+} from 'vite';
+import Compiler, { type BaseCompilerInterface } from './compiler.base';
+import { type ConfigurationLoadType } from '@lib/configuration/configuration.loader';
+export default class ViteCompiler extends Compiler<InlineConfig> {
+    constructor(
+        configOption?: {
+            module?: ConfigurationLoadType | { module: string; searchPlaces?: string[] };
+            configPath?: string;
+        },
+        config?: InlineConfig,
+    ) {
+        let server: ViteDevServer | null;
+        const baseCompiler: BaseCompilerInterface<InlineConfig> = {
+            build: async (config: InlineConfig = {}) => {
+                const output = await viteBuild(config);
                 return output;
             },
-            createServer: (config: Record<string, any>) => {},
-            closeServer: () => {},
+            async createServer(this: typeof baseCompiler, config: InlineConfig = {}) {
+                await this.closeServer();
+                server = await viteCreateServer(config);
+                await server.listen();
+                server.printUrls();
+            },
+            closeServer: async () => {
+                if (server) {
+                    await await server.close();
+                }
+            },
         };
-        super(baseCompiler, configOption || { module: 'vite' }, config);
+        const { module, configPath } = configOption || {};
+        super(
+            baseCompiler,
+            !module ? { module: 'vite', configPath } : { module, configPath },
+            config,
+        );
     }
-    // public async build() {
-    //     const originalConsoleLog = console.log;
-    //     const originalConsoleError = console.error;
-
-    //     // 重写 console.log
-    //     console.log = function (...args) {
-    //         // 在这里实现自定义输出逻辑，例如将日志写入文件等
-    //         // args 是传递给 console.log 的参数数组
-    //         // originalConsoleLog.apply(console);
-    //     };
-
-    //     // 重写 console.error
-    //     console.error = function (...args) {
-    //         // 在这里实现自定义输出逻辑，例如将错误信息发送到远程服务
-    //         // args 是传递给 console.error 的参数数组
-    //         // originalConsoleError.apply(console, args);
-    //     };
-
-    //     const config = await getModuleConfig('vite');
-    //     const output = await build({ ...config, build: { ...(config.build || {}) } });
-    //     // output
-    //     originalConsoleLog(output);
-    //     // (output as Rollup.RollupWatcher).on('change', (data) => {
-    //     //     console.log({ data });
-    //     // });
-    // }
 }

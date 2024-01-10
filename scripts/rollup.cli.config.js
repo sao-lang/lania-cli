@@ -3,19 +3,18 @@ import nodeResolve from '@rollup/plugin-node-resolve';
 import cjs from '@rollup/plugin-commonjs';
 import ts from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
-import path from 'path';
 import packageJsonContent from '../packages/cli/package.json' assert { type: 'json', integrity: 'sha384-ABC123' };
 import alias from '@rollup/plugin-alias';
-import { __dirname } from './utils.js';
+import { resolvePath } from './utils.js';
 
-const resolvePath = (subPath) => {
-    return path.resolve(path.resolve(__dirname, '../packages/cli'), subPath);
+const resolveSubPath = (subPath) => {
+    return resolvePath('cli', subPath);
 };
 
 const resolvePlugins = () => {
     return [
         json(),
-        ts({ tsconfig: resolvePath('tsconfig.json') }),
+        ts({ tsconfig: resolveSubPath('tsconfig.json') }),
         cjs(),
         nodeResolve({ preferBuiltins: true }),
         alias({
@@ -34,14 +33,14 @@ const resolvePlugins = () => {
         }),
     ];
 };
-const input = resolvePath('commands/index.ts');
+const input = resolveSubPath('commands/index.ts');
 const external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs', 'net'];
 
 export default defineConfig([
     {
         input,
         output: {
-            file: resolvePath('dist/src/index.js'),
+            file: resolveSubPath('dist/src/index.js'),
             format: 'es',
         },
         external,
@@ -50,7 +49,7 @@ export default defineConfig([
     {
         input,
         output: {
-            file: resolvePath('dist/src/index.cjs'),
+            file: resolveSubPath('dist/src/index.cjs'),
             format: 'cjs',
         },
         external,

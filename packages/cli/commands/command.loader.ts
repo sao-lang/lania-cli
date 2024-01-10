@@ -1,12 +1,15 @@
 import { type Command } from 'commander';
 import CreateCommand from './create.command';
 import logger from '@utils/logger';
+// @ts-ignore
 import BuildCommand from './build.command';
+import DevCommand from './dev.command';
 
 export default class CommandLoader {
     public static load(program: Command) {
         new CreateCommand().load(program);
         new BuildCommand().load(program);
+        new DevCommand().load(program);
         this.handleInvalidCommand(program);
     }
 
