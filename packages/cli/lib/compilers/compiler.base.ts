@@ -1,7 +1,6 @@
 import ConfigurationLoader, {
     type ConfigurationLoadType,
 } from '@lib/configuration/configuration.loader';
-import deepmerge from 'deepmerge';
 import path from 'path';
 export interface ConfigOption {
     module: ConfigurationLoadType | { module: string; searchPlaces?: string[] };
@@ -10,8 +9,8 @@ export interface ConfigOption {
 
 export interface BaseCompilerInterface<Config = Record<string, any>, BuildOutput = any> {
     build: (config: Config) => BuildOutput | Promise<BuildOutput>;
-    createServer: (config: Record<string, any>) => void | Promise<void>;
-    closeServer: () => void;
+    createServer?: (config: Record<string, any>) => Promise<void | boolean>;
+    closeServer?: () => void;
 }
 
 export default class Compiler<Config = any> {
@@ -47,11 +46,13 @@ export default class Compiler<Config = any> {
     }
     public async build(baseConfig?: Config) {
         const config = await this.getConfig();
-        return await this.baseCompiler.build({ ...config, ...baseConfig } as Config);
+        return await this.baseCompiler.build({ ...(baseConfig || {}), ...config } as Config);
     }
     public async createServer(baseConfig?: Config) {
         const config = await this.getConfig();
-        await this.baseCompiler.createServer({ ...config, ...(baseConfig || {}) } as Config);
+        await this.baseCompiler?.createServer({ ...(baseConfig || {}), ...config } as Config);
     }
-    public closeServer() {}
+    public async closeServer() {
+        await this.baseCompiler?.closeServer();
+    }
 }

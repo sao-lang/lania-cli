@@ -1,5 +1,5 @@
 import getPort from 'get-port';
-import { OutputFileTask, Template, type TemplateOptions } from '..';
+import { type OutputFileTask, type Template, type TemplateOptions } from '..';
 import packageJsonEjs from './templates/package.json.ejs';
 import AppJsxEjs from './templates/App.jsx.ejs';
 import AppTsxEjs from './templates/App.tsx.ejs';
@@ -26,6 +26,7 @@ import envDevelopment from './templates/.env.development.ejs';
 import envProduction from './templates/.env.production.ejs';
 import configJsEjs from './templates/config.js.ejs';
 import configTsEjs from './templates/config.ts.ejs';
+import lanConfigJsonEjs from './templates/lan.config.json.ejs';
 
 export class SpaReactTemplate implements Template {
     public getDependenciesArray(options: TemplateOptions) {
@@ -234,6 +235,13 @@ export class SpaReactTemplate implements Template {
                     options,
                     outputPath: `/config/index.${jsExtName}`,
                     content: jsExtName === 'js' ? configJsEjs : configTsEjs,
+                };
+            },
+            () => {
+                return {
+                    options,
+                    outputPath: '/lan.config.json',
+                    content: lanConfigJsonEjs,
                 };
             },
         ] as (() => OutputFileTask)[] | (() => Promise<OutputFileTask>)[];

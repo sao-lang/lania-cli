@@ -5,8 +5,7 @@ export default `
     "repository": "",
     "packageTool": "<%= packageTool %>",
     "lintTools": [],
-    "useCssProcessor": "<%= useCssProcessor  %>",
     "cssProcessor":"<%= cssProcessor %>",
-    "buildTools": <%- JSON.stringify(buildTools) %>,
+    "buildTool": <%= buildTool %>,
     "frame": "<%= frame %>",
 }`;
