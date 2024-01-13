@@ -19,7 +19,7 @@ export default class Compiler<Config = any> {
     private baseCompiler: BaseCompilerInterface<Config>;
     constructor(
         baseCompiler: BaseCompilerInterface,
-        option: ConfigOption,
+        option?: ConfigOption,
         config: Record<string, any> = {},
     ) {
         this.baseCompiler = baseCompiler;
@@ -27,8 +27,10 @@ export default class Compiler<Config = any> {
         this.config = { ...config };
     }
     private async getConfig() {
+        if (!this.configOption) {
+            return {};
+        }
         const { module, configPath } = this.configOption || {};
-
         if (!module) {
             return this.config;
         }

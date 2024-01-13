@@ -3,9 +3,9 @@ import WebpackCompiler from '@lib/compilers/webpack.compiler';
 import logger from '@utils/logger';
 import to from '@utils/to';
 import { Command } from 'commander';
-import path from 'path';
 import { getLanConfig } from './command.util';
 import TscCompiler from '@lib/compilers/tsc.compiler';
+import RollupCompiler from '@lib/compilers/rollup.compiler';
 
 class BuildAction {
     public async handle(watch: boolean, configPath: string, lanConfigPath: string) {
@@ -21,10 +21,18 @@ class BuildAction {
                 await compiler.build({ watch });
                 break;
             }
+            case 'tsc': {
+                const compiler = new TscCompiler({ configPath });
+                compiler.build({ watch });
+                break;
+            }
+            case 'rollup': {
+                const compiler = new RollupCompiler({ configPath });
+                await compiler.build({ watch: watch ? {} : null });
+                break;
+            }
             default: {
-                const compiler = new TscCompiler();
-                compiler.build();
-                // throw new Error('Unknown build tool!');
+                throw new Error('Unknown build tool!');
             }
         }
     }

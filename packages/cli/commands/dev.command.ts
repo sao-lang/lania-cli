@@ -28,6 +28,11 @@ class DevAction {
                 await compiler.createServer({ devServer });
                 break;
             }
+            case 'rollup':
+            case 'tsc': {
+                logger.warning('The current packaging tool does not support the dev command!');
+                break;
+            }
             default: {
                 throw new Error('Unknown build tool!');
             }

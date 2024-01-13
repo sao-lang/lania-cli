@@ -1,4 +1,5 @@
 import { PACKAGE_TOOLS } from '@lib/constants/cli.constant';
+import GitRunner from '@runners/git.runner';
 import logger from '@utils/logger';
 import to from '@utils/to';
 import { type Command } from 'commander';
@@ -69,15 +70,6 @@ class CreateAction {
         this.options.name = name;
         this.options.directory = directory || name;
         await mkdir(`${cwd}/${this.options.directory}`, { recursive: true });
-        // const files = await readdir(cwd, { encoding: 'utf-8' });
-        // if (files.length > 0) {
-        //     return {
-        //         status: false,
-        //         message: `Please make sure there are no files in the ${process.cwd()}/${
-        //             this.options.directory
-        //         }`,
-        //     };
-        // }
         return {
             status: true,
             message: '',
@@ -93,7 +85,10 @@ class CreateAction {
         if (!status) {
             throw new Error(message);
         }
-        new Builder().build({ ...this.options, name });
+        await new Builder().build({ ...this.options, name });
+        if (!command.skipGit) {
+            await new GitRunner().init({ silent: true });
+        }
     }
 }
 

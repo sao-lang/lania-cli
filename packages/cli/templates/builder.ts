@@ -158,7 +158,11 @@ export class Builder {
     public async build(options: CommandCreateOptions) {
         const answers = (await this.prompt(options)) as any;
         this.template = TemplateFactory.create(answers.template);
-        this.options = { ...answers, ...options };
+        this.options = {
+            ...answers,
+            ...options,
+            packageTool: options.packageManager || answers.packageTool,
+        };
         await loading('Preparing dependencies...', async () => {
             const [getErr, result] = await to(this.getDependencies(this.options));
             if (getErr) {
@@ -176,6 +180,6 @@ export class Builder {
             };
         });
         await this.outputFiles(this.options);
-        await this.downloadDependencies();
+        !options.skipInstall && (await this.downloadDependencies());
     }
 }
