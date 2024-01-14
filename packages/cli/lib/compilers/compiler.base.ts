@@ -2,6 +2,7 @@ import ConfigurationLoader, {
     type ConfigurationLoadType,
 } from '@lib/configuration/configuration.loader';
 import path from 'path';
+import { mergeConfig } from 'vite';
 export interface ConfigOption {
     module: ConfigurationLoadType | { module: string; searchPlaces?: string[] };
     configPath?: string;
@@ -48,11 +49,15 @@ export default class Compiler<Config = any> {
     }
     public async build(baseConfig?: Config) {
         const config = await this.getConfig();
-        return await this.baseCompiler.build({ ...(baseConfig || {}), ...config } as Config);
+        return await this.baseCompiler.build(
+            (baseConfig ? mergeConfig(baseConfig as any, config) : config) as Config,
+        );
     }
     public async createServer(baseConfig?: Config) {
         const config = await this.getConfig();
-        await this.baseCompiler?.createServer({ ...(baseConfig || {}), ...config } as Config);
+        await this.baseCompiler?.createServer(
+            (baseConfig ? mergeConfig(baseConfig as any, config) : config) as Config,
+        );
     }
     public async closeServer() {
         await this.baseCompiler?.closeServer();
