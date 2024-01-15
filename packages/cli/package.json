@@ -14,7 +14,6 @@
     "author": "",
     "dependencies": {
         "@laniakea/templates": "workspace:^",
-        "@vitejs/plugin-react": "^4.2.1",
         "chalk": "^3.0.0",
         "commander": "^10.0.1",
         "cosmiconfig": "^9.0.0",

@@ -2,7 +2,21 @@ import ConfigurationLoader, {
     type ConfigurationLoadType,
 } from '@lib/configuration/configuration.loader';
 import path from 'path';
-import { mergeConfig } from 'vite';
+import { mergeConfig as mergeViteConfig } from 'vite';
+import mergeWebpackConfig from 'webpack-merge';
+import deepmerge from 'deepmerge';
+
+const getMerge = (options: ConfigOption) => {
+    const { module } = options.module as { module: string; searchPlaces?: string[] };
+    if (['vite', 'rollup'].includes(module)) {
+        return mergeViteConfig as any;
+    } else if (module === 'webpack') {
+        return mergeWebpackConfig as any;
+    } else {
+        return deepmerge as any;
+    }
+};
+
 export interface ConfigOption {
     module: ConfigurationLoadType | { module: string; searchPlaces?: string[] };
     configPath?: string;
@@ -48,12 +62,14 @@ export default class Compiler<Config = any> {
         return configResult;
     }
     public async build(baseConfig?: Config) {
+        const mergeConfig = getMerge(this.configOption);
         const config = await this.getConfig();
         return await this.baseCompiler.build(
             (baseConfig ? mergeConfig(baseConfig as any, config) : config) as Config,
         );
     }
     public async createServer(baseConfig?: Config) {
+        const mergeConfig = getMerge(this.configOption);
         const config = await this.getConfig();
         await this.baseCompiler?.createServer(
             (baseConfig ? mergeConfig(baseConfig as any, config) : config) as Config,

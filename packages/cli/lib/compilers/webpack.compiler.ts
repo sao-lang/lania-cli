@@ -130,8 +130,7 @@ export default class WebpackCompiler extends Compiler<Configuration> {
                 this.closeServer();
                 return new Promise((resolve) => {
                     const compiler = webpack(config);
-                    const { devServer } = config;
-                    server = new DevServer(devServer, compiler);
+                    server = new DevServer(config.devServer, compiler);
                     logOnBuild(compiler, {
                         onDone: (stats) => {
                             const { time, version, assets, outputPath } = stats.toJson();
