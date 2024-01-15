@@ -1,39 +1,14 @@
 import Compiler, { type BaseCompilerInterface } from './compiler.base';
 import { type ConfigurationLoadType } from '@lib/configuration/configuration.loader';
+logOnBuildWebpackPlugin;
 import logger from '@utils/logger';
 import text from '@utils/text';
 import path from 'path';
-import webpack, {
-    type StatsError,
-    type Configuration,
-    type StatsAsset,
-    type Stats,
-    type Compiler as WebpackOriCompiler,
-} from 'webpack';
+import webpack, { type Configuration, type StatsAsset } from 'webpack';
 import DevServer from 'webpack-dev-server';
+import { logOnBuildWebpackPlugin } from './compiler.plugin';
 
-interface LogOnBuildOptions {
-    onDone?: (stats: Stats) => void;
-    onWatch?: (compiler: WebpackOriCompiler) => void;
-    onBeforeRun?: (compiler: WebpackOriCompiler) => void;
-}
-
-const logWebpackErrors = (errors: StatsError[], isWarning: boolean = false) => {
-    errors.forEach(({ moduleIdentifier, message }, index) => {
-        if (moduleIdentifier) {
-            const filenameModifiedText = text(moduleIdentifier.replace(/\\/g, '/'), {
-                color: '#28b8db',
-            });
-            logger.bold(`file: ${filenameModifiedText}`);
-            logger.warning(message);
-        }
-        if (!isWarning) {
-            logger.error(message, index === errors.length - 1);
-        }
-    });
-};
-
-const logWebpackBundles = (assets: StatsAsset[], outputPath: string) => {
+export const logWebpackBundles = (assets: StatsAsset[], outputPath: string) => {
     assets.forEach(({ name, size }) => {
         const filename = `${path.basename(outputPath)}/${name}`;
         const fileSize = (size / 1024).toFixed(2);
@@ -43,29 +18,6 @@ const logWebpackBundles = (assets: StatsAsset[], outputPath: string) => {
             color: '#7a7c80',
         });
         logger.log(`${filenameModifiedText}  ${fileSizeModifiedText}`);
-    });
-};
-
-const logOnBuild = (compiler: WebpackOriCompiler, options?: LogOnBuildOptions) => {
-    const name = 'logOnBuild';
-    compiler.hooks.watchRun.tap(name, (watcher) => {
-        options.onWatch?.(watcher);
-    });
-    compiler.hooks.failed.tap(name, (err) => {
-        logger.error(err.message);
-    });
-    compiler.hooks.beforeRun.tap(name, (compiler) => {
-        options.onBeforeRun?.(compiler);
-    });
-    compiler.hooks.done.tap(name, (stats) => {
-        const { errors, warnings } = stats.toJson();
-        if (warnings) {
-            logWebpackErrors(warnings, true);
-        }
-        if (errors) {
-            logWebpackErrors(errors);
-        }
-        options.onDone?.(stats);
     });
 };
 
@@ -82,7 +34,7 @@ export default class WebpackCompiler extends Compiler<Configuration> {
             build: (config: Configuration = {}) => {
                 return new Promise((resolve) => {
                     const compiler = webpack(config, () => {});
-                    logOnBuild(compiler, {
+                    logOnBuildWebpackPlugin(compiler, {
                         onDone: (stats) => {
                             const { time, version, assets, outputPath } = stats.toJson();
                             if (!config.watch) {
@@ -131,7 +83,7 @@ export default class WebpackCompiler extends Compiler<Configuration> {
                 return new Promise((resolve) => {
                     const compiler = webpack(config);
                     server = new DevServer(config.devServer, compiler);
-                    logOnBuild(compiler, {
+                    logOnBuildWebpackPlugin(compiler, {
                         onDone: (stats) => {
                             const { time, version, assets, outputPath } = stats.toJson();
                             if (!config.watch) {

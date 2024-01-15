@@ -5,21 +5,12 @@ import to from '@utils/to';
 import fs from 'fs';
 import path from 'path';
 
-import { type RollupOptions, rollup, OutputBundle, Plugin, NormalizedOutputOptions } from 'rollup';
+import { type RollupOptions, rollup, OutputBundle } from 'rollup';
 import logger from '@utils/logger';
 import { mergeConfig } from 'vite';
+import { LogOnBuildRollupPluginOptions, logOnBuildRollupPlugin } from './compiler.plugin';
 
-interface LogOnBuildOptions {
-    onBuildEnd?: () => void | Promise<void>;
-    onWriteBundleEnd?: () => void | Promise<void>;
-    onWriteBundle?: (
-        options: NormalizedOutputOptions,
-        bundle: OutputBundle,
-    ) => void | Promise<void>;
-    onBuildStart?: () => void | Promise<void>;
-}
-
-const logViteBundle = async (dir: string, bundle: OutputBundle) => {
+const logRollupBundle = async (dir: string, bundle: OutputBundle) => {
     for (const key of Object.keys(bundle)) {
         const { fileName } = bundle[key];
         const [error, stats] = await to(fs.promises.stat(`${dir}/${fileName}`));
@@ -40,33 +31,6 @@ const logViteBundle = async (dir: string, bundle: OutputBundle) => {
     }
 };
 
-const logOnBuild = (options?: LogOnBuildOptions): Plugin => {
-    return {
-        name: 'logOnBuild',
-        async buildStart() {
-            await options.onBuildStart?.();
-        },
-        async buildEnd(error) {
-            if (error) {
-                logger.error(error.message);
-                return;
-            }
-            await options.onBuildEnd?.();
-        },
-        async writeBundle(outputOptions, bundle) {
-            await options.onWriteBundle?.(outputOptions, bundle);
-            await options.onWriteBundleEnd?.();
-        },
-        watchChange(id) {
-            const dirname = path.dirname(id);
-            if (['.history', 'node_modules'].some((dir) => dirname.includes(dir))) {
-                return;
-            }
-            logger.log(`${id} changed`);
-        },
-    };
-};
-
 export default class RollupCompiler extends Compiler<RollupOptions> {
     constructor(
         configOption?: {
@@ -78,7 +42,7 @@ export default class RollupCompiler extends Compiler<RollupOptions> {
         const baseCompiler: BaseCompilerInterface<RollupOptions> = {
             build: async (config: RollupOptions = {}) => {
                 const prevDate = new Date().getTime();
-                const logOnBuildOptions: LogOnBuildOptions = {
+                const logOnBuildOptions: LogOnBuildRollupPluginOptions = {
                     onWriteBundleEnd: () => {
                         if (!configuration.watch) {
                             const now = new Date().getTime();
@@ -89,7 +53,7 @@ export default class RollupCompiler extends Compiler<RollupOptions> {
                     },
                     onWriteBundle: async ({ dir }, bundle) => {
                         if (!configuration.watch) {
-                            await logViteBundle(dir, bundle);
+                            await logRollupBundle(dir, bundle);
                         }
                     },
                     onBuildStart: () => {
@@ -100,7 +64,7 @@ export default class RollupCompiler extends Compiler<RollupOptions> {
                 };
 
                 const configuration: RollupOptions = mergeConfig(
-                    { plugins: [logOnBuild(logOnBuildOptions)] },
+                    { plugins: [logOnBuildRollupPlugin(logOnBuildOptions)] },
                     config,
                 );
                 const output = await rollup(configuration);

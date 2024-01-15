@@ -5,7 +5,6 @@ import {
     type ViteDevServer,
     createLogger,
     mergeConfig,
-    type PluginOption,
 } from 'vite';
 import Compiler, { type BaseCompilerInterface } from './compiler.base';
 import { type ConfigurationLoadType } from '@lib/configuration/configuration.loader';
@@ -15,23 +14,13 @@ import fs from 'fs';
 import to from '@utils/to';
 import text from '@utils/text';
 import loading from '@utils/loading';
-import { type NormalizedOutputOptions, type OutputBundle } from 'rollup';
-
-interface LogOnBuildOptions {
-    onBuildEnd?: () => void | Promise<void>;
-    onWriteBundleEnd?: () => void | Promise<void>;
-    onWriteBundle?: (
-        options: NormalizedOutputOptions,
-        bundle: OutputBundle,
-    ) => void | Promise<void>;
-    onBuildStart?: () => void | Promise<void>;
-}
+import { type OutputBundle } from 'rollup';
+import { LogOnBuildRollupPluginOptions, logOnBuildRollupPlugin } from './compiler.plugin';
 
 const customLogger = createLogger();
 customLogger.error = () => {};
 customLogger.warn = () => {};
 customLogger.info = () => {};
-const baseConfig = { customLogger, logLevel: 'silent' } as InlineConfig;
 const logViteBundle = async (dir: string, bundle: OutputBundle) => {
     for (const key of Object.keys(bundle)) {
         const { fileName } = bundle[key];
@@ -52,36 +41,15 @@ const logViteBundle = async (dir: string, bundle: OutputBundle) => {
         }
     }
 };
-const logOnBuild = (options?: LogOnBuildOptions): PluginOption => {
-    return {
-        name: 'logOnBuild',
-        config(config) {
-            return mergeConfig(config, { logLevel: 'silent', customLogger } as InlineConfig);
-        },
-        async buildStart() {
-            await options.onBuildStart?.();
-        },
-        async buildEnd(error) {
-            if (error) {
-                logger.error(error.message);
-                return;
-            }
-            await options.onBuildEnd?.();
-        },
-        async writeBundle(outputOptions, bundle) {
-            await options.onWriteBundle?.(outputOptions, bundle);
-            await options.onWriteBundleEnd?.();
-        },
-        watchChange(id) {
-            const dirname = path.dirname(id);
-            if (['.history', 'node_modules'].some((dir) => dirname.includes(dir))) {
-                return;
-            }
-            logger.log(`${id} changed`);
-        },
-    };
-};
 
+const pluginConfigOption = {
+    config(config) {
+        return mergeConfig(config, {
+            logLevel: 'silent',
+            customLogger,
+        });
+    },
+};
 export default class ViteCompiler extends Compiler<InlineConfig> {
     constructor(
         configOption?: {
@@ -94,7 +62,7 @@ export default class ViteCompiler extends Compiler<InlineConfig> {
         const prevDate = new Date().getTime();
         const baseCompiler: BaseCompilerInterface<InlineConfig> = {
             build: async (config: InlineConfig = {}) => {
-                const logOnBuildOptions: LogOnBuildOptions = {
+                const logOnBuildOptions: LogOnBuildRollupPluginOptions = {
                     onWriteBundleEnd: () => {
                         if (!configuration.build.watch) {
                             const now = new Date().getTime();
@@ -115,9 +83,14 @@ export default class ViteCompiler extends Compiler<InlineConfig> {
                     },
                 };
                 const configuration: InlineConfig = mergeConfig(
-                    mergeConfig(baseConfig, {
-                        plugins: [logOnBuild(logOnBuildOptions)],
-                    } as InlineConfig),
+                    {
+                        plugins: [
+                            {
+                                ...logOnBuildRollupPlugin(logOnBuildOptions),
+                                ...pluginConfigOption,
+                            },
+                        ],
+                    } as InlineConfig,
                     config,
                 );
                 const output = await build(configuration);
@@ -126,7 +99,7 @@ export default class ViteCompiler extends Compiler<InlineConfig> {
             },
             async createServer(this: typeof baseCompiler, config: InlineConfig = {}) {
                 await this.closeServer();
-                const logOnBuildOptions: LogOnBuildOptions = {
+                const logOnBuildOptions: LogOnBuildRollupPluginOptions = {
                     onBuildStart: () => {
                         if (server) {
                             logger.log('Watching for file changing!');
@@ -134,9 +107,11 @@ export default class ViteCompiler extends Compiler<InlineConfig> {
                     },
                 };
                 const configuration = mergeConfig(
-                    mergeConfig(baseConfig, {
-                        plugins: [logOnBuild(logOnBuildOptions)],
-                    } as InlineConfig),
+                    {
+                        plugins: [
+                            { ...logOnBuildRollupPlugin(logOnBuildOptions), ...pluginConfigOption },
+                        ],
+                    },
                     config,
                 );
                 server = await createServer(configuration);
