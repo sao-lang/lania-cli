@@ -8,8 +8,7 @@ import {
 import inquirer, { type Answers } from 'inquirer';
 import { createCheckboxQuestion, createListQuestion } from './questions';
 import to from '@utils/to';
-// @ts-ignore
-import { TemplateFactory, type TemplateOptions, type Template } from '@laniakea/templates';
+import { TemplateFactory, type TemplateOptions, type Template } from '@lania/templates';
 import latestVersion from 'latest-version';
 import loading from '@utils/loading';
 import EjsEngine from '@lib/engines/ejs.engine';

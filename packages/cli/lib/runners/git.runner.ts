@@ -1,7 +1,7 @@
 import Runner, { RunnerRunOptions } from './runner.base';
 
 export default class GitRunner {
-    private runner: Runner;
+    private runner: Runner = new Runner();
     private run(command: string, args: string[] = [], options: RunnerRunOptions = {}) {
         return this.runner.run(`git ${command}`, args, options);
     }

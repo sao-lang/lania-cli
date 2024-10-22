@@ -1,5 +1,5 @@
 {
-    "name": "@laniakea/cli",
+    "name": "@lania/cli",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -7,13 +7,20 @@
         "cli"
     ],
     "bin": {
-        "la": "./bin/index.js"
+        "l": "./bin/index.js"
+    },
+    "files": [
+        "dist",
+        "bin"
+    ],
+    "publishConfig": {
+        "access": "public"
     },
     "type": "module",
     "scripts": {},
     "author": "",
     "dependencies": {
-        "@laniakea/templates": "workspace:^",
+        "@lania/templates": "workspace:^",
         "chalk": "^3.0.0",
         "commander": "^10.0.1",
         "cosmiconfig": "^9.0.0",

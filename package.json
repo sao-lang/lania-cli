@@ -1,6 +1,6 @@
 {
-    "name": "@laniakea",
-    "version": "1.0.0",
+    "name": "@lania/cli",
+    "version": "0.0.1",
     "type": "module",
     "scripts": {
         "lint-staged": "lint-staged",

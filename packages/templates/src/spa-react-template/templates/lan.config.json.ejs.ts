@@ -1,11 +1,11 @@
 export default `
 {
     "name": "<%= name %>",
-    "type": "<%= type %>",
+    "type": "spa",
     "repository": "",
     "packageTool": "<%= packageTool %>",
     "lintTools": [],
     "cssProcessor":"<%= cssProcessor %>",
-    "buildTool": <%= buildTool %>,
-    "frame": "<%= frame %>",
+    "buildTool": "<%= buildTool %>",
+    "frame": "react",
 }`;

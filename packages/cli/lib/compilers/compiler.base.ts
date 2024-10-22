@@ -10,11 +10,12 @@ const getMerge = (options: ConfigOption) => {
     const { module } = options.module as { module: string; searchPlaces?: string[] };
     if (['vite', 'rollup'].includes(module)) {
         return mergeViteConfig as any;
-    } else if (module === 'webpack') {
-        return mergeWebpackConfig as any;
-    } else {
-        return deepmerge as any;
     }
+    if (module === 'webpack') {
+        return mergeWebpackConfig as any;
+    }
+    return deepmerge as any;
+    
 };
 
 export interface ConfigOption {
