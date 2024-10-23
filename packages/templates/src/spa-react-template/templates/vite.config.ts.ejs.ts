@@ -1,9 +1,13 @@
 export default `
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from "path";
+import path from 'path';
 import viteCompression from 'vite-plugin-compression';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+export const __filename = fileURLToPath(import.meta.url);
+export const __dirname = dirname(__filename);
 export default defineConfig({
     envDir: './env',
     envPrefix: 'MYPROJECT_',

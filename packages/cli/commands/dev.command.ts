@@ -31,6 +31,7 @@ class DevAction {
             case 'rollup':
             case 'tsc': {
                 logger.warning('The current packaging tool does not support the dev command!');
+                process.exit(1);
                 break;
             }
             default: {

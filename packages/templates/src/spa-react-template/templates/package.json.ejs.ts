@@ -11,14 +11,14 @@ export default `
     },
     "dependencies": {
         <% const dependenciesArray = Object.entries(dependencies); %>
-        <% dependenciesArray.forEach(([key, value], index) => { %>
-            "<%= key %>": "<%= value %>"<% if(dependenciesArray.length - 1 !== index) { %>,<% } %>
-        <% }) %>
+        <% dependenciesArray.forEach(([key, value], index) => { -%>
+            "<%= key %>": "<%= value %>"<% if(dependenciesArray.length - 1 !== index) { %>,<% } -%>
+        <% }) -%>
     },
     "devDependencies": {
         <% const devDependenciesArray = Object.entries(devDependencies); %>
-        <% devDependenciesArray.forEach(([key, value], index) => { %>
-            "<%= key %>": "<%= value %>"<% if(devDependenciesArray.length - 1 !== index) { %>,<% } %>
-        <% }) %>
+        <% devDependenciesArray.forEach(([key, value], index) => { -%>
+            "<%= key %>": "<%= value %>"<% if(devDependenciesArray.length - 1 !== index) { %>,<% } -%>
+        <% }) -%>
     }
 }`;

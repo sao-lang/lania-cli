@@ -85,7 +85,7 @@ class CreateAction {
         if (!status) {
             throw new Error(message);
         }
-        await new Builder().build({ ...this.options, name });
+        await new Builder().build({ name, ...this.options });
         if (!command.skipGit) {
             await new GitRunner().init({ silent: true });
         }
