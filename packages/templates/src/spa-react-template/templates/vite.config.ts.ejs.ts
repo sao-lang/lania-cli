@@ -1,6 +1,6 @@
 export default `
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+// import react from '@vitejs/plugin-react';
 import path from 'path';
 import viteCompression from 'vite-plugin-compression';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -12,7 +12,7 @@ export default defineConfig({
     envDir: './env',
     envPrefix: 'MYPROJECT_',
     plugins: [
-        react(),
+        // react(),
         visualizer(),
         viteCompression({
             verbose: true,
