@@ -3,6 +3,7 @@
         "deepmerge",
         "execa",
         "Funcer",
-        "gulpfile"
+        "gulpfile",
+        "textlint"
     ]
 }

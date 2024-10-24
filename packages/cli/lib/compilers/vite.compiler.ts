@@ -6,129 +6,121 @@ import {
     createLogger,
     mergeConfig,
 } from 'vite';
-import Compiler, { type BaseCompilerInterface } from './compiler.base';
+import Compiler from './compiler.base';
 import { type ConfigurationLoadType } from '@lib/configuration/configuration.loader';
 import logger from '@utils/logger';
 import path from 'path';
 import fs from 'fs';
 import to from '@utils/to';
 import text from '@utils/text';
-import loading from '@utils/loading';
 import { type OutputBundle } from 'rollup';
 import { LogOnBuildRollupPluginOptions, logOnBuildRollupPlugin } from './compiler.plugin';
 
-const customLogger = createLogger();
-customLogger.error = () => {};
-customLogger.warn = () => {};
-customLogger.info = () => {};
+const createViteLogger = () => {
+    const customLogger = createLogger();
+    customLogger.error = (msg) => logger.error(`[Vite] ${msg}`);
+    customLogger.warn = (msg) => logger.warning(`[Vite] ${msg}`);
+    customLogger.info = (msg) => logger.log(`[Vite] ${msg}`);
+    return customLogger;
+};
+
+// 优化后的 logViteBundle
 const logViteBundle = async (dir: string, bundle: OutputBundle) => {
-    for (const key of Object.keys(bundle)) {
+    const bundleEntries = Object.keys(bundle).map(async (key) => {
         const { fileName } = bundle[key];
         const [error, stats] = await to(fs.promises.stat(`${dir}/${fileName}`));
         if (!error) {
             const name = `${path.basename(dir)}/${fileName}`;
             const size = (stats.size / 1024).toFixed(2) + 'K';
-            const nameModifiedText = text(name, {
-                color: '#6a7c80',
-            });
-            const sizeModifiedText = text(size, {
-                bold: true,
-                color: '#7a7c80',
-            });
-            logger.log(`${nameModifiedText} ${sizeModifiedText}`);
+            logger.log(
+                `${text(name, { color: '#6a7c80' })} ${text(size, { bold: true, color: '#7a7c80' })}`
+            );
         } else {
-            logger.error(error.message);
+            logger.error(`Failed to log bundle: ${error.message}`);
         }
-    }
+    });
+
+    await Promise.all(bundleEntries);
 };
 
-const pluginConfigOption = {
-    config(config) {
-        return mergeConfig(config, {
+// 提取重复的配置合并逻辑
+const mergeWithPluginOptions = (
+    config: InlineConfig,
+    logOnBuildOptions: LogOnBuildRollupPluginOptions
+): InlineConfig => {
+    return mergeConfig(
+        {
             logLevel: 'silent',
-            customLogger,
-        });
-    },
+            plugins: [
+                logOnBuildRollupPlugin(logOnBuildOptions),
+                {
+                    config: (currentConfig) => mergeConfig(currentConfig, { customLogger: createViteLogger() }),
+                },
+            ],
+        },
+        config
+    );
 };
+
 export default class ViteCompiler extends Compiler<InlineConfig> {
+    private server: ViteDevServer | null = null;
+
     constructor(
         configOption?: {
             module?: ConfigurationLoadType | { module: string; searchPlaces?: string[] };
             configPath?: string;
         },
-        config?: InlineConfig,
+        config?: InlineConfig
     ) {
-        let server: ViteDevServer | null;
-        const prevDate = new Date().getTime();
-        const baseCompiler: BaseCompilerInterface<InlineConfig> = {
-            build: async (config: InlineConfig = {}) => {
-                const logOnBuildOptions: LogOnBuildRollupPluginOptions = {
-                    onWriteBundleEnd: () => {
-                        if (!configuration.build.watch) {
-                            const now = new Date().getTime();
-                            logger.log(`built in ${(now - prevDate) / 1000}s`, {
-                                color: '#21a579',
-                            });
-                        }
-                    },
-                    onWriteBundle: async ({ dir }, bundle) => {
-                        if (!configuration.build.watch) {
-                            await logViteBundle(dir, bundle);
-                        }
-                    },
-                    onBuildStart: () => {
-                        if (configuration.build.watch) {
-                            logger.log('Watching for file changing!');
-                        }
-                    },
-                };
-                const configuration: InlineConfig = mergeConfig(
-                    {
-                        plugins: [
-                            {
-                                ...logOnBuildRollupPlugin(logOnBuildOptions),
-                                ...pluginConfigOption,
-                            },
-                        ],
-                    } as InlineConfig,
-                    config,
-                );
-                const output = await build(configuration);
-
-                return output;
-            },
-            async createServer(this: typeof baseCompiler, config: InlineConfig = {}) {
-                await this.closeServer();
-                const logOnBuildOptions: LogOnBuildRollupPluginOptions = {
-                    onBuildStart: () => {
-                        if (server) {
-                            logger.log('Watching for file changing!');
-                        }
-                    },
-                };
-                const configuration = mergeConfig(
-                    {
-                        plugins: [
-                            { ...logOnBuildRollupPlugin(logOnBuildOptions), ...pluginConfigOption },
-                        ],
-                    },
-                    config,
-                );
-                server = await createServer(configuration);
-                await server.listen();
-                server.printUrls();
-            },
-            closeServer: async () => {
-                if (server) {
-                    await await server.close();
-                }
-            },
-        };
+        // 先调用 super
         const { module, configPath } = configOption || {};
         super(
-            baseCompiler,
-            !module ? { module: 'vite', configPath } : { module, configPath },
-            config,
+            {
+                build: async (config: InlineConfig = {}) => this.buildHandler(config),
+                createServer: async (config: InlineConfig = {}) => this.createServerHandler(config),
+                closeServer: async () => this.closeServerHandler(),
+            },
+            { module: module || 'vite', configPath },
+            config
         );
+    }
+
+    private async buildHandler(config: InlineConfig = {}) {
+        const logOnBuildOptions: LogOnBuildRollupPluginOptions = {
+            onWriteBundleEnd: () => logger.log('Build completed.'),
+            onWriteBundle: async ({ dir }, bundle) => {
+                await logViteBundle(dir, bundle);
+            },
+            onBuildStart: () => logger.log('Build started...'),
+        };
+
+        const configuration = mergeWithPluginOptions(config, logOnBuildOptions);
+        try {
+            return await build(configuration);
+        } catch (err) {
+            logger.error(`Build failed: ${(err as Error).message}`);
+            throw err;
+        }
+    }
+
+    private async createServerHandler(config: InlineConfig = {}) {
+        await this.closeServer();
+
+        const logOnBuildOptions: LogOnBuildRollupPluginOptions = {
+            onBuildStart: () => logger.log('Server is watching for file changes...'),
+        };
+
+        const configuration = mergeWithPluginOptions(config, logOnBuildOptions);
+        this.server = await createServer(configuration);
+        await this.server.listen();
+        this.server.printUrls();
+    }
+
+    private async closeServerHandler() {
+        if (this.server) {
+            await this.server.close();
+            this.server = null;
+            logger.log('Vite server closed.');
+        }
     }
 }

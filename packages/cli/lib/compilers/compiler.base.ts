@@ -1,20 +1,20 @@
-import ConfigurationLoader, {
-    type ConfigurationLoadType,
-} from '@lib/configuration/configuration.loader';
+import ConfigurationLoader, { type ConfigurationLoadType } from '@lib/configuration/configuration.loader';
 import path from 'path';
 import { mergeConfig as mergeViteConfig } from 'vite';
 import mergeWebpackConfig from 'webpack-merge';
 import deepmerge from 'deepmerge';
 
-const getMerge = (options: ConfigOption) => {
+const getMergeFunction = (options: ConfigOption) => {
     const { module } = options.module as { module: string; searchPlaces?: string[] };
-    if (['vite', 'rollup'].includes(module)) {
-        return mergeViteConfig as any;
+    switch (module) {
+        case 'vite':
+        case 'rollup':
+            return mergeViteConfig as (base: Record<string, any>, config: Record<string, any>) => Record<string, any>;
+        case 'webpack':
+            return mergeWebpackConfig as (base: Record<string, any>, config: Record<string, any>) => Record<string, any>;
+        default:
+            return deepmerge as (base: Record<string, any>, config: Record<string, any>) => Record<string, any>;
     }
-    if (module === 'webpack') {
-        return mergeWebpackConfig as any;
-    }
-    return deepmerge as any;
 };
 
 export interface ConfigOption {
@@ -32,50 +32,42 @@ export default class Compiler<Config = any> {
     private configOption: ConfigOption;
     private config: Record<string, any> = {};
     private baseCompiler: BaseCompilerInterface<Config>;
-    constructor(
-        baseCompiler: BaseCompilerInterface,
-        option?: ConfigOption,
-        config: Record<string, any> = {},
-    ) {
+
+    constructor(baseCompiler: BaseCompilerInterface, option?: ConfigOption, config: Record<string, any> = {}) {
         this.baseCompiler = baseCompiler;
-        this.configOption = option;
+        this.configOption = option || { module: 'vite' }; // Use a valid default value
         this.config = { ...config };
     }
+
     private async getConfig() {
-        if (!this.configOption) {
-            return {};
-        }
-        const { module, configPath } = this.configOption || {};
-        if (!module) {
-            return this.config;
-        }
+        const { module, configPath } = this.configOption;
+        if (!module) return this.config;
+
         if (configPath && typeof module === 'string') {
             const dirname = path.dirname(configPath);
             const basename = path.basename(configPath);
-            const configResult = await new ConfigurationLoader().load(
-                { module, searchPlaces: [basename] },
-                dirname,
-            );
+            const configResult = await new ConfigurationLoader().load({ module, searchPlaces: [basename] }, dirname);
             return { ...configResult, ...this.config };
         }
-        const configResult = await new ConfigurationLoader().load(module, configPath);
-        return configResult;
+
+        return await new ConfigurationLoader().load(module, configPath) || {};
     }
+
     public async build(baseConfig?: Config) {
-        const mergeConfig = getMerge(this.configOption);
+        const mergeConfig = getMergeFunction(this.configOption);
         const config = await this.getConfig();
-        return await this.baseCompiler.build(
-            (baseConfig ? mergeConfig(baseConfig as any, config) : config) as Config,
-        );
+        const finalConfig = baseConfig ? mergeConfig(baseConfig as any, config) : config;
+        return await this.baseCompiler.build(finalConfig as Config);
     }
+
     public async createServer(baseConfig?: Config) {
-        const mergeConfig = getMerge(this.configOption);
+        const mergeConfig = getMergeFunction(this.configOption);
         const config = await this.getConfig();
-        await this.baseCompiler?.createServer(
-            (baseConfig ? mergeConfig(baseConfig as any, config) : config) as Config,
-        );
+        const finalConfig = baseConfig ? mergeConfig(baseConfig as any, config) : config;
+        return await this.baseCompiler.createServer(finalConfig as Config);
     }
+
     public async closeServer() {
-        await this.baseCompiler?.closeServer();
+        await this.baseCompiler.closeServer?.();
     }
 }

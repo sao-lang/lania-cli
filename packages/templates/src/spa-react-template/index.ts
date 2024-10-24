@@ -47,7 +47,6 @@ export class SpaReactTemplate implements Template {
             const isNotTailwindcss = options.cssProcessor !== 'tailwindcss';
             devDependenciesArray.push(
                 ...[
-                    'webpack-cli',
                     '@babel/plugin-transform-runtime',
                     '@babel/runtime',
                     '@babel/preset-env',
