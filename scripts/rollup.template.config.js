@@ -2,11 +2,15 @@ import nodeResolve from '@rollup/plugin-node-resolve';
 import cjs from '@rollup/plugin-commonjs';
 import ts from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
-import path from 'path';
-import packageJsonContent from '../packages/templates/package.json' assert { type: 'json', integrity: 'sha384-ABC123' };
+import path, { resolve } from 'path';
+import { readFileSync } from 'fs';
+// import packageJsonContent from '../packages/templates/package.json' assert { type: 'json', integrity: 'sha384-ABC123' };
 import { defineConfig } from 'rollup';
 import { __dirname, resolvePath } from './utils.js';
 
+const packageJsonContent = JSON.parse(
+    readFileSync(resolve(__dirname, '../packages/cli/package.json'), 'utf-8'),
+);
 const resolveSubPath = (subPath) => {
     return resolvePath('templates', subPath);
 };

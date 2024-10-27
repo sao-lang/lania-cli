@@ -5,27 +5,54 @@ import to from '@utils/to';
 import { Command } from 'commander';
 import getPort from 'get-port';
 import { getLanConfig } from './command.util';
+import webpack from 'webpack';
 
+type DevActionOptions = {
+    port: number;
+    configPath: string;
+    hmr: boolean;
+    open: boolean;
+    host: string;
+    lanConfigPath: string;
+};
+
+const { DefinePlugin } = webpack;
 class DevAction {
-    public async handle(
-        port: number,
-        configPath: string,
-        hmr: boolean,
-        open: boolean,
-        host: string,
-        lanConfigPath: string,
-    ) {
+    public async handle(options: DevActionOptions) {
+        const { lanConfigPath, port, hmr, host, open, configPath } = options;
         const { buildTool } = await getLanConfig(lanConfigPath);
         switch (buildTool) {
             case 'vite': {
                 const compiler = new ViteCompiler({ configPath });
-                await compiler.createServer({ server: { port: Number(port), hmr, open, host } });
+                await compiler.createServer({
+                    server: { port: Number(port), hmr, open, host },
+                    define: {
+                        import: {
+                            meta: {
+                                env: {
+                                    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
+                                },
+                            },
+                        },
+                    },
+                });
                 break;
             }
             case 'webpack': {
                 const compiler = new WebpackCompiler({ configPath });
                 const devServer = { port: Number(port), hot: hmr, open, host };
-                await compiler.createServer({ devServer });
+                await compiler.createServer({
+                    devServer,
+                    plugins: [
+                        new DefinePlugin({
+                            process: {
+                                env: {
+                                    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
+                                },
+                            },
+                        }),
+                    ],
+                });
                 break;
             }
             case 'rollup':
@@ -60,7 +87,14 @@ export default class DevCommand {
             .action(async ({ port, config, hmr, open, host, path }) => {
                 const availablePort = await getPort({ port: Number(port) });
                 const [handleErr] = await to(
-                    new DevAction().handle(availablePort, config, hmr, open, host, path),
+                    new DevAction().handle({
+                        port: availablePort,
+                        configPath: config,
+                        hmr,
+                        open,
+                        host,
+                        lanConfigPath: path,
+                    }),
                 );
                 if (handleErr) {
                     logger.error(handleErr.message);

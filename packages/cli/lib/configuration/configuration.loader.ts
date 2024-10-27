@@ -16,13 +16,18 @@ export type ConfigurationLoadType =
     | 'gulp'
     | 'rollup';
 
+type ModuleName = ConfigurationLoadType | { module: string; searchPlaces?: string[] };
+
 export default class ConfigurationLoader {
-    public async load(
-        moduleName: ConfigurationLoadType | { module: string; searchPlaces?: string[] },
-        path?: string,
-    ) {
-        let module = '';
-        let searchPlaces: string[] = [];
+    public async load(moduleName: ModuleName, configPath?: string) {
+        const { module, searchPlaces } = await this.getConfigOptions(moduleName);
+        const result = await cosmiconfig(module, { searchPlaces }).search(configPath);
+        if (!result || result?.isEmpty) {
+            return {} as Record<string, any>;
+        }
+        return result.config as Record<string, any>;
+    }
+    private async getConfigOptions(moduleName: ModuleName) {
         if (typeof moduleName === 'string') {
             const map = {
                 package: ['package', ['package.json']],
@@ -87,16 +92,8 @@ export default class ConfigurationLoader {
                 tsc: ['tsc', ['tsconfig.json']],
             };
             const searchModule = map[moduleName];
-            module = searchModule[0];
-            searchPlaces = searchModule[1];
-        } else {
-            module = moduleName.module;
-            searchPlaces = moduleName.searchPlaces;
+            return { module: searchModule[0], searchPlaces: searchModule[1] };
         }
-        const result = await cosmiconfig(module, { searchPlaces }).search(path);
-        if (!result || result?.isEmpty) {
-            return {} as Record<string, any>;
-        }
-        return result.config as Record<string, any>;
+        return moduleName;
     }
 }

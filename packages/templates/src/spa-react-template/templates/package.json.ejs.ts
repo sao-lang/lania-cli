@@ -3,6 +3,7 @@ export default `
     "name": "<%= name %>",
     "version": "1.0.0",
     "main": "index.js",
+    "type": "module",
     "private": true,
     "scripts": {
         <% if (buildTool === 'webpack') { %>"analyzer": "npx webpack-bundle-analyzer ./dist/stats.json",<% } %>

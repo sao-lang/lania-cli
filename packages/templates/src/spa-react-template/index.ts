@@ -74,6 +74,7 @@ export class SpaReactTemplate implements Template {
                     '@types/estree',
                     isNotTailwindcss ? `${options.cssProcessor}-loader` : '',
                     'thread-loader',
+                    'terser-webpack-plugin'
                 ].filter(Boolean),
             );
         }

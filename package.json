@@ -7,7 +7,7 @@
         "changeset": "changeset",
         "vp": "changeset version",
         "release": "pnpm build && pnpm release:only",
-        "release:only": "changeset publish --registry=https://registry.npmjs.org",
+        "release:only": "nrm use npm && changeset publish --registry=https://registry.npmjs.org",
         "prepare": "husky install",
         "eslint": "eslint ./**/*.ts --fix",
         "build-cli": "gulp --gulpfile scripts/gulpfile.cjs buildCli",

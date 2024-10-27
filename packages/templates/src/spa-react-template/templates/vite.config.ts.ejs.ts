@@ -10,18 +10,23 @@ export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);
 export default defineConfig({
     envDir: './env',
-    envPrefix: 'MYPROJECT_',
+    envPrefix: '<%= name %>_',
     plugins: [
         // react(),
-        visualizer(),
-        viteCompression({
-            verbose: true,
-            disable: false,
-            threshold: 10240,
-            algorithm: 'gzip',
-            ext: '.gz',
-            deleteOriginFile: true
+        visualizer({
+            filename: 'dist/stats.html',
+            open: false,
+            gzipSize: true,
+            template: 'sunburst'
         }),
+        // viteCompression({
+        //     verbose: true,
+        //     disable: false,
+        //     threshold: 10240,
+        //     algorithm: 'gzip',
+        //     ext: '.gz',
+        //     deleteOriginFile: true
+        // }),
     ],
     server: {
         host: '127.0.0.1',

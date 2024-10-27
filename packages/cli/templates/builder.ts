@@ -74,6 +74,8 @@ export class Builder {
             }),
         ];
         const answers = await inquirer.prompt(choices);
+        answers.useCssProcessor = answers.cssProcessor === 'css' ? false : true;
+        answers.useTs = true;
         if (answers.frame === 'no') {
             answers.frame = undefined;
         }

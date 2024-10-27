@@ -11,7 +11,7 @@ export default class EjsEngine {
         outputPath: string,
         options: Record<string, string | number | boolean>,
     ) {
-        const templateCode = ejs.render(content, options);
+        const templateCode = ejs.render(content, options) as string;
         const fileTypes = PrettierLinter.listFileTypes();
         const ext = getFileExt<PrettierSupportFileType>(outputPath);
         if (!fileTypes.includes(ext)) {

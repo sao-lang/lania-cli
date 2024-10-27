@@ -1,13 +1,13 @@
 {
     "name": "@lania/cli",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "",
     "main": "index.js",
     "keywords": [
         "cli"
     ],
     "bin": {
-        "l": "./bin/index.js"
+        "lania": "./bin/index.js"
     },
     "files": [
         "dist",

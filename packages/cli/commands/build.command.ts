@@ -6,19 +6,44 @@ import { Command } from 'commander';
 import { getLanConfig } from './command.util';
 import TscCompiler from '@lib/compilers/tsc.compiler';
 import RollupCompiler from '@lib/compilers/rollup.compiler';
+import webpack from 'webpack';
 
+const { DefinePlugin } = webpack;
 class BuildAction {
     public async handle(watch: boolean, configPath: string, lanConfigPath: string) {
         const { buildTool } = await getLanConfig(lanConfigPath);
         switch (buildTool) {
             case 'vite': {
                 const compiler = new ViteCompiler({ configPath });
-                await compiler.build({ build: { watch: watch ? {} : null } });
+                await compiler.build({
+                    build: { watch: watch ? {} : null },
+                    define: {
+                        import: {
+                            meta: {
+                                env: {
+                                    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
+                                },
+                            },
+                        },
+                    },
+                });
                 break;
             }
             case 'webpack': {
                 const compiler = new WebpackCompiler({ configPath });
-                await compiler.build({ watch });
+                await compiler.build({
+                    watch,
+                    mode: 'production',
+                    plugins: [
+                        new DefinePlugin({
+                            process: {
+                                env: {
+                                    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
+                                },
+                            },
+                        }),
+                    ],
+                });
                 break;
             }
             case 'tsc': {
