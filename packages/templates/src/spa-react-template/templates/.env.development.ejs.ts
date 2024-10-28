@@ -1,1 +1,1 @@
-export default `MYPROJECT_ENV = 'development'`;
+export default `APP_ENV = 'development'`;

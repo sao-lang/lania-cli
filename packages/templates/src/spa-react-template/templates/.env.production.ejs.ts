@@ -1,1 +1,1 @@
-export default `MYPROJECT_ENV = 'production'`;
+export default `APP_ENV = 'production'`;

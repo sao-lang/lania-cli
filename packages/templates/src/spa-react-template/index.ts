@@ -22,11 +22,12 @@ import tsconfigJsonEjs from './templates/tsconfig.json.ejs';
 import tailwindConfigJsEjs from './templates/tailwind.config.js.ejs';
 import tailwindCssEjs from './templates/tailwind.css.ejs';
 import postcssConfigJsEjs from './templates/postcss.config.js.ejs';
-import envDevelopment from './templates/.env.development.ejs';
-import envProduction from './templates/.env.production.ejs';
-import configJsEjs from './templates/config.js.ejs';
-import configTsEjs from './templates/config.ts.ejs';
+// import envDevelopment from './templates/.env.development.ejs';
+// import envProduction from './templates/.env.production.ejs';
+// import configJsEjs from './templates/config.js.ejs';
+// import configTsEjs from './templates/config.ts.ejs';
 import lanConfigJsonEjs from './templates/lan.config.json.ejs';
+import gitignoreEjs from './templates/.gitignore.ejs';
 
 export class SpaReactTemplate implements Template {
     public getDependenciesArray(options: TemplateOptions) {
@@ -52,13 +53,10 @@ export class SpaReactTemplate implements Template {
                     '@babel/preset-env',
                     '@babel/core',
                     options.language === 'TypeScript' ? '@babel/preset-typescript' : '',
-                    'webpack',
-                    'webpack-cli',
                     'html-webpack-plugin',
                     'mini-css-extract-plugin',
                     'babel-loader',
                     'copy-webpack-plugin',
-                    'cross-env',
                     'css-loader',
                     'css-minimizer-webpack-plugin',
                     'style-loader',
@@ -71,10 +69,9 @@ export class SpaReactTemplate implements Template {
                     '@babel/preset-react',
                     'webpack-bundle-analyzer',
                     'react-refresh',
-                    '@types/estree',
                     isNotTailwindcss ? `${options.cssProcessor}-loader` : '',
                     'thread-loader',
-                    'terser-webpack-plugin'
+                    'terser-webpack-plugin',
                 ].filter(Boolean),
             );
         }
@@ -214,29 +211,36 @@ export class SpaReactTemplate implements Template {
                     content: postcssConfigJsEjs,
                 };
             },
+            // () => {
+            //     return {
+            //         options,
+            //         content: envDevelopment,
+            //         outputPath: '/env/.env.development',
+            //         hide: options.buildTool !== 'vite',
+            //     };
+            // },
+            // () => {
+            //     return {
+            //         options,
+            //         outputPath: '/env/.env.production',
+            //         hide: options.buildTool !== 'vite',
+            //         content: envProduction,
+            //     };
+            // },
             () => {
                 return {
                     options,
-                    content: envDevelopment,
-                    outputPath: '/env/.env.development',
-                    hide: options.buildTool !== 'vite',
+                    outputPath: '/.gitignore',
+                    content: gitignoreEjs,
                 };
             },
-            () => {
-                return {
-                    options,
-                    outputPath: '/env/.env.production',
-                    hide: options.buildTool !== 'vite',
-                    content: envProduction,
-                };
-            },
-            () => {
-                return {
-                    options,
-                    outputPath: `/config/index.${jsExtName}`,
-                    content: jsExtName === 'js' ? configJsEjs : configTsEjs,
-                };
-            },
+            // () => {
+            //     return {
+            //         options,
+            //         outputPath: `/config/index.${jsExtName}`,
+            //         content: jsExtName === 'js' ? configJsEjs : configTsEjs,
+            //     };
+            // },
             () => {
                 return {
                     options,

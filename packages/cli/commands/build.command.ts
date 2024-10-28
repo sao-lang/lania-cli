@@ -1,6 +1,5 @@
 import ViteCompiler from '@lib/compilers/vite.compiler';
 import WebpackCompiler from '@lib/compilers/webpack.compiler';
-import logger from '@utils/logger';
 import { Command } from 'commander';
 import { getLanConfig } from './command.util';
 import TscCompiler from '@lib/compilers/tsc.compiler';
@@ -9,37 +8,30 @@ import webpack from 'webpack';
 
 const { DefinePlugin } = webpack;
 class BuildAction {
-    public async handle(watch: boolean, configPath: string, lanConfigPath: string) {
+    public async handle(watch: boolean, configPath: string, lanConfigPath: string, mode: string) {
         const { buildTool } = await getLanConfig(lanConfigPath);
         switch (buildTool) {
             case 'vite': {
                 const compiler = new ViteCompiler({ configPath });
+                process.env.NODE_ENV = mode;
                 await compiler.build({
                     build: { watch: watch ? {} : null },
                     define: {
-                        import: {
-                            meta: {
-                                env: {
-                                    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
-                                },
-                            },
-                        },
+                        'import.meta.env.VITE_NODE_ENV': mode || 'development',
                     },
+                    mode,
                 });
                 break;
             }
             case 'webpack': {
                 const compiler = new WebpackCompiler({ configPath });
+                process.env.NODE_ENV = mode;
                 await compiler.build({
                     watch,
                     mode: 'production',
                     plugins: [
                         new DefinePlugin({
-                            process: {
-                                env: {
-                                    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
-                                },
-                            },
+                            'process.env.NODE_ENV': JSON.stringify(mode || 'development'),
                         }),
                     ],
                 });
@@ -75,10 +67,10 @@ export default class BuildCommand {
                 'Specify whether the running mode of the server is production or development.',
                 'development',
             )
+            .option('--mode', 'Mode of initiating the project.')
             .alias('-b')
-            .action(async ({ watch, config, path }) => {
-                await new BuildAction().handle(watch, config, path);
+            .action(async ({ watch, config, path, mode }) => {
+                await new BuildAction().handle(watch, config, path, mode);
             });
     }
 }
-//.

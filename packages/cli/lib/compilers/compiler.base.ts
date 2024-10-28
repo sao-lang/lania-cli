@@ -82,7 +82,6 @@ export default class Compiler<Config = any> {
         const mergeConfig = getMergeFunction(this.configOption);
         const config = await this.getConfig();
         const finalConfig = baseConfig ? mergeConfig(baseConfig as any, config) : config;
-        console.log('config', finalConfig);
         return await this.baseCompiler.createServer(finalConfig);
     }
 

@@ -13,26 +13,23 @@ type DevActionOptions = {
     open: boolean;
     host: string;
     lanConfigPath: string;
+    mode: string;
 };
 
 const { DefinePlugin } = webpack;
 class DevAction {
     public async handle(options: DevActionOptions) {
-        const { lanConfigPath, port, hmr, host, open, configPath } = options;
+        const { lanConfigPath, port, hmr, host, open, configPath, mode = 'development' } = options;
         const { buildTool } = await getLanConfig(lanConfigPath);
         switch (buildTool) {
             case 'vite': {
                 const compiler = new ViteCompiler({ configPath });
+                process.env.NODE_ENV = mode;
                 await compiler.createServer({
                     server: { port: Number(port), hmr, open, host },
+                    mode,
                     define: {
-                        import: {
-                            meta: {
-                                env: {
-                                    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
-                                },
-                            },
-                        },
+                        'import.meta.env.VITE_NODE_ENV': mode || 'development',
                     },
                 });
                 break;
@@ -40,15 +37,12 @@ class DevAction {
             case 'webpack': {
                 const compiler = new WebpackCompiler({ configPath });
                 const devServer = { port: Number(port), hot: hmr, open, host };
+                process.env.NODE_ENV = mode;
                 await compiler.createServer({
                     devServer,
                     plugins: [
                         new DefinePlugin({
-                            process: {
-                                env: {
-                                    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
-                                },
-                            },
+                            'process.env.NODE_ENV': JSON.stringify(mode || 'development'),
                         }),
                     ],
                 });
@@ -77,21 +71,23 @@ export default class DevCommand {
             .option('-h, --hmr', 'Whether to turn on HMR or not.', true)
             .option('--host', 'Host to the development server', '127.0.0.1')
             .option('-p, --path [path]', 'Path to lan configuration file.')
+            .option('--mode', 'Mode of initiating the project.')
             .option(
                 '-o, --open',
                 'Automatically open projects in the browser after starting the server.',
                 true,
             )
             .alias('-d')
-            .action(async ({ port, config, hmr, open, host, path }) => {
+            .action(async ({ port, config, hmr, open, host, path, mode }) => {
                 const availablePort = await getPort({ port: Number(port) });
                 await new DevAction().handle({
-                        port: availablePort,
-                        configPath: config,
-                        hmr,
-                        open,
-                        host,
-                        lanConfigPath: path,
+                    port: availablePort,
+                    configPath: config,
+                    hmr,
+                    open,
+                    host,
+                    lanConfigPath: path,
+                    mode,
                 });
             });
     }

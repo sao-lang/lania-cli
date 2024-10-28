@@ -9,8 +9,6 @@ import { fileURLToPath } from 'url';
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);
 export default defineConfig({
-    envDir: './env',
-    envPrefix: 'MYPROJECT_',
     plugins: [
         // react(),
         visualizer({

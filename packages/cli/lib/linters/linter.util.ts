@@ -19,7 +19,8 @@ export const traverseFiles = async (dir: string, cb?: (filePath: string) => Prom
         const stats = await stat(filePath);
         if (stats.isDirectory()) {
             await traverseFiles(filePath, cb);
-        } else if (stats.isFile()) {
+        }
+        if (stats.isFile()) {
             await cb?.(filePath);
         }
     }

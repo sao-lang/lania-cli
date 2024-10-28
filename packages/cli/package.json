@@ -7,7 +7,7 @@
         "cli"
     ],
     "bin": {
-        "lania": "./bin/index.js"
+        "l": "./bin/index.js"
     },
     "files": [
         "dist",

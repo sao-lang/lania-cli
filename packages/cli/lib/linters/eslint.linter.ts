@@ -1,11 +1,6 @@
 import { ESLint } from 'eslint';
-import {
-    type LinterConfiguration,
-    getModuleConfig,
-    traverseFiles,
-    getFileExt,
-} from './linter.util';
-import { readFile, stat, writeFile } from 'fs/promises';
+import { type LinterConfiguration, getModuleConfig } from './linter.util';
+import { readFile, writeFile } from 'fs/promises';
 import Linter, { LinterHandleDirOptions } from './linter.base';
 type EsLinterSupportFileType =
     | 'ts'
