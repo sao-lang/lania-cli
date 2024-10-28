@@ -63,7 +63,7 @@ class CreateAction {
         if (!this.validateProjectName(name)) {
             return {
                 status: false,
-                message: 'Invalid project name!',
+                message: 'Invalid project name: ${this.options.name}',
             };
         }
         this.options.name = name;
