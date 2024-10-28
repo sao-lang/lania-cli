@@ -1,7 +1,6 @@
 import { PACKAGE_TOOLS } from '@lib/constants/cli.constant';
 import GitRunner from '@runners/git.runner';
 import logger from '@utils/logger';
-import to from '@utils/to';
 import { type Command } from 'commander';
 import { mkdir, readdir } from 'fs/promises';
 import path from 'path';
@@ -108,10 +107,7 @@ export default class CreateCommand {
             )
             .alias('-c')
             .action(async (name, command: CommandActionOptions) => {
-                const [handleErr] = await to(new CreateAction().handle(name, command));
-                if (handleErr) {
-                    logger.error(handleErr.message, true);
-                }
+                await new CreateAction().handle(name, command);
             });
     }
 }
