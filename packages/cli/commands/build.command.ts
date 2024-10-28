@@ -1,7 +1,6 @@
 import ViteCompiler from '@lib/compilers/vite.compiler';
 import WebpackCompiler from '@lib/compilers/webpack.compiler';
 import logger from '@utils/logger';
-import to from '@utils/to';
 import { Command } from 'commander';
 import { getLanConfig } from './command.util';
 import TscCompiler from '@lib/compilers/tsc.compiler';
@@ -78,10 +77,7 @@ export default class BuildCommand {
             )
             .alias('-b')
             .action(async ({ watch, config, path }) => {
-                const [handleErr] = await to(new BuildAction().handle(watch, config, path));
-                if (handleErr) {
-                    logger.error(handleErr.message, true);
-                }
+                await new BuildAction().handle(watch, config, path);
             });
     }
 }
