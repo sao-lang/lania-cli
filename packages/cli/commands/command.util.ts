@@ -15,7 +15,7 @@ export const getLanConfig = async (lanConfigPath: string) => {
             module: 'lan',
             searchPlaces: ['lan.config.json'],
         })) as LanConfig;
-    } else {
+    }
         const lanBasename = path.basename(lanConfigPath);
         const lanDirname = path.dirname(lanConfigPath);
         return (await new ConfigurationLoader().load(
@@ -25,7 +25,7 @@ export const getLanConfig = async (lanConfigPath: string) => {
             },
             lanDirname,
         )) as LanConfig;
-    }
+    
     // if (JSON.stringify(config) === '{}') {
     //     throw new Error('LAN configuration not found!');
     // }
