@@ -10,27 +10,23 @@ export interface LanConfig {
 }
 
 export const getLanConfig = async (lanConfigPath: string) => {
-    let config: LanConfig = {};
     if (!lanConfigPath) {
-        const lanConfig = await new ConfigurationLoader().load({
+        return (await new ConfigurationLoader().load({
             module: 'lan',
             searchPlaces: ['lan.config.json'],
-        });
-        config = lanConfig;
+        })) as LanConfig;
     } else {
         const lanBasename = path.basename(lanConfigPath);
         const lanDirname = path.dirname(lanConfigPath);
-        const lanConfig = await new ConfigurationLoader().load(
+        return (await new ConfigurationLoader().load(
             {
                 module: 'lan',
                 searchPlaces: [lanBasename || 'lan.config.json'],
             },
             lanDirname,
-        );
-        config = lanConfig;
+        )) as LanConfig;
     }
     // if (JSON.stringify(config) === '{}') {
     //     throw new Error('LAN configuration not found!');
     // }
-    return config;
 };
