@@ -1,7 +1,6 @@
 import ViteCompiler from '@lib/compilers/vite.compiler';
 import WebpackCompiler from '@lib/compilers/webpack.compiler';
 import logger from '@utils/logger';
-import to from '@utils/to';
 import { Command } from 'commander';
 import getPort from 'get-port';
 import { getLanConfig } from './command.util';
@@ -86,19 +85,14 @@ export default class DevCommand {
             .alias('-d')
             .action(async ({ port, config, hmr, open, host, path }) => {
                 const availablePort = await getPort({ port: Number(port) });
-                const [handleErr] = await to(
-                    new DevAction().handle({
+                await new DevAction().handle({
                         port: availablePort,
                         configPath: config,
                         hmr,
                         open,
                         host,
                         lanConfigPath: path,
-                    }),
-                );
-                if (handleErr) {
-                    logger.error(handleErr.message);
-                }
+                });
             });
     }
 }
