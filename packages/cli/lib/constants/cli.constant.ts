@@ -50,6 +50,8 @@ export const LINT_TOOLS = [
     'editorconfig',
 ];
 
+export const LINTERS = ['eslint', 'prettier', 'stylelint'];
+
 export const DOC_FRAMES = ['vitepress'];
 
 export const UNIT_TEST_TOOLS = ['vitest', 'jest'];
