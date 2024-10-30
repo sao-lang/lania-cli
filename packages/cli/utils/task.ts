@@ -33,22 +33,33 @@ const applyTimeout = <T>(task: Task<T>, timeout: number): Promise<T> =>
 
 // 并行执行函数
 export const parallel = async <T>(tasks: Task<T>[], options: Options = {}): Promise<TaskResult<T>[]> => {
-    const { concurrency = Infinity, retries = 0, timeout = 0 } = options;
+    const { concurrency = 4, retries = 0, timeout = 0 } = options;
     const results: TaskResult<T>[] = Array(tasks.length);
-    const executing: Promise<void>[] = [];
+    const executing = new Set<Promise<void>>();
 
     for (let i = 0; i < tasks.length; i++) {
         const exec = async () => {
             results[i] = await runWithRetry(tasks[i], retries, timeout);
         };
-        executing.push(exec());
-        if (executing.length >= concurrency) await Promise.race(executing).finally(() => executing.splice(0, 1));
+
+        const taskPromise = exec().finally(() => {
+            // 任务完成后从 Set 中删除
+            executing.delete(taskPromise);
+        });
+        
+        // 将任务添加到 Set 中
+        executing.add(taskPromise);
+
+        // 如果正在执行的任务数量达到了并发限制，等待任一任务完成
+        if (executing.size >= concurrency) {
+            await Promise.race(executing);
+        }
     }
 
+    // 等待所有任务完成
     await Promise.all(executing);
     return results;
 };
-
 // 串行执行函数
 export const series = async <T>(tasks: Task<T>[], options: Options = {}): Promise<TaskResult<T>[]> => {
     const { retries = 0, timeout = 0 } = options;
