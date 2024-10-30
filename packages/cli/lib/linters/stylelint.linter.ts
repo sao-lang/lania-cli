@@ -5,7 +5,16 @@ type StyleLinterSupportFileType = 'css' | 'styl' | 'sass' | 'less' | 'vue' | 'sv
 
 export default class StyleLinter extends Linter {
     constructor() {
-        const lint = async (config: LinterConfiguration) => {
+        const lintFiles = ['css', 'styl', 'sass', 'less', 'vue', 'svelte', 'astro'];
+        const linter = {
+            fileTypes: lintFiles as StyleLinterSupportFileType[],
+            lint: (config: LinterConfiguration) => this.createLintFn(config),
+            fix: (config: LinterConfiguration) => this.createLintFn(config),
+        };
+        super(linter as any);
+    }
+    private createLintFn(config: LinterConfiguration) {
+        return async () => {
             const configObject = await getModuleConfig(config);
             return async (path: string, options?: LinterHandleDirOptions) => {
                 const {
@@ -48,19 +57,5 @@ export default class StyleLinter extends Linter {
                 };
             };
         };
-        const linter = {
-            fileTypes: [
-                'css',
-                'styl',
-                'sass',
-                'less',
-                'vue',
-                'svelte',
-                'astro',
-            ] as StyleLinterSupportFileType[],
-            lint,
-            fix: lint,
-        };
-        super(linter);
     }
 }

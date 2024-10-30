@@ -15,7 +15,8 @@ export type LinterLintFileResult =
           errorCount: number;
           warningCount: number;
       }
-    | { filePath: string; isFormatted?: boolean };
+    | { filePath: string }
+    | { filePath: string; isFormatted: boolean };
 export interface LinterHandleDirOptions {
     fix?: boolean;
     ignorePath?: string;
@@ -33,10 +34,7 @@ export interface BaseLinterInterface {
     fileTypes: string[];
 }
 export default class Linter {
-    private linter: BaseLinterInterface;
-    constructor(linter: BaseLinterInterface) {
-        this.linter = linter;
-    }
+    constructor(private linter: BaseLinterInterface) {}
     private async lintDir(
         path: string,
         options: LinterHandleDirOptions,
@@ -46,41 +44,32 @@ export default class Linter {
         const results: LinterLintFileResult[] = [];
         await traverseFiles(path, async (filePath) => {
             const ext = getFileExt(filePath);
-            if (
-                (!fileTypes && this.linter.fileTypes.includes(ext)) ||
-                (fileTypes && fileTypes.includes(ext))
-            ) {
-                const result = await lint(path);
-                results.push(result);
+            if (fileTypes?.includes(ext) || this.linter.fileTypes.includes(ext)) {
+                results.push(await lint(path));
             }
         });
         return results;
+    }
+    private async getLintFunction(config: LinterConfiguration, options: LinterHandleDirOptions) {
+        return options?.fix
+            ? await this.linter.fix(config, options)
+            : await this.linter.lint(config, options);
     }
     public async lint(
         filePaths: string[] | string,
         config: LinterConfiguration,
         options: LinterHandleDirOptions,
     ) {
-        filePaths = Array.isArray(filePaths) ? filePaths : [filePaths];
-        const { fix } = options || {};
-        const lintFuncWrapper = async () => {
-            const lintFuncer = fix
-                ? await this.linter.fix(config, options)
-                : await this.linter.lint(config, options);
-            return (path: string) => lintFuncer(path);
-        };
-        const lint = await lintFuncWrapper();
+        const paths = Array.isArray(filePaths) ? filePaths : [filePaths];
+        const lintFile = await this.getLintFunction(config, options);
         const results: LinterLintFileResult[][] = [];
-
-        for (const filePath of filePaths) {
-            const stats = await stat(filePath);
-            if (stats.isDirectory()) {
-                const result = await this.lintDir(filePath, options, lint);
-                results.push(result);
-            } else {
-                const result = await lint(filePath);
-                results.push([result]);
-            }
+        for (const path of paths) {
+            const stats = await stat(path);
+            const isDirectory = stats.isDirectory();
+            const result = isDirectory
+                ? await this.lintDir(path, options, lintFile)
+                : [await lintFile(path)];
+            results.push(result);
         }
         return results;
     }
