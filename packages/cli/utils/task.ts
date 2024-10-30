@@ -9,19 +9,19 @@ interface Options {
 interface TaskResult<T> {
     status: 'fulfilled' | 'rejected';
     value: T | null;
+    reason?: string | null
 }
 
 // 单个任务运行器，包含重试和超时控制
 const runWithRetry = async <T>(task: Task<T>, retries: number, timeout: number): Promise<TaskResult<T>> => {
     for (let attempt = 0; attempt <= retries; attempt++) {
-        try {
-            const result = await (timeout ? applyTimeout(task, timeout) : task());
-            return { status: 'fulfilled', value: result };
-        } catch (error) {
-            if (attempt === retries) return { status: 'rejected', value: null };
+        const [err, res] = await to(timeout ? applyTimeout(task, timeout) : task());
+        if (err && attempt === retries) {
+            return { status: 'rejected', value: null, reason: err.message };
         }
+        return { status: 'fulfilled', value: result, reason: null };
     }
-    return { status: 'rejected', value: null };
+    return { status: 'rejected', value: null, reason: null };
 };
 
 // 应用超时控制的辅助函数
