@@ -1,11 +1,11 @@
 import { PACKAGE_TOOLS } from '@lib/constants/cli.constant';
 import GitRunner from '@runners/git.runner';
-import logger from '@utils/logger';
 import { type Command } from 'commander';
 import { mkdir, readdir } from 'fs/promises';
 import path from 'path';
 import { Builder } from 'templates/builder';
 import validatePkgName from 'validate-npm-package-name';
+import { LaniaCommand } from './command.base';
 
 export interface CommandCreateOptions {
     name: string;
@@ -91,7 +91,7 @@ class CreateAction {
     }
 }
 
-export default class CreateCommand {
+export default class CreateCommand extends LaniaCommand {
     public load(program: Command) {
         program
             .command('create [name]')

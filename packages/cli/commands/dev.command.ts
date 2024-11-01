@@ -23,13 +23,13 @@ class DevAction {
         const { buildTool } = await getLanConfig(lanConfigPath);
         switch (buildTool) {
             case 'vite': {
-                const compiler = new ViteCompiler({ configPath });
+                const compiler = new ViteCompiler(configPath);
                 process.env.NODE_ENV = mode;
                 await compiler.createServer({
                     server: { port: Number(port), hmr, open, host },
                     mode,
                     define: {
-                        'import.meta.env.VITE_NODE_ENV': mode || 'development',
+                        'import.meta.env.VITE_NODE_ENV': JSON.stringify(mode || 'development'),
                     },
                 });
                 break;

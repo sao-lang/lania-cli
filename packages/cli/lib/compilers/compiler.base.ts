@@ -28,6 +28,26 @@ const getMergeFunction = (options: ConfigOption) => {
     }
 };
 
+const createMergeConfig = (module: ConfigOption['module']) => {
+    switch (module) {
+        case 'vite':
+        case 'rollup':
+            return mergeViteConfig as (
+                base: Record<string, any>,
+                config: Record<string, any>,
+            ) => Record<string, any>;
+        case 'webpack':
+            return mergeWebpackConfig.merge as (
+                base: Record<string, any>,
+                config: Record<string, any>,
+            ) => Record<string, any>;
+        default:
+            return deepmerge as (
+                base: Record<string, any>,
+                config: Record<string, any>,
+            ) => Record<string, any>;
+    }
+};
 export interface ConfigOption {
     module: ConfigurationLoadType | { module: string; searchPlaces?: string[] };
     configPath?: string;
@@ -37,6 +57,33 @@ export interface BaseCompilerInterface<Config = Record<string, any>, BuildOutput
     build: (config: Config) => BuildOutput | Promise<BuildOutput>;
     createServer?: (config: Record<string, any>) => Promise<void | boolean>;
     closeServer?: () => void;
+}
+
+export abstract class BaseCompiler<Config = Record<string, any>> {
+    protected abstract configOption: ConfigOption;
+    protected async getConfig() {
+        const { module, configPath } = this.configOption;
+        if (!module) return {};
+
+        if (configPath && typeof module === 'string') {
+            const dirname = path.dirname(configPath);
+            const basename = path.basename(configPath);
+            const configResult = await new ConfigurationLoader().load(
+                { module, searchPlaces: [basename] },
+                dirname,
+            );
+            return configResult;
+        }
+        return (await new ConfigurationLoader().load(module, configPath)) || {};
+    }
+    protected async mergeConfig(baseConfig?: Config) {
+        const mergeConfig = createMergeConfig(this.configOption.module);
+        const config = await this.getConfig();
+        return baseConfig ? mergeConfig(config, baseConfig) : config;
+    }
+    abstract createServer(baseConfig?: Config): Promise<void>;
+    abstract closeServer(): Promise<void>;
+    abstract build(baseConfig?: Config): Promise<void>;
 }
 
 export default class Compiler<Config = any> {

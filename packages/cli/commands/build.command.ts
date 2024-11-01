@@ -5,6 +5,7 @@ import { getLanConfig } from './command.util';
 import TscCompiler from '@lib/compilers/tsc.compiler';
 import RollupCompiler from '@lib/compilers/rollup.compiler';
 import webpack from 'webpack';
+import { LaniaCommand } from './command.base';
 
 const { DefinePlugin } = webpack;
 class BuildAction {
@@ -12,12 +13,12 @@ class BuildAction {
         const { buildTool } = await getLanConfig(lanConfigPath);
         switch (buildTool) {
             case 'vite': {
-                const compiler = new ViteCompiler({ configPath });
+                const compiler = new ViteCompiler(configPath);
                 process.env.NODE_ENV = mode;
                 await compiler.build({
                     build: { watch: watch ? {} : null },
                     define: {
-                        'import.meta.env.VITE_NODE_ENV': mode || 'development',
+                        'import.meta.env.VITE_NODE_ENV': JSON.stringify(mode || 'development'),
                     },
                     mode,
                 });
@@ -54,7 +55,7 @@ class BuildAction {
     }
 }
 
-export default class BuildCommand {
+export default class BuildCommand extends LaniaCommand {
     public load(program: Command) {
         program
             .command('build')

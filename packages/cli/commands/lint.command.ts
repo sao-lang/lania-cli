@@ -5,6 +5,7 @@ import { series } from '@utils/task';
 import PrettierLinter from '@linters/prettier.linter';
 import EsLinter from '@linters/eslint.linter';
 import StyleLinter from '@linters/stylelint.linter';
+import { LaniaCommand } from './command.base';
 
 interface LinterConfigItem {
     linter?: string;
@@ -65,7 +66,7 @@ class LintAction {
         }
     }
 }
-export default class LintCommand {
+export default class LintCommand extends LaniaCommand {
     public load(program: Command) {
         program
             .command('lint')

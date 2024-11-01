@@ -1,11 +1,12 @@
 import { Command } from 'commander';
 import { getLanConfig } from './command.util';
+import { LaniaCommand } from './command.base';
 
 class PushAction {
     public async handle() {}
 }
 
-export default class PushCommand {
+export default class PushCommand extends LaniaCommand {
     public load(program: Command) {
         program
             .command('push')

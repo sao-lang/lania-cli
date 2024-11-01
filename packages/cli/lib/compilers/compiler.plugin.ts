@@ -2,7 +2,7 @@ import logger from '@utils/logger';
 import text from '@utils/text';
 import path from 'path';
 import { NormalizedOutputOptions, OutputBundle } from 'rollup';
-import { PluginOption, mergeConfig } from 'vite';
+import { PluginOption } from 'vite';
 import { Compiler, Stats, StatsError } from 'webpack';
 export interface LogOnBuildWebpackPluginOptions {
     onDone?: (stats: Stats) => void;

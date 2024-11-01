@@ -1,3 +1,5 @@
+import to from './to';
+
 type Task<T> = () => Promise<T>;
 
 interface Options {
@@ -9,17 +11,21 @@ interface Options {
 interface TaskResult<T> {
     status: 'fulfilled' | 'rejected';
     value: T | null;
-    reason?: string | null
+    reason?: string | null;
 }
 
 // 单个任务运行器，包含重试和超时控制
-const runWithRetry = async <T>(task: Task<T>, retries: number, timeout: number): Promise<TaskResult<T>> => {
+const runWithRetry = async <T>(
+    task: Task<T>,
+    retries: number,
+    timeout: number,
+): Promise<TaskResult<T>> => {
     for (let attempt = 0; attempt <= retries; attempt++) {
         const [err, res] = await to(timeout ? applyTimeout(task, timeout) : task());
         if (err && attempt === retries) {
             return { status: 'rejected', value: null, reason: err.message };
         }
-        return { status: 'fulfilled', value: result, reason: null };
+        return { status: 'fulfilled', value: res, reason: null };
     }
     return { status: 'rejected', value: null, reason: null };
 };
@@ -32,7 +38,10 @@ const applyTimeout = <T>(task: Task<T>, timeout: number): Promise<T> =>
     ]);
 
 // 并行执行函数
-export const parallel = async <T>(tasks: Task<T>[], options: Options = {}): Promise<TaskResult<T>[]> => {
+export const parallel = async <T>(
+    tasks: Task<T>[],
+    options: Options = {},
+): Promise<TaskResult<T>[]> => {
     const { concurrency = 4, retries = 0, timeout = 0 } = options;
     const results: TaskResult<T>[] = Array(tasks.length);
     const executing = new Set<Promise<void>>();
@@ -46,7 +55,7 @@ export const parallel = async <T>(tasks: Task<T>[], options: Options = {}): Prom
             // 任务完成后从 Set 中删除
             executing.delete(taskPromise);
         });
-        
+
         // 将任务添加到 Set 中
         executing.add(taskPromise);
 
@@ -61,7 +70,10 @@ export const parallel = async <T>(tasks: Task<T>[], options: Options = {}): Prom
     return results;
 };
 // 串行执行函数
-export const series = async <T>(tasks: Task<T>[], options: Options = {}): Promise<TaskResult<T>[]> => {
+export const series = async <T>(
+    tasks: Task<T>[],
+    options: Options = {},
+): Promise<TaskResult<T>[]> => {
     const { retries = 0, timeout = 0 } = options;
     const results: TaskResult<T>[] = [];
 
