@@ -1,9 +1,9 @@
 import logger from '@utils/logger';
 import text from '@utils/text';
 import path from 'path';
-import { NormalizedOutputOptions, OutputBundle } from 'rollup';
-import { PluginOption } from 'vite';
-import { Compiler, Stats, StatsError } from 'webpack';
+import type { NormalizedOutputOptions, OutputBundle } from 'rollup';
+import type { PluginOption } from 'vite';
+import type { Compiler, Stats, StatsError } from 'webpack';
 export interface LogOnBuildWebpackPluginOptions {
     onDone?: (stats: Stats) => void;
     onWatch?: (compiler: Compiler) => void;

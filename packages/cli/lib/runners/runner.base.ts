@@ -5,7 +5,7 @@ export interface RunnerRunOptions {
     cwd?: string;
 }
 
-export default class Runner {
+class BaseRunner {
     public async run(command: string, args: string[] = [], options: RunnerRunOptions = {}) {
         return new Promise((resolve: (value: string) => void, reject) => {
             const isSilent = options.silent === true;
@@ -32,5 +32,13 @@ export default class Runner {
                 return reject(err);
             });
         });
+    }
+}
+
+export default abstract class Runner<Command extends string> {
+    protected abstract command: Command;
+    private runner = new BaseRunner();
+    protected run(action: string, args: string[] = [], options: RunnerRunOptions = {}) {
+        return this.runner.run(`${this.command} ${action}`, args, options);
     }
 }

@@ -1,7 +1,6 @@
 import { type Command } from 'commander';
 import CreateCommand from './create.command';
 import logger from '@utils/logger';
-// @ts-ignore
 import BuildCommand from './build.command';
 import DevCommand from './dev.command';
 

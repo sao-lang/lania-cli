@@ -2,9 +2,9 @@ import ViteCompiler from '@lib/compilers/vite.compiler';
 import WebpackCompiler from '@lib/compilers/webpack.compiler';
 import { Command } from 'commander';
 import { getLanConfig } from './command.util';
-import TscCompiler from '@lib/compilers/tsc.compiler';
-import RollupCompiler from '@lib/compilers/rollup.compiler';
-import webpack from 'webpack';
+// import TscCompiler from '@lib/compilers/tsc.compiler';
+import { RollupCompiler } from '@lib/compilers/rollup.compiler';
+import webpack, { Configuration } from 'webpack';
 import { LaniaCommand } from './command.base';
 
 const { DefinePlugin } = webpack;
@@ -25,26 +25,29 @@ class BuildAction {
                 break;
             }
             case 'webpack': {
-                const compiler = new WebpackCompiler({ configPath });
+                const compiler = new WebpackCompiler(configPath);
                 process.env.NODE_ENV = mode;
-                await compiler.build({
+                const pluginOptions: Configuration = {
                     watch,
-                    mode: 'production',
                     plugins: [
                         new DefinePlugin({
                             'process.env.NODE_ENV': JSON.stringify(mode || 'development'),
                         }),
                     ],
-                });
+                };
+                if (['development', 'production'].includes(mode)) {
+                    pluginOptions.mode = mode as 'development' | 'production';
+                }
+                await compiler.build(pluginOptions);
                 break;
             }
-            case 'tsc': {
-                const compiler = new TscCompiler({ configPath });
-                compiler.build({ watch });
-                break;
-            }
+            // case 'tsc': {
+            //     const compiler = new TscCompiler({ configPath });
+            //     compiler.build({ watch });
+            //     break;
+            // }
             case 'rollup': {
-                const compiler = new RollupCompiler({ configPath });
+                const compiler = new RollupCompiler(configPath);
                 await compiler.build({ watch: watch ? {} : null });
                 break;
             }

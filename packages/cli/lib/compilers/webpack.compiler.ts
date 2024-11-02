@@ -1,91 +1,94 @@
-import Compiler, { type BaseCompilerInterface } from './compiler.base';
+import { Compiler, ConfigOption } from './compiler.base';
 import logger from '@utils/logger';
 import text from '@utils/text';
 import path from 'path';
 import webpack, { type Configuration, type StatsAsset } from 'webpack';
 import DevServer from 'webpack-dev-server';
 import { logOnBuildWebpackPlugin } from './compiler.plugin';
-import type { CompilerBaseConfigOption } from '@utils/types';
+import to from '@utils/to';
 
-export const logWebpackBundles = (assets: StatsAsset[], outputPath: string) => {
-    assets.forEach(({ name, size }) => {
-        const filename = `${path.basename(outputPath)}/${name}`;
-        const fileSize = (size / 1024).toFixed(2);
-        const filenameModifiedText = text(`${filename}`, { color: '#6a7c80' });
-        const fileSizeModifiedText = text(`${fileSize}K`, {
-            bold: true,
-            color: '#7a7c80',
-        });
-        logger.info(`[Webpack] ${filenameModifiedText} ${fileSizeModifiedText}`);
-    });
-};
+export default class WebpackCompiler extends Compiler<Configuration, DevServer> {
+    protected server: DevServer;
+    protected configOption: ConfigOption;
 
-export default class WebpackCompiler extends Compiler<Configuration> {
-    private server: DevServer | null;
-    constructor(configOption?: CompilerBaseConfigOption, config?: Configuration) {
-        const baseCompiler: BaseCompilerInterface = {
-            build: (config: Configuration = {}) => this.buildHandler(config),
-            createServer: (config: Configuration = {}) => this.createServerHandler(config),
-            closeServer: async () => this.closeServerHandler(),
-        };
-        const { module = 'webpack', configPath } = configOption || {};
-        super(baseCompiler, { module, configPath }, config);
+    constructor(configPath?: string) {
+        super();
+        this.configOption = { module: 'webpack', configPath };
     }
 
-    private createServerHandler(config: Configuration = {}) {
-        this.closeServer();
-        return new Promise((resolve: (res: boolean) => void) => {
-            const finalConfig = this.mergeConfig(config);
-            const compiler = webpack(finalConfig);
-            this.server = new DevServer(finalConfig.devServer, compiler);
-            this.registerPlugin(compiler, finalConfig, resolve, false);
-            this.server
-                .start()
-                .then(() => {
-                    resolve(true);
-                })
-                .catch((err) => {
-                    logger.error(err.message, true);
+    public async createServer(baseConfig?: Configuration): Promise<void> {
+        await this.closeServer();
+        return new Promise(async (resolve, reject) => {
+            const config = await this.mergeConfig(baseConfig);
+            const configuration = await this.mergeStatsConfig(config);
+            const compiler = webpack(configuration);
+            this.server = new DevServer(configuration.devServer, compiler);
+            this.registerPlugin(compiler, resolve, {
+                watch: configuration.watch,
+                mode: configuration.mode,
+                isInBuild: true,
+            });
+            const [createServerErr] = await to(this.server.start());
+            if (createServerErr) {
+                logger.error(`Create server failed: ${createServerErr.message}`);
+                return reject();
+            }
+        });
+    }
+    public closeServer(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            try {
+                this.server?.close?.();
+                resolve();
+            } catch (e) {
+                reject();
+                throw e;
+            }
+        });
+    }
+    public async build(baseConfig?: Configuration): Promise<void> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const config = await this.mergeConfig(baseConfig);
+                const configuration = await this.mergeStatsConfig(config);
+                const compiler = webpack(configuration, () => {});
+                this.registerPlugin(compiler, resolve, {
+                    watch: configuration.watch,
+                    mode: configuration.mode,
+                    isInBuild: true,
                 });
+            } catch (e) {
+                logger.error(`Build failed: ${e.message}`);
+                reject();
+            }
         });
     }
-
-    private buildHandler(config: Configuration = {}) {
-        return new Promise((resolve: (res: boolean) => void) => {
-            const finalConfig = this.mergeConfig(config);
-            const compiler = webpack(finalConfig, () => {});
-            this.registerPlugin(compiler, finalConfig, resolve);
-        });
+    private mergeStatsConfig(config: Configuration) {
+        return { ...config, stats: 'none' } as Configuration;
     }
-
-    private closeServerHandler() {
-        this.server?.close?.();
-    }
-
     private registerPlugin(
         compiler: webpack.Compiler,
-        config: Configuration = {},
-        resolve: (res: boolean) => void,
-        isInBuild: boolean = true,
+        resolve: () => void,
+        { isInBuild, watch, mode }: { isInBuild: boolean; watch: boolean; mode: string },
     ) {
         logOnBuildWebpackPlugin(compiler, {
             onDone: (stats) => {
                 const { time, version, assets, outputPath } = stats.toJson();
-                if (!config.watch) {
-                    logWebpackBundles(assets, outputPath);
+                if (!watch) {
+                    this.logBundles(assets, outputPath);
                     const versionModifiedText = text(`webpack v${version}`, {
                         color: '#1da8cd',
                     });
-                    const modeModifiedText = text(`build for ${config.mode || 'development'}`, {
+                    const modeModifiedText = text(`build for ${mode || 'development'}`, {
                         color: '#21a579',
                     });
                     logger.info(`[Webpack] ${versionModifiedText} ${modeModifiedText}`);
                     logger.success(`[Webpack] built in ${time / 1000}s`);
                 }
-                if (config.watch) {
+                if (watch) {
                     logger.info('[Webpack] Watching for file changing!');
                 }
-                resolve(true);
+                resolve();
             },
             onWatch: ({ modifiedFiles }) => {
                 if (modifiedFiles) {
@@ -102,15 +105,22 @@ export default class WebpackCompiler extends Compiler<Configuration> {
                 if (!isInBuild) {
                     return;
                 }
-                if (config.watch) {
+                if (watch) {
                     logger.info('[Webpack] Watching for file changing!');
                 }
             },
         });
     }
-
-    private mergeConfig(config: Configuration) {
-        return { ...config, stats: 'none' } as Configuration;
-        // return { ...config } as Configuration;
+    private logBundles(assets: StatsAsset[], outputPath: string) {
+        assets.forEach(({ name, size }) => {
+            const filename = `${path.basename(outputPath)}/${name}`;
+            const fileSize = (size / 1024).toFixed(2);
+            const filenameModifiedText = text(`${filename}`, { color: '#6a7c80' });
+            const fileSizeModifiedText = text(`${fileSize}K`, {
+                bold: true,
+                color: '#7a7c80',
+            });
+            logger.info(`[Webpack] ${filenameModifiedText} ${fileSizeModifiedText}`);
+        });
     }
 }

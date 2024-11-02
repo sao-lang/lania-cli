@@ -1,6 +1,6 @@
 import PackageManager from './package-manager.base';
 
-export default class PnpmPackageManager extends PackageManager {
+export default class PnpmPackageManager extends PackageManager<'pnpm'> {
     constructor() {
         super(
             'pnpm',

@@ -37,6 +37,7 @@ export interface Template {
 }
 
 export class TemplateFactory {
+
     public static create(name: string) {
         switch (name) {
             case 'spa-react-template':

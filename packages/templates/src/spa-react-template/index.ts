@@ -14,14 +14,14 @@ import indexLessEjs from './templates/index.less.ejs';
 import indexScssEjs from './templates/index.scss.ejs';
 import indexStylEjs from './templates/index.styl.ejs';
 import viteEnvDTsEjs from './templates/vite-env.D.ts.ejs';
-import webpackConfigJsEjs from './templates/webpack.config.js.ejs';
-import viteConfigJsEjs from './templates/vite.config.js.ejs';
+import webpackConfigCjsEjs from './templates/webpack.config.cjs.ejs';
+import viteConfigCjsEjs from './templates/vite.config.cjs.ejs';
 import viteConfigTsEjs from './templates/vite.config.ts.ejs';
 import indexHtmlEjs from './templates/index.html.ejs';
 import tsconfigJsonEjs from './templates/tsconfig.json.ejs';
-import tailwindConfigJsEjs from './templates/tailwind.config.js.ejs';
+import tailwindConfigCjsEjs from './templates/tailwind.config.cjs.ejs';
 import tailwindCssEjs from './templates/tailwind.css.ejs';
-import postcssConfigJsEjs from './templates/postcss.config.js.ejs';
+import postcssConfigCjsEjs from './templates/postcss.config.cjs.ejs';
 // import envDevelopment from './templates/.env.development.ejs';
 // import envProduction from './templates/.env.production.ejs';
 // import configJsEjs from './templates/config.js.ejs';
@@ -30,6 +30,7 @@ import lanConfigJsonEjs from './templates/lan.config.json.ejs';
 import gitignoreEjs from './templates/.gitignore.ejs';
 
 export class SpaReactTemplate implements Template {
+    public name = 'spa-react-template';
     public getDependenciesArray(options: TemplateOptions) {
         const dependenciesArray = ['react', 'react-dom'];
         const devDependenciesArray: string[] = [options.buildTool];
@@ -163,13 +164,13 @@ export class SpaReactTemplate implements Template {
                     return {
                         options: { port, ...options },
                         outputPath: '/webpack.config.js',
-                        content: webpackConfigJsEjs,
+                        content: webpackConfigCjsEjs,
                     };
                 }
                 return {
                     options: { port, ...options },
                     outputPath: `/vite.config.${jsExtName}`,
-                    content: jsExtName === 'js' ? viteConfigJsEjs : viteConfigTsEjs,
+                    content: jsExtName === 'js' ? viteConfigCjsEjs : viteConfigTsEjs,
                 };
             },
             () => {
@@ -192,7 +193,7 @@ export class SpaReactTemplate implements Template {
                     options,
                     outputPath: '/tailwind.config.js',
                     hide: options.cssProcessor !== 'tailwindcss',
-                    content: tailwindConfigJsEjs,
+                    content: tailwindConfigCjsEjs,
                 };
             },
             () => {
@@ -208,7 +209,7 @@ export class SpaReactTemplate implements Template {
                     options,
                     outputPath: '/postcss.config.js',
                     hide: options.cssProcessor !== 'tailwindcss',
-                    content: postcssConfigJsEjs,
+                    content: postcssConfigCjsEjs,
                 };
             },
             // () => {

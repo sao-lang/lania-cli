@@ -4,6 +4,8 @@
         "execa",
         "Funcer",
         "gulpfile",
-        "textlint"
+        "stylelintignore",
+        "textlint",
+        "Textlintrc"
     ]
 }

@@ -31,5 +31,7 @@ module.exports = {
         '@typescript-eslint/ban-ts-comment': 'off',
         '@typescript-eslint/no-non-null-assertion': 'off',
         'prettier/prettier': 'off',
+        'no-empty': 'warn',
+        'no-async-promise-executor': 'warn',
     },
 };

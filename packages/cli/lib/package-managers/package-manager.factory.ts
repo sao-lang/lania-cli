@@ -1,4 +1,3 @@
-import to from '@utils/to';
 import NpmPackageManager from './npm.package-manager';
 import { type PackageManagerName } from './package-manager.base';
 import PnpmPackageManager from './pnpm.package-manager';

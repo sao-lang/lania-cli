@@ -1,11 +1,7 @@
 import Runner, { RunnerRunOptions } from './runner.base';
 
-export default class GitRunner {
-    private runner: Runner = new Runner();
-    private run(command: string, args: string[] = [], options: RunnerRunOptions = {}) {
-        return this.runner.run(`git ${command}`, args, options);
-    }
-
+export default class GitRunner extends Runner<'git'> {
+    protected command: 'git';
     public async init(options?: RunnerRunOptions) {
         await this.run('init', [], options);
         return true;

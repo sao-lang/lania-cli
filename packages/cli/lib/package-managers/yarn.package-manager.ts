@@ -1,9 +1,9 @@
 import PackageManager from './package-manager.base';
 
-export default class YarnPackageManager extends PackageManager {
+export default class YarnPackageManager extends PackageManager<'yarn'> {
     constructor() {
         super(
-            'npm',
+            'yarn',
             {
                 install: 'install',
                 add: 'add',

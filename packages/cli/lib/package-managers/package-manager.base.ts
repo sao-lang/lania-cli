@@ -1,5 +1,4 @@
 import Runner, { type RunnerRunOptions } from '@runners/runner.base';
-import to from '@utils/to';
 import { readFile } from 'fs/promises';
 
 export interface PackageManagerCommandFlags {
@@ -19,26 +18,24 @@ export interface PackageManagerCommands {
 
 export type PackageManagerName = 'npm' | 'yarn' | 'pnpm';
 
-export default class PackageManager {
-    private name: PackageManagerName;
-    private commands: PackageManagerCommands;
+export default abstract class PackageManager<
+    Command extends PackageManagerName,
+> extends Runner<Command> {
+    protected command: Command;
+    private actions: PackageManagerCommands;
     private flags: PackageManagerCommandFlags;
     private registry: string;
     constructor(
-        name: PackageManagerName,
-        commands: PackageManagerCommands,
+        name: Command,
+        actions: PackageManagerCommands,
         flags: PackageManagerCommandFlags,
         registry = 'https://registry.npmmirror.com',
     ) {
-        this.name = name;
-        this.commands = commands;
+        super();
+        this.command = name;
+        this.actions = actions;
         this.flags = flags;
         this.registry = registry;
-    }
-
-    private run(command: string, args: string[] = [], options: RunnerRunOptions = {}) {
-        const runner = new Runner();
-        return runner.run(`${this.name} ${command}`, args, options);
     }
 
     private async getPackageJsonContent() {
@@ -46,15 +43,15 @@ export default class PackageManager {
     }
 
     public async install(options: RunnerRunOptions = {}) {
-        return await this.run(this.commands.install, [this.flags.initFlag], options);
+        return await this.run(this.actions.install, [this.flags.initFlag], options);
     }
 
     public async init(options: RunnerRunOptions = {}) {
-        return await this.run(this.commands.init, [this.flags.initFlag], options);
+        return await this.run(this.actions.init, [this.flags.initFlag], options);
     }
 
     private async add(dependencies: string[], flag: string, options: RunnerRunOptions = {}) {
-        return await this.run(this.commands.install, [...dependencies, flag], options);
+        return await this.run(this.actions.install, [...dependencies, flag], options);
     }
 
     public addInProduction(dependencies: string[], options: RunnerRunOptions = {}) {
@@ -70,11 +67,7 @@ export default class PackageManager {
     }
 
     private async update(dependencies: string[], flag: string, options: RunnerRunOptions = {}) {
-        return await this.run(
-            this.commands.update,
-            [...dependencies, flag, this.registry],
-            options,
-        );
+        return await this.run(this.actions.update, [...dependencies, flag, this.registry], options);
     }
 
     public async updateInProduction(dependencies: string[], options: RunnerRunOptions = {}) {
@@ -86,7 +79,7 @@ export default class PackageManager {
     }
 
     public async remove(dependencies: string[], options: RunnerRunOptions = {}) {
-        return await this.run(this.commands.remove, dependencies, options);
+        return await this.run(this.actions.remove, dependencies, options);
     }
 
     public async upgradeInProduction(dependencies: string[], options: RunnerRunOptions = {}) {

@@ -1,6 +1,6 @@
 import PackageManager from './package-manager.base';
 
-export default class NpmPackageManager extends PackageManager {
+export default class NpmPackageManager extends PackageManager<'npm'> {
     constructor() {
         super(
             'npm',

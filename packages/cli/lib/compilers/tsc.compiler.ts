@@ -1,4 +1,3 @@
-import Compiler, { type BaseCompilerInterface } from './compiler.base';
 import { type ConfigurationLoadType } from '@lib/configuration/configuration.loader';
 import logger from '@utils/logger';
 import path from 'path';
@@ -123,19 +122,19 @@ const compileOnWatch = (configFile?: string) => {
     return tsc.createWatchProgram(host);
 };
 
-export default class TscCompiler extends Compiler<{ watch?: boolean }> {
-    constructor(configOption?: { configPath?: string }) {
-        const { configPath } = configOption || {};
-        const baseCompiler: BaseCompilerInterface = {
-            build: async (baseConfig: { watch?: boolean }) => {
-                const { watch } = baseConfig;
-                if (watch) {
-                    compileOnWatch(configPath);
-                } else {
-                    compile(configPath);
-                }
-            },
-        };
-        super(baseCompiler, undefined, undefined);
-    }
-}
+// export default class TscCompiler extends Compiler<{ watch?: boolean }> {
+//     constructor(configOption?: { configPath?: string }) {
+//         const { configPath } = configOption || {};
+//         const baseCompiler: BaseCompilerInterface = {
+//             build: async (baseConfig: { watch?: boolean }) => {
+//                 const { watch } = baseConfig;
+//                 if (watch) {
+//                     compileOnWatch(configPath);
+//                 } else {
+//                     compile(configPath);
+//                 }
+//             },
+//         };
+//         super(baseCompiler, undefined, undefined);
+//     }
+// }

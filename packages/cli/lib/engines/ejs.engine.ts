@@ -1,7 +1,7 @@
 import { writeFile } from 'fs/promises';
 import { dirname } from 'path';
 import ejs from 'ejs';
-import PrettierLinter, { type PrettierSupportFileType } from '@linters/prettier.linter';
+import PrettierLinter, { type PrettierSupportFileType } from '@linters/prettier.linter.new';
 import { mkDirs } from './engine.util';
 import { getFileExt } from '@linters/linter.util';
 

@@ -35,7 +35,7 @@ class DevAction {
                 break;
             }
             case 'webpack': {
-                const compiler = new WebpackCompiler({ configPath });
+                const compiler = new WebpackCompiler(configPath);
                 const devServer = { port: Number(port), hot: hmr, open, host };
                 process.env.NODE_ENV = mode;
                 await compiler.createServer({

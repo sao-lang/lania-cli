@@ -1,6 +1,7 @@
 import { build, createServer, createLogger, mergeConfig } from 'vite';
 import type { ViteDevServer, InlineConfig } from 'vite';
-import { BaseCompiler, ConfigOption } from './compiler.base';
+import { Compiler } from './compiler.base';
+import type { ConfigOption } from './compiler.base';
 import logger from '@utils/logger';
 import path from 'path';
 import fs from 'fs';
@@ -9,23 +10,27 @@ import text from '@utils/text';
 import type { OutputBundle } from 'rollup';
 import { LogOnBuildRollupPluginOptions, logOnBuildRollupPlugin } from './compiler.plugin';
 
-export default class ViteCompiler extends BaseCompiler<InlineConfig> {
+export default class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> {
     protected configOption: ConfigOption;
-    private server: ViteDevServer;
+    protected server: ViteDevServer;
     constructor(configPath?: string) {
         super();
         this.configOption = { module: 'vite', configPath };
     }
     public async createServer(config?: InlineConfig) {
         await this.closeServer();
-        const logOnBuildOptions: LogOnBuildRollupPluginOptions = {
-            onBuildStart: () => logger.info('Server is watching for file changes...'),
-        };
-        const configuration = await this.mergeConfig(
-            this.mergeWithPluginOptions(config, logOnBuildOptions),
-        );
-        this.server = await createServer(configuration);
-        await this.server.listen();
+        const configuration = await this.mergeWithPluginOptions(config);
+        const [createServerErr, server] = await to(createServer(configuration));
+        if (createServerErr) {
+            logger.error(`Create server failed: ${createServerErr.message}`);
+            throw createServerErr;
+        }
+        this.server = server;
+        const [listenErr] = await to(this.server.listen());
+        if (listenErr) {
+            logger.error(`Server listen failed: ${listenErr.message}`);
+            throw listenErr;
+        }
         this.server.printUrls();
     }
     public async closeServer() {
@@ -34,16 +39,7 @@ export default class ViteCompiler extends BaseCompiler<InlineConfig> {
         }
     }
     public async build(config?: InlineConfig) {
-        const logOnBuildOptions: LogOnBuildRollupPluginOptions = {
-            onWriteBundleEnd: () => logger.success('Build completed.'),
-            onWriteBundle: async ({ dir }, bundle) => {
-                await this.logViteBundle(dir, bundle);
-            },
-            onBuildStart: () => logger.info('Build started...'),
-        };
-        const configuration = await this.mergeConfig(
-            this.mergeWithPluginOptions(config, logOnBuildOptions),
-        );
+        const configuration = await this.mergeWithPluginOptions(config, true);
         const [buildErr] = await to(build(configuration));
         if (buildErr) {
             logger.error(`Build failed: ${buildErr.message}`);
@@ -51,15 +47,28 @@ export default class ViteCompiler extends BaseCompiler<InlineConfig> {
         }
     }
 
-    private mergeWithPluginOptions(
-        config: InlineConfig,
-        logOnBuildOptions: LogOnBuildRollupPluginOptions,
-    ) {
+    private async mergeWithPluginOptions(config: InlineConfig, isBuildMode = false) {
         const configHook = (currentConfig: InlineConfig) => {
             return mergeConfig(currentConfig, { customLogger: this.createViteLogger() });
         };
-        const plugins = [logOnBuildRollupPlugin(logOnBuildOptions), { config: configHook }];
-        return mergeConfig({ logLevel: 'silent', plugins }, config);
+        const logOptions = this.getLogOptions(isBuildMode);
+        const plugins = [logOnBuildRollupPlugin(logOptions), { config: configHook }];
+        return await this.mergeConfig(mergeConfig({ logLevel: 'silent', plugins }, config));
+    }
+
+    private getLogOptions(isBuildMode = false): LogOnBuildRollupPluginOptions {
+        if (isBuildMode) {
+            return {
+                onWriteBundleEnd: () => logger.success('Build completed.'),
+                onWriteBundle: async ({ dir }, bundle) => {
+                    await this.logViteBundle(dir, bundle);
+                },
+                onBuildStart: () => logger.info('Build started...'),
+            };
+        }
+        return {
+            onBuildStart: () => logger.info('Server is watching for file changes...'),
+        };
     }
 
     private createViteLogger() {
