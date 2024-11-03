@@ -3,6 +3,7 @@
         "deepmerge",
         "execa",
         "Funcer",
+        "gsync",
         "gulpfile",
         "stylelintignore",
         "textlint",

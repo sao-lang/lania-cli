@@ -13,7 +13,7 @@ module.exports = {
     ],
 
     rules: {
-        semi: ['error', 'always'],
+        semi: ['warn', 'always'],
         quotes: ['error', 'single'],
         eqeqeq: ['error', 'allow-null'],
         'no-this-before-super': 'warn',
@@ -33,5 +33,6 @@ module.exports = {
         'prettier/prettier': 'off',
         'no-empty': 'warn',
         'no-async-promise-executor': 'warn',
+        'no-empty-pattern': 'warn',
     },
 };

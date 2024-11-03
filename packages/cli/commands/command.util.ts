@@ -7,7 +7,7 @@ export interface LanConfig {
     language?: 'JavaScript' | 'TypeScript';
     buildTool?: 'tsc' | 'vite' | 'webpack' | 'rollup';
     frame?: 'react' | 'vue' | 'svelte';
-    linters?: string[]
+    linters?: ({ linter: string; config: Record<string, any> } | string)[];
 }
 
 export const getLanConfig = async (lanConfigPath?: string) => {

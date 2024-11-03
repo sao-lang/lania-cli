@@ -6,8 +6,12 @@ import Prettier from '@linters/prettier.linter.new';
 import EsLinter from '@linters/eslint.linter.new';
 import StyleLinter from '@linters/stylelint.linter.new';
 import { LaniaCommand } from './command.base';
+interface LinterConfigItem {
+    linter?: string;
+    config?: Record<string, any>;
+}
 
-type LintActionHandleConfigsParam = string[];
+type LintActionHandleConfigsParam = (LinterConfigItem | string)[];
 
 type LinterMap = {
     prettier: Prettier;
@@ -24,36 +28,44 @@ class LintAction {
         series(
             linters.map((linter) => {
                 return async () => {
-                    const checkLinter = this.switchLinter(linter as keyof LinterMap, fix);
+                    const target = typeof linter === 'string' ? linter : linter.linter;
+                    const checkLinter = this.switchLinter(
+                        target as keyof LinterMap,
+                        (linter as LinterConfigItem)?.config,
+                        fix,
+                    );
                     await checkLinter.lint(process.cwd());
                 };
             }),
         );
     }
-    private transformParams(linterConfigs: string[]) {
+    private transformParams(linterConfigs: LintActionHandleConfigsParam) {
         if (!Array.isArray(linterConfigs)) {
             return [];
         }
-        return linterConfigs.filter((linter) => LINTERS.includes(linter));
+        return linterConfigs.filter((linter) =>
+            LINTERS.includes(typeof linter === 'string' ? linter : linter?.linter),
+        );
     }
     private switchLinter<T extends keyof LinterMap>(
         linter: T,
+        config?: Record<string, any>,
         fix?: boolean,
     ): LinterMap[T] | undefined {
         const cwd = process.cwd();
         switch (linter) {
             case 'prettier':
-                return new Prettier('prettier', {
+                return new Prettier(config || 'prettier', {
                     ignorePath: `${cwd}/.prettierignore`,
                     fix,
                 }) as LinterMap[T];
             case 'eslint':
-                return new EsLinter('eslint', {
+                return new EsLinter(config || 'eslint', {
                     ignorePath: `${cwd}/.eslintignore`,
                     fix,
                 }) as LinterMap[T];
             case 'stylelint':
-                return new StyleLinter('stylelint', {
+                return new StyleLinter(config || 'stylelint', {
                     ignorePath: `${cwd}/.stylelintignore`,
                     fix,
                 }) as LinterMap[T];

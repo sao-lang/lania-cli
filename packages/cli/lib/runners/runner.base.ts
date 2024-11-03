@@ -8,15 +8,15 @@ export interface RunnerRunOptions {
 class BaseRunner {
     public async run(command: string, args: string[] = [], options: RunnerRunOptions = {}) {
         return new Promise((resolve: (value: string) => void, reject) => {
-            const isSilent = options.silent === true;
+            const { silent = true, cwd } = options;
             const $$ = $({
                 shell: true,
-                stdio: isSilent ? 'pipe' : 'inherit',
-                cwd: options.cwd || process.cwd(),
+                stdio: silent ? 'pipe' : 'inherit',
+                cwd: cwd || process.cwd(),
             });
             const childProcess = $$`${command} ${args.join(' ')}`;
             let message = '';
-            if (isSilent) {
+            if (silent) {
                 childProcess.stdout.on('data', (data) => {
                     message += data.toString().replace(/\r\n|\n/, '\n');
                 });
@@ -26,7 +26,7 @@ class BaseRunner {
             });
             childProcess.on('close', (code) => {
                 if (code === 0) {
-                    return resolve(isSilent ? message : null);
+                    return resolve(silent ? message : null);
                 }
                 const err = new Error(`Failed to execute command: ${command}`);
                 return reject(err);

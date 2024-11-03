@@ -3,12 +3,16 @@ import CreateCommand from './create.command';
 import logger from '@utils/logger';
 import BuildCommand from './build.command';
 import DevCommand from './dev.command';
+import LintCommand from './lint.command';
+import GSyncCommand from './gsync.command';
 
 export default class CommandLoader {
     public static load(program: Command) {
         new CreateCommand().load(program);
         new BuildCommand().load(program);
         new DevCommand().load(program);
+        new LintCommand().load(program);
+        new GSyncCommand().load(program);
         this.handleInvalidCommand(program);
     }
 
