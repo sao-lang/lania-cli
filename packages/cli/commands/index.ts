@@ -12,7 +12,7 @@ const bootstrap = async () => {
             .helpOption('-h, --help')
             .usage('<command> [option]');
         CommandLoader.load(program);
-        program.parse();
+        program.parse(process.argv);
     } catch (e) {
         logger.error(e.message, true);
     }

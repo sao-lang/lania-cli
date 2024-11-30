@@ -1,11 +1,15 @@
-import { Command } from 'commander';
 import { getLanConfig } from './command.util';
 import { LINTERS } from '@lib/constants/cli.constant';
 import { series } from '@utils/task';
 import Prettier from '@linters/prettier.linter.new';
 import EsLinter from '@linters/eslint.linter.new';
 import StyleLinter from '@linters/stylelint.linter.new';
-import { LaniaCommand } from './command.base';
+import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
+
+interface LintActionOptions {
+    linters?: string[];
+    fix?: boolean;
+}
 interface LinterConfigItem {
     linter?: string;
     config?: Record<string, any>;
@@ -19,14 +23,15 @@ type LinterMap = {
     stylelint: StyleLinter;
 };
 
-class LintAction {
-    public async handle(linterConfigs: LintActionHandleConfigsParam, fix = false) {
-        const linters = this.transformParams(linterConfigs);
-        if (!linters.length) {
+class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
+    public async handle(options: LintActionOptions) {
+        const { linters, fix = false } = options;
+        const transformedLinters = await this.transformParams(linters);
+        if (!transformedLinters.length) {
             throw new Error('Please specify linter!');
         }
         series(
-            linters.map((linter) => {
+            transformedLinters.map((linter) => {
                 return async () => {
                     const target = typeof linter === 'string' ? linter : linter.linter;
                     const checkLinter = this.switchLinter(
@@ -39,13 +44,21 @@ class LintAction {
             }),
         );
     }
-    private transformParams(linterConfigs: LintActionHandleConfigsParam) {
-        if (!Array.isArray(linterConfigs)) {
+    private async transformParams(linterConfigs: LintActionHandleConfigsParam) {
+        const finalLinterConfigs = await this.getLinterConfigs(linterConfigs as string[]);
+        if (!Array.isArray(finalLinterConfigs)) {
             return [];
         }
-        return linterConfigs.filter((linter) =>
+        return finalLinterConfigs.filter((linter) =>
             LINTERS.includes(typeof linter === 'string' ? linter : linter?.linter),
         );
+    }
+    private async getLinterConfigs(linter?: string[]) {
+        if (linter) {
+            return linter;
+        }
+        const { linters } = await getLanConfig();
+        return linters;
     }
     private switchLinter<T extends keyof LinterMap>(
         linter: T,
@@ -74,31 +87,23 @@ class LintAction {
         }
     }
 }
-export default class LintCommand extends LaniaCommand {
-    public load(program: Command) {
-        program
-            .command('lint')
-            .description('Lint the code.')
-            .option(
-                '-l, --linter <names>',
-                'The linters that lint code.',
-                (value, previous) => {
-                    return previous.concat([value]);
-                },
-                [],
-            )
-            .option(
-                '-f, --fix',
-                'Check whether the code needs to be modified when the linters lint the code.',
-            )
-            .alias('-l')
-            .action(async ({ linter, fix }) => {
-                if (linter) {
-                    await new LintAction().handle(linter, fix);
-                    return;
-                }
-                const { linters } = await getLanConfig();
-                await new LintAction().handle(linters ?? [], fix);
-            });
-    }
+export default class LintCommand extends LaniaCommand<[LintActionOptions]> {
+    protected actor = new LintAction();
+    protected commandNeededArgs = {
+        name: 'lint',
+        description: 'Lint the code.',
+        options: [
+            {
+                flags: '-l, --linters <names>',
+                description: 'The linters that lint code.',
+                defaultValue: [],
+            },
+            {
+                flags: '-f, --fix',
+                description:
+                    'Check whether the code needs to be modified when the linters lint the code.',
+            },
+        ],
+        alias: '-l',
+    };
 }

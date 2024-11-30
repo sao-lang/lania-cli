@@ -1,4 +1,4 @@
-import { CommandCreateOptions } from '@commands/create.command';
+import { CreateCommandOptions } from '@commands/create.command';
 import {
     CSS_PROCESSORS,
     LINT_TOOLS,
@@ -17,7 +17,7 @@ import PackageManagerFactory from '@lib/package-managers/package-manager.factory
 export class Builder {
     private options: TemplateOptions = {} as any;
     private template: Template;
-    private async prompt(options: CommandCreateOptions) {
+    private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
         const choices: Answers = [
             createListQuestion({
@@ -156,7 +156,7 @@ export class Builder {
             };
         });
     }
-    public async build(options: CommandCreateOptions) {
+    public async build(options: CreateCommandOptions) {
         const answers = (await this.prompt(options)) as any;
         this.template = TemplateFactory.create(answers.template);
         this.options = {

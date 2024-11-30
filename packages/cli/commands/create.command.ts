@@ -1,13 +1,12 @@
 import { PACKAGE_TOOLS } from '@lib/constants/cli.constant';
 import GitRunner from '@runners/git.runner';
-import { type Command } from 'commander';
 import { mkdir, readdir } from 'fs/promises';
 import path from 'path';
 import { Builder } from 'templates/builder';
 import validatePkgName from 'validate-npm-package-name';
-import { LaniaCommand } from './command.base';
+import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
 
-export interface CommandCreateOptions {
+export interface CreateCommandOptions {
     name: string;
     directory: string;
     skipInstall: boolean;
@@ -16,16 +15,15 @@ export interface CommandCreateOptions {
     packageManager: string;
 }
 
-type CommandActionOptions = Exclude<CommandCreateOptions, 'name'>;
+type CreateActionOptions = Exclude<CreateCommandOptions, 'name'>;
 
-const cwd = process.cwd();
-
-class CreateAction {
-    private options: CommandCreateOptions = {} as any;
+class CreateAction implements LaniaCommandActionInterface<[string, CreateCommandOptions]> {
+    private options: CreateCommandOptions = {} as any;
     private validateProjectName(name: string) {
         return !validatePkgName(name).errors;
     }
     private async check(name: string, directory: string, packageManager: string) {
+        const cwd = process.cwd();
         if (packageManager && !PACKAGE_TOOLS.includes(packageManager)) {
             return {
                 status: false,
@@ -74,7 +72,7 @@ class CreateAction {
             message: '',
         };
     }
-    public async handle(name: string, command: CommandActionOptions) {
+    public async handle(name: string, command: CreateActionOptions) {
         this.options = { name, ...command };
         const { status, message } = await this.check(
             name,
@@ -91,23 +89,36 @@ class CreateAction {
     }
 }
 
-export default class CreateCommand extends LaniaCommand {
-    public load(program: Command) {
-        program
-            .command('create [name]')
-            .description('Generate an application.')
-            .option('-d, --directory [directory]', 'Specify the destination directory.')
-            .option('-g, --skip-git', 'Skip git repository initialization.', false)
-            .option('-s, --skip-install', 'Skip package installation.', false)
-            .option('-p, --package-manager [packageManager]', 'Specify package manager.')
-            .option(
-                '-l, --language [language]',
-                'Programming language to be used (TypeScript or JavaScript).',
-                'TypeScript',
-            )
-            .alias('-c')
-            .action(async (name, command: CommandActionOptions) => {
-                await new CreateAction().handle(name, command);
-            });
-    }
+export default class CreateCommand extends LaniaCommand<[string, CreateCommandOptions]> {
+    protected actor = new CreateAction();
+    protected commandNeededArgs = {
+        name: 'create [name]',
+        description: 'Generate an application.',
+        options: [
+            {
+                flags: '-d, --directory [directory]',
+                description: 'Specify the destination directory.',
+            },
+            {
+                flags: '-g, --skip-git',
+                description: 'Skip git repository initialization.',
+                defaultValue: false,
+            },
+            {
+                flags: '-s, --skip-install',
+                description: 'Skip package installation.',
+                defaultValue: false,
+            },
+            {
+                flags: '-p, --package-manager [packageManager]',
+                description: 'Specify package manager.',
+            },
+            {
+                flags: '-l, --language [language]',
+                description: 'Programming language to be used (TypeScript or JavaScript).',
+                defaultValue: 'TypeScript',
+            },
+        ],
+        alias: '-c',
+    };
 }

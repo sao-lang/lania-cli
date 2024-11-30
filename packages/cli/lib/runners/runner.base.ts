@@ -20,6 +20,9 @@ class BaseRunner {
                 childProcess.stdout.on('data', (data) => {
                     message += data.toString().replace(/\r\n|\n/, '\n');
                 });
+                childProcess.stderr.on('data', (data: Buffer) => {
+                    message += data.toString().replace(/\r\n|\n|\r/, '\n');
+                });
             }
             childProcess.on('error', (err) => {
                 return reject(err);
@@ -28,8 +31,9 @@ class BaseRunner {
                 if (code === 0) {
                     return resolve(silent ? message : null);
                 }
-                const err = new Error(`Failed to execute command: ${command}`);
-                return reject(err);
+                const commandAndArgs = `${command}${args?.length ? ` ${args.join(' ')}` : ''}`;
+                const errMsg = silent ? `, from error message: "${message.trimEnd()}"` : '';
+                return reject(new Error(`Failed to execute command: ${commandAndArgs}${errMsg}`));
             });
         });
     }
