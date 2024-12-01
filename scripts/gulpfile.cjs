@@ -44,9 +44,20 @@ const buildCli = (watch) => {
     });
 };
 
+const buildCliUtils = (watch) => {
+    return withTaskName(`build cli-utils ${watch ? 'watch' : ''}`, async () => {
+        const configFilePath = path.resolve(__dirname, '../scripts/rollup.cli-utils.config.js');
+        await run(
+            `rimraf ${dirPath}/cli-utils/dist && rollup -c=${configFilePath} ${watch ? '-w' : ''}`,
+        );
+    });
+};
+
 module.exports = {
     buildTemplate: series(buildTemplate()),
     buildCli: series(buildCli(false)),
     buildCliWatch: series(buildCli(true)),
     build: series(buildCli(false), buildTemplate()),
+    buildCliUtils: series(buildCliUtils()),
+    buildCliUtilsWatch: series(buildCliUtils(true)),
 };

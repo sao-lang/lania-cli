@@ -1,3 +1,4 @@
+import inquirer from 'inquirer';
 import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
 import GitRunner from '@runners/git.runner';
 
@@ -17,21 +18,33 @@ class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
         setUpstream,
     }: GSyncActionOptions) {
         const git = new GitRunner();
-        const isInstall = await git.isInstalled();
-        if (!isInstall) {
+        const isInstalled = await git.isInstalled();
+        if (!isInstalled) {
             throw new Error('Please install Git first!');
         }
         const isInit = await git.isInit();
         if (!isInit) {
             await git.init();
         }
-        await git.add('.');
-        message && (await git.commit(message));
-        const hasRemote = await git.hasRemote(remote);
-        if (!hasRemote) {
-            throw new Error(remote ? 'Remote is not exist!' : 'Please add a remote!');
+        await git.addAllFiles();
+        const commitPromptRes = await inquirer.prompt({
+            name: 'message',
+            type: 'input',
+            message: 'Please input the message you will commit:',
+            default: message,
+        });
+        const flag = await git.hasUncommittedChanges();
+        if (flag) {
+            if (!commitPromptRes.message) {
+                throw new Error('Please add the message you will commit!');
+            }
+            await git.commit(commitPromptRes.message);
         }
-        setUpstream ? await git.pushSetUpstream(remote, branch) : git.push(remote, branch);
+        // const hasRemote = await git.hasRemote(remote);
+        // if (!hasRemote) {
+        //     throw new Error(remote ? 'Remote is not exist!' : 'Please add a remote!');
+        // }
+        // setUpstream ? await git.pushSetUpstream(remote, branch) : git.push(remote, branch);
     }
 }
 

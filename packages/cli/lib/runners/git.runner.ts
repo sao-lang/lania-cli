@@ -51,7 +51,6 @@ export default class GitRunner extends Runner<'git'> {
     }
 
     public async pushSetUpstream(remote: string, branch: string, options?: RunnerRunOptions) {
-        console.log('git', this);
         await this.run('push --set-upstream', [remote, branch], options);
     }
 
@@ -81,5 +80,10 @@ export default class GitRunner extends Runner<'git'> {
                 return resolve(true);
             });
         });
+    }
+
+    public async hasUncommittedChanges() {
+        const res = await this.run('status --porcelain');
+        return !!res;
     }
 }
