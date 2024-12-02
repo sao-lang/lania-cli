@@ -1,3 +1,5 @@
+import text from '@utils/text';
+
 export const PROJECT_TYPES = ['spa', 'ssr', 'nodejs', 'toolkit', 'components', 'vanilla'];
 
 // export const TEMPLATES_LIST = ['spa-react-template'];
@@ -67,3 +69,5 @@ export const STORE_MANAGEMENT_TOOLS = ['pinia', 'vuex', 'redux', 'mobx', 'recoil
 export const HTTP_TOOLS = ['axios'];
 
 export const ORM_TOOLS = ['typeorm'];
+
+export const ADD_NEW_REMOTE_CHOICE = 'add new remote';

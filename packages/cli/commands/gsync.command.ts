@@ -1,6 +1,7 @@
 import inquirer from 'inquirer';
 import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
 import GitRunner from '@runners/git.runner';
+import { ADD_NEW_REMOTE_CHOICE } from '@lib/constants/cli.constant';
 
 type GSyncActionOptions = {
     message?: string;
@@ -11,49 +12,82 @@ type GSyncActionOptions = {
 };
 
 class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
+    private git = new GitRunner();
     public async handle(options: GSyncActionOptions) {
-        const { message, remote = 'origin', branch = 'master', setUpstream } = options;
-        const git = new GitRunner();
-        const isInstalled = await git.isInstalled();
+        const { message, remote = 'origin', branch = 'master' } = options;
+        const isInstalled = await this.git.isInstalled();
         if (!isInstalled) {
             throw new Error('Please install Git first!');
         }
-        const isInit = await git.isInit();
+        const isInit = await this.git.isInit();
         if (!isInit) {
-            await git.init();
+            await this.git.init();
         }
-        await git.addAllFiles();
-        const flag = await git.hasUncommittedChanges();
+        await this.git.addAllFiles();
+        await this.handleNeededMessage(message);
+        await this.handleNeededRemote(remote, branch);
+    }
+    private async handleNeededRemote(remote?: string, branch?: string) {
+        const promptRemote = await this.getPromptRemote(remote);
+        if (!promptRemote) {
+            throw new Error('Please select a remote you will push!');
+        }
+        const branches = await this.git.getBranches();
+        const { branch: promptBranch } = await inquirer.prompt({
+            name: 'branch',
+            message: 'Please select the branch you will push:',
+            choices: branches,
+            default: branch,
+            type: 'checkbox',
+        });
+        if (!promptBranch) {
+            throw new Error('Please select a branch you will push!');
+        }
+        const needsSetUpstream = await this.git.needsSetUpstreamOnPushCode();
+        needsSetUpstream
+            ? await this.git.pushSetUpstream(promptRemote, promptBranch)
+            : await this.git.push(promptRemote, promptBranch);
+    }
+    private async getPromptRemote(remote?: string): Promise<string> {
+        const remotes = await this.git.getRemotes();
+        const { remote: promptRemote } = await inquirer.prompt({
+            name: 'remote',
+            message: 'Please select the remote you will push:',
+            choices: [...remotes.map(({ name }) => name), ADD_NEW_REMOTE_CHOICE],
+            default: remote,
+            type: 'checkbox',
+        });
+        if (promptRemote !== ADD_NEW_REMOTE_CHOICE) {
+            return promptRemote;
+        }
+        const { addRemote } = await inquirer.prompt({
+            name: 'addRemote',
+            message: 'Please input the remote you will add:',
+            type: 'input',
+        });
+        if (!addRemote) {
+            throw new Error('You did not add remote!');
+        }
+        return addRemote;
+    }
+    private async handleNeededMessage(message) {
+        const flag = await this.git.hasUncommittedChanges();
         if (!flag) {
-            logger.warning('Working tree clean!');
-            process.exit(0);
+            return;
         }
         const messagePromptRes = await inquirer.prompt({
             name: 'message',
-            type: 'input',
             message: 'Please input the message you will commit:',
             default: message,
+            type: 'input',
         });
         if (!messagePromptRes.message) {
-            throw new Error('Please add the message you will commit!');
+            throw new Error('Please input the message you will commit!');
         }
-        await git.commit(messagePromptRes.message);
-        const remotes = await git.lsRemotes();
-        const remotePromptRes = await inquirer.prompt({
-            name: 'remote',
-            type: 'checkbox',
-            message: 'Please select the remote you will push:',
-            chioces: remotes,
-            default: [...remote, 'add new remote']
-        });
-        if (remotePromptRes.remote === 'add new remote') {
-            
-        }
-        // const hasRemote = await git.hasRemote(remote);
-        // if (!hasRemote) {
-        //     throw new Error(remote ? 'Remote is not exist!' : 'Please add a remote!');
+        // if (flag && !message) {
+        //     throw new Error('No committed, Working tree clean!');
         // }
-        // setUpstream ? await git.pushSetUpstream(remote, branch) : git.push(remote, branch);
+        await this.git.commit(messagePromptRes.message);
     }
 }
 

@@ -6,7 +6,7 @@ import {
     UNIT_TEST_TOOLS,
 } from '@lib/constants/cli.constant';
 import inquirer, { type Answers } from 'inquirer';
-import { createCheckboxQuestion, createListQuestion } from './questions';
+import { createCheckboxQuestion, createListQuestion } from '../utils/create-questions';
 import to from '@utils/to';
 import { TemplateFactory, type TemplateOptions, type Template } from '@lania/templates';
 import latestVersion from 'latest-version';
