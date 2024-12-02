@@ -11,12 +11,8 @@ type GSyncActionOptions = {
 };
 
 class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
-    public async handle({
-        message,
-        remote = 'origin',
-        branch = 'master',
-        setUpstream,
-    }: GSyncActionOptions) {
+    public async handle(options: GSyncActionOptions) {
+        const { message, remote = 'origin', branch = 'master', setUpstream } = options;
         const git = new GitRunner();
         const isInstalled = await git.isInstalled();
         if (!isInstalled) {
@@ -27,18 +23,31 @@ class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
             await git.init();
         }
         await git.addAllFiles();
-        const commitPromptRes = await inquirer.prompt({
+        const flag = await git.hasUncommittedChanges();
+        if (!flag) {
+            logger.warning('Working tree clean!');
+            process.exit(0);
+        }
+        const messagePromptRes = await inquirer.prompt({
             name: 'message',
             type: 'input',
             message: 'Please input the message you will commit:',
             default: message,
         });
-        const flag = await git.hasUncommittedChanges();
-        if (flag) {
-            if (!commitPromptRes.message) {
-                throw new Error('Please add the message you will commit!');
-            }
-            await git.commit(commitPromptRes.message);
+        if (!messagePromptRes.message) {
+            throw new Error('Please add the message you will commit!');
+        }
+        await git.commit(messagePromptRes.message);
+        const remotes = await git.lsRemotes();
+        const remotePromptRes = await inquirer.prompt({
+            name: 'remote',
+            type: 'checkbox',
+            message: 'Please select the remote you will push:',
+            chioces: remotes,
+            default: [...remote, 'add new remote']
+        });
+        if (remotePromptRes.remote === 'add new remote') {
+            
         }
         // const hasRemote = await git.hasRemote(remote);
         // if (!hasRemote) {
