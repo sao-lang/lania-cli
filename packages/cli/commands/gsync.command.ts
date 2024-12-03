@@ -2,21 +2,20 @@ import inquirer from 'inquirer';
 import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
 import GitRunner from '@runners/git.runner';
 import { ADD_NEW_REMOTE_CHOICE } from '@lib/constants/cli.constant';
-import logger from '@utils/logger';
 import loading from '@utils/loading';
+import { CommitizenPlugin } from '@lib/plugins/commitizen.plugin';
 
 type GSyncActionOptions = {
     message?: string;
     branch?: string;
     normatively?: boolean;
     remote?: string;
-    setUpstream?: boolean;
 };
 
 class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
     private git = new GitRunner();
     public async handle(options: GSyncActionOptions) {
-        const { message, remote = 'origin', branch = 'master' } = options;
+        const { message, remote = 'origin', branch = 'master', normatively } = options;
         const isInstalled = await this.git.isInstalled();
         if (!isInstalled) {
             throw new Error('Please install Git first!');
@@ -26,8 +25,32 @@ class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
             await this.git.init();
         }
         await this.git.addAllFiles();
-        await this.handleCommit(message);
-        await this.handlePush(remote, branch);
+        // await this.handleCommit(message);
+        const flag = await this.git.hasUncommittedChanges();
+        if (!flag) {
+            return;
+        }
+        if (!normatively) {
+            const messagePromptRes = await inquirer.prompt({
+                name: 'message',
+                message: 'Please input the message you will commit:',
+                default: message,
+                type: 'input',
+            });
+            if (!messagePromptRes.message) {
+                throw new Error('Please input the message you will commit!');
+            }
+            // if (flag && !message) {
+            //     throw new Error('No committed, Working tree clean!');
+            // }
+            await this.git.commit(messagePromptRes.message);
+            await this.handlePush(remote, branch);
+            return;
+        }
+        new CommitizenPlugin().run(async (commitMessage) => {
+            await this.git.commit(commitMessage);
+            await this.handlePush(remote, branch);
+        });
     }
     private async handlePush(remote?: string, branch?: string) {
         const promptRemote = await this.getPromptRemote(remote);
@@ -89,202 +112,6 @@ class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
             throw new Error('You did not add remote!');
         }
         return addRemote;
-    }
-    private async handleCommit(message) {
-        const flag = await this.git.hasUncommittedChanges();
-        if (!flag) {
-            return;
-        }
-        const messagePromptRes = await inquirer.prompt({
-            name: 'message',
-            message: 'Please input the message you will commit:',
-            default: message,
-            type: 'input',
-        });
-        if (!messagePromptRes.message) {
-            throw new Error('Please input the message you will commit!');
-        }
-        // if (flag && !message) {
-        //     throw new Error('No committed, Working tree clean!');
-        // }
-        await this.git.commit(messagePromptRes.message);
-    }
-}
-
-type CommitType =
-    | 'feat'
-    | 'fix'
-    | 'docs'
-    | 'style'
-    | 'refactor'
-    | 'perf'
-    | 'test'
-    | 'chore'
-    | 'revert'
-    | 'build';
-
-interface CommitizenConfig {
-    types: { value: CommitType; name: string }[];
-    messages: {
-        type: string;
-        customScope: string;
-        subject: string;
-        body: string;
-        footer: string;
-        confirmCommit: string;
-    };
-    skipQuestions: ('body' | 'footer')[];
-    subjectLimit: number;
-    scopes: string[];
-    allowCustomScopes: boolean;
-    allowBreakingChanges: CommitType[];
-    footerPrefix: string;
-}
-
-interface CommitData {
-    type: CommitType;
-    scope: string;
-    subject: string;
-    body?: string;
-    footer?: string;
-}
-
-class CommitizenPlugin {
-    private config: CommitizenConfig;
-
-    constructor(config: CommitizenConfig) {
-        this.config = config;
-    }
-
-    // 主要执行的提交流程
-    async run(): Promise<void> {
-        // 选择提交类型
-        const { type } = await this.promptForType();
-
-        // 选择作用域
-        const { scope } = await this.promptForScope();
-
-        // 输入提交简要描述
-        const { subject } = await this.promptForSubject();
-
-        // 询问是否需要详细描述（可选）
-        const body = await this.promptForBody();
-
-        // 询问是否需要关闭的 issue（可选）
-        const footer = await this.promptForFooter();
-
-        // 构建提交信息
-        const commitMessage = this.createCommitMessage({ type, scope, subject, body, footer });
-
-        // 提交前确认
-        await this.confirmCommit(commitMessage);
-    }
-
-    private async promptForType(): Promise<{ type: CommitType }> {
-        return inquirer.prompt([
-            {
-                type: 'list',
-                name: 'type',
-                message: this.config.messages.type,
-                choices: this.config.types,
-            },
-        ]);
-    }
-
-    private async promptForScope(): Promise<{ scope: string }> {
-        const { scope } = await inquirer.prompt([
-            {
-                type: 'list',
-                name: 'scope',
-                message: this.config.messages.customScope,
-                choices: [...this.config.scopes, '自定义...'],
-            },
-        ]);
-
-        return { scope: scope === '自定义...' ? await this.getCustomScope() : scope };
-    }
-
-    private async promptForSubject(): Promise<{ subject: string }> {
-        return inquirer.prompt([
-            {
-                type: 'input',
-                name: 'subject',
-                message: this.config.messages.subject,
-                validate: (input: string) => input.length > 0 || '提交简要描述是必填的',
-                filter: (input: string) => input.trim(),
-            },
-        ]);
-    }
-
-    private async promptForBody(): Promise<string | undefined> {
-        if (this.config.skipQuestions.includes('body')) {
-            return '';
-        }
-        const { bodyInput } = await inquirer.prompt([
-            {
-                type: 'input',
-                name: 'bodyInput',
-                message: this.config.messages.body,
-                default: '',
-            },
-        ]);
-        return bodyInput.trim() || undefined;
-    }
-
-    private async promptForFooter(): Promise<string | undefined> {
-        if (this.config.skipQuestions.includes('footer')) {
-            return '';
-        }
-        const { footerInput } = await inquirer.prompt([
-            {
-                type: 'input',
-                name: 'footerInput',
-                message: this.config.messages.footer,
-                default: '',
-            },
-        ]);
-        return footerInput.trim() || undefined;
-    }
-
-    private async getCustomScope(): Promise<string> {
-        const { customScope } = await inquirer.prompt([
-            {
-                type: 'input',
-                name: 'customScope',
-                message: '请输入自定义范围:',
-            },
-        ]);
-        return customScope;
-    }
-
-    private createCommitMessage({ type, scope, subject, body, footer }: CommitData): string {
-        let commitMessage = `${type}(${scope}): ${subject}`;
-        if (body) {
-            commitMessage += `\n\n${body}`;
-        }
-        if (footer) {
-            commitMessage += `\n\n${footer}`;
-        }
-        return commitMessage;
-    }
-
-    private async confirmCommit(commitMessage: string): Promise<void> {
-        const { confirmCommit } = await inquirer.prompt([
-            {
-                type: 'confirm',
-                name: 'confirmCommit',
-                message: `${this.config.messages.confirmCommit}\n\n提交信息: ${commitMessage}`,
-                default: true,
-            },
-        ]);
-
-        if (confirmCommit) {
-            console.log(`提交信息: \n${commitMessage}`);
-            // 在这里执行 Git 提交命令
-            // exec(`git commit -m "${commitMessage}"`, (error, stdout, stderr) => { ... });
-        } else {
-            console.log('提交已取消');
-        }
     }
 }
 
