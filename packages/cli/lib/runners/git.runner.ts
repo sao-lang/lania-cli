@@ -60,7 +60,6 @@ export default class GitRunner extends Runner<'git'> {
 
     public async getCurrentBranch() {
         const branch = await this.run('rev-parse', ['--abbrev-ref', 'HEAD']);
-        console.log({ branch }, 'getCurrentBranch');
         if (!branch || branch === 'HEAD') {
             throw new Error('Currently not on any branch or in detached HEAD state!');
         }
@@ -123,5 +122,11 @@ export default class GitRunner extends Runner<'git'> {
     public async hasUncommittedChanges() {
         const res = await this.run('status', ['--porcelain']);
         return !!res;
+    }
+
+    public async checkIfCommitsCanBePushed(remote: string, branch: string) {
+        const res = await this.run('rev-parse', [`${branch}`]);
+        const remoteRes = await this.run('rev-parse', [`${remote}/${branch}`]);
+        return res?.trim() === remoteRes?.trim();
     }
 }
