@@ -4,6 +4,8 @@ import GitRunner from '@runners/git.runner';
 import { ADD_NEW_REMOTE_CHOICE } from '@lib/constants/cli.constant';
 import loading from '@utils/loading';
 import { CommitizenPlugin } from '@lib/plugins/commitizen.plugin';
+import { CommitlintPlugin } from '@lib/plugins/commitlint.plugin';
+import logger from '@utils/logger';
 
 type GSyncActionOptions = {
     message?: string;
@@ -47,10 +49,15 @@ class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
             await this.handlePush(remote, branch);
             return;
         }
-        new CommitizenPlugin().run(async (commitMessage) => {
+        const commitMessage = await new CommitizenPlugin().run();
+        if (commitMessage) {
+            const lintResult = await new CommitlintPlugin().run(commitMessage);
+            if (lintResult.errors) {
+                logger.error(lintResult.errors.toString(), true);
+            }
             await this.git.commit(commitMessage);
             await this.handlePush(remote, branch);
-        });
+        }
     }
     private async handlePush(remote?: string, branch?: string) {
         const promptRemote = await this.getPromptRemote(remote);

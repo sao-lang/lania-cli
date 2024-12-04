@@ -1,16 +1,6 @@
 import inquirer from 'inquirer';
 
-type CommitType =
-    | 'feat'
-    | 'fix'
-    | 'docs'
-    | 'style'
-    | 'refactor'
-    | 'perf'
-    | 'test'
-    | 'chore'
-    | 'revert'
-    | 'build';
+type CommitType = string;
 
 interface CommitizenConfig {
     types: { value: CommitType; name: string }[];
@@ -21,11 +11,13 @@ interface CommitizenConfig {
         body: string;
         footer: string;
         confirmCommit: string;
+        breakingChange: string;
     };
-    skipQuestions: ('body' | 'footer')[];
+    skipQuestions: ('type' | 'scope' | 'subject' | 'body' | 'footer' | 'breakingChange')[]; // 可选跳过的问题
     subjectLimit: number;
     scopes: string[];
     allowCustomScopes: boolean;
+    scopeOverrides?: Record<CommitType, string[]>; // 类型特定的作用域覆盖
     allowBreakingChanges: CommitType[];
     footerPrefix: string;
 }
@@ -36,6 +28,7 @@ interface CommitData {
     subject: string;
     body?: string;
     footer?: string;
+    breakingChange?: boolean;
 }
 
 export class CommitizenPlugin {
@@ -62,55 +55,42 @@ export class CommitizenPlugin {
                 body: '请输入详细描述(可选):',
                 footer: '请输入要关闭的issue(可选):',
                 confirmCommit: '确认使用以上信息提交？(y/n/e/h)',
+                breakingChange: '此提交包含 BREAKING CHANGE 吗？',
             },
-            skipQuestions: ['body', 'footer'], // 跳过问题
-            subjectLimit: 72, // subject 限制长度
-            scopes: ['frontend', 'backend', 'api'], // 预定义作用域
-            allowCustomScopes: true, // 允许自定义作用域
-            allowBreakingChanges: ['feat', 'fix'], // 允许 breaking changes 的类型
-            footerPrefix: 'BREAKING CHANGES:', // 修改 breaking change 的前缀
+            skipQuestions: ['body', 'footer', 'breakingChange'], // 跳过 body, footer 和 breakingChange
+            subjectLimit: 72,
+            scopes: ['frontend', 'backend', 'api'],
+            allowCustomScopes: true,
+            scopeOverrides: {
+                feat: ['Feature A', 'Feature B'],
+                fix: ['Bug Fix A', 'Bug Fix B'],
+            },
+            allowBreakingChanges: ['feat', 'fix'],
+            footerPrefix: 'BREAKING CHANGES:',
         };
     }
 
-    // 主要执行的提交流程
-    async run(cb: (message: string) => (void | Promise<void>)): Promise<void> {
-        // 选择提交类型
+    async run() {
         const { type } = await this.promptForType();
-
-        // 选择作用域
-        const { scope } = await this.promptForScope();
-
-        // 输入提交简要描述
+        const { scope } = await this.promptForScope(type);
         const { subject } = await this.promptForSubject();
-
-        // 询问是否需要详细描述（可选）
+        const breakingChange = await this.promptForBreakingChange(type);
         const body = await this.promptForBody();
-
-        // 询问是否需要关闭的 issue（可选）
         const footer = await this.promptForFooter();
 
-        // 构建提交信息
-        const commitMessage = this.createCommitMessage({ type, scope, subject, body, footer });
-        // 提交前确认
-        const { confirmCommit } = await inquirer.prompt([
-            {
-                type: 'confirm',
-                name: 'confirmCommit',
-                message: `${this.config.messages.confirmCommit}\n\n提交信息: ${commitMessage}`,
-                default: true,
-            },
-        ]);
+        const commitMessage = this.createCommitMessage({
+            type,
+            scope,
+            subject,
+            body,
+            footer,
+            breakingChange,
+        });
 
-        if (confirmCommit) {
-            cb(commitMessage);
-            console.log(`提交信息: \n${commitMessage}`);
-            // 在这里执行 Git 提交命令
-            // exec(`git commit -m "${commitMessage}"`, (error, stdout, stderr) => { ... });
-        } else {
-            console.log('提交已取消');
-        }
+        return await this.confirmCommit(commitMessage);
     }
 
+    // 提示选择提交类型
     private async promptForType(): Promise<{ type: CommitType }> {
         return inquirer.prompt([
             {
@@ -122,80 +102,152 @@ export class CommitizenPlugin {
         ]);
     }
 
-    private async promptForScope(): Promise<{ scope: string }> {
+    // 提示选择提交作用域
+    private async promptForScope(type: CommitType): Promise<{ scope: string }> {
+        if (this.config.skipQuestions.includes('scope')) {
+            return { scope: '' }; // 跳过作用域
+        }
+
+        const scopes = this.config.scopeOverrides?.[type] || this.config.scopes;
+        if (scopes.length === 0 && !this.config.allowCustomScopes) {
+            return { scope: '' };
+        }
+
         const { scope } = await inquirer.prompt([
             {
                 type: 'list',
                 name: 'scope',
                 message: this.config.messages.customScope,
-                choices: [...this.config.scopes, '自定义...'],
+                choices: [...scopes, ...(this.config.allowCustomScopes ? ['Custom...'] : [])],
             },
         ]);
 
-        return { scope: scope === '自定义...' ? await this.getCustomScope() : scope };
+        return { scope: scope === 'Custom...' ? await this.getCustomScope() : scope };
     }
 
+    // 提示输入提交简短描述
     private async promptForSubject(): Promise<{ subject: string }> {
+        if (this.config.skipQuestions.includes('subject')) {
+            return { subject: '' }; // 跳过简短描述
+        }
         return inquirer.prompt([
             {
                 type: 'input',
                 name: 'subject',
                 message: this.config.messages.subject,
-                validate: (input: string) => input.length > 0 || '提交简要描述是必填的',
+                validate: (input: string) => input.length > 0 || 'Subject is required',
                 filter: (input: string) => input.trim(),
             },
         ]);
     }
 
+    // 提示是否包含 Breaking Change
+    private async promptForBreakingChange(type: CommitType): Promise<boolean> {
+        if (this.config.skipQuestions.includes('breakingChange')) {
+            return false; // 跳过 Breaking Change
+        }
+
+        if (this.config.allowBreakingChanges.includes(type)) {
+            const { breakingChange } = await inquirer.prompt([
+                {
+                    type: 'confirm',
+                    name: 'breakingChange',
+                    message: this.config.messages.breakingChange,
+                    default: false,
+                },
+            ]);
+            return breakingChange;
+        }
+        return false;
+    }
+
+    // 提示输入详细描述（可选）
     private async promptForBody(): Promise<string | undefined> {
         if (this.config.skipQuestions.includes('body')) {
-            return '';
+            return undefined; // 跳过详细描述
         }
-        const { bodyInput } = await inquirer.prompt([
+        const { body } = await inquirer.prompt([
             {
                 type: 'input',
-                name: 'bodyInput',
+                name: 'body',
                 message: this.config.messages.body,
-                default: '',
             },
         ]);
-        return bodyInput.trim() || undefined;
+        return body.trim() || undefined;
     }
 
+    // 提示输入 Footer（可选）
     private async promptForFooter(): Promise<string | undefined> {
         if (this.config.skipQuestions.includes('footer')) {
-            return '';
+            return undefined; // 跳过 Footer
         }
-        const { footerInput } = await inquirer.prompt([
+        const { footer } = await inquirer.prompt([
             {
                 type: 'input',
-                name: 'footerInput',
+                name: 'footer',
                 message: this.config.messages.footer,
-                default: '',
             },
         ]);
-        return footerInput.trim() || undefined;
+        return footer.trim() || undefined;
     }
 
+    // 提示自定义作用域
     private async getCustomScope(): Promise<string> {
         const { customScope } = await inquirer.prompt([
             {
                 type: 'input',
                 name: 'customScope',
-                message: '请输入自定义范围:',
+                message: '请输入自定义作用域:',
             },
         ]);
-        return customScope;
+        return customScope.trim();
     }
 
-    private createCommitMessage({ type, scope, subject, body, footer }: CommitData): string {
-        let commitMessage = `${type}(${scope}): ${subject}`;
+    // 创建提交消息
+    private createCommitMessage({
+        type,
+        scope,
+        subject,
+        body,
+        footer,
+        breakingChange,
+    }: CommitData): string {
+        let message = `${type}${scope ? `(${scope})` : ''}: ${subject}`;
+
+        // 如果有 Breaking Change，在消息的底部加上 BREAKING CHANGE
+        if (breakingChange) {
+            message += `\n\n${this.config.footerPrefix} ${subject}`;
+        }
+
+        // 如果有详细描述，加入到消息中
         if (body) {
-            commitMessage += `\n\n${body}`;
+            message += `\n\n${body}`;
         }
+
+        // 如果有 footer，加入到消息中
         if (footer) {
-            commitMessage += `\n\n${footer}`;
+            message += `\n\n${footer}`;
         }
-        return commitMessage;
+
+        // 处理 Subject 长度限制
+        if (message.length > this.config.subjectLimit) {
+            message = `${message.substring(0, this.config.subjectLimit)}...`;
+        }
+
+        return message;
+    }
+
+    // 确认并输出最终的提交消息
+    private async confirmCommit(commitMessage: string) {
+        const { confirm } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'confirm',
+                message: `${this.config.messages.confirmCommit}\n\n提交信息：\n${commitMessage}\n`,
+            },
+        ]);
+        if (confirm) {
+            return commitMessage;
+        }
     }
 }
