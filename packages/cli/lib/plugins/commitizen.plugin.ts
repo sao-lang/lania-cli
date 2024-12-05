@@ -2,25 +2,25 @@ import inquirer from 'inquirer';
 
 type CommitType = string;
 
-interface CommitizenConfig {
-    types: { value: CommitType; name: string }[];
-    messages: {
-        type: string;
-        customScope: string;
-        subject: string;
-        body: string;
-        footer: string;
-        confirmCommit: string;
-        breakingChange: string;
-    };
-    skipQuestions: ('type' | 'scope' | 'subject' | 'body' | 'footer' | 'breakingChange')[]; // 可选跳过的问题
-    subjectLimit: number;
-    scopes: string[];
-    allowCustomScopes: boolean;
-    scopeOverrides?: Record<CommitType, string[]>; // 类型特定的作用域覆盖
-    allowBreakingChanges: CommitType[];
-    footerPrefix: string;
-}
+// interface CommitizenConfig {
+//     types: { value: CommitType; name: string }[];
+//     messages: {
+//         type: string;
+//         customScope: string;
+//         subject: string;
+//         body: string;
+//         footer: string;
+//         confirmCommit: string;
+//         breakingChange: string;
+//     };
+//     skipQuestions: ('type' | 'scope' | 'subject' | 'body' | 'footer' | 'breakingChange')[]; // 可选跳过的问题
+//     subjectLimit: number;
+//     scopes: string[];
+//     allowCustomScopes: boolean;
+//     scopeOverrides?: Record<CommitType, string[]>; // 类型特定的作用域覆盖
+//     allowBreakingChanges: CommitType[];
+//     footerPrefix: string;
+// }
 
 interface CommitData {
     type: CommitType;
@@ -32,7 +32,7 @@ interface CommitData {
 }
 
 export class CommitizenPlugin {
-    private config: CommitizenConfig;
+    private config: Record<string, any>;
 
     constructor() {
         this.config = {
@@ -57,7 +57,7 @@ export class CommitizenPlugin {
                 confirmCommit: '确认使用以上信息提交？(y/n/e/h)',
                 breakingChange: '此提交包含 BREAKING CHANGE 吗？',
             },
-            skipQuestions: ['body', 'footer', 'breakingChange'], // 跳过 body, footer 和 breakingChange
+            // skipQuestions: ['body', 'footer', 'breakingChange'], // 跳过 body, footer 和 breakingChange
             subjectLimit: 72,
             scopes: ['frontend', 'backend', 'api'],
             allowCustomScopes: true,
@@ -92,11 +92,14 @@ export class CommitizenPlugin {
 
     // 提示选择提交类型
     private async promptForType(): Promise<{ type: CommitType }> {
+        if (!this.config?.types?.length) {
+            throw new Error('Please set the types config!');
+        }
         return inquirer.prompt([
             {
                 type: 'list',
                 name: 'type',
-                message: this.config.messages.type,
+                message: this.config.messages?.type,
                 choices: this.config.types,
             },
         ]);
@@ -104,7 +107,7 @@ export class CommitizenPlugin {
 
     // 提示选择提交作用域
     private async promptForScope(type: CommitType): Promise<{ scope: string }> {
-        if (this.config.skipQuestions.includes('scope')) {
+        if (this.config.skipQuestions?.includes('scope')) {
             return { scope: '' }; // 跳过作用域
         }
 
@@ -117,7 +120,7 @@ export class CommitizenPlugin {
             {
                 type: 'list',
                 name: 'scope',
-                message: this.config.messages.customScope,
+                message: this.config.messages?.customScope,
                 choices: [...scopes, ...(this.config.allowCustomScopes ? ['Custom...'] : [])],
             },
         ]);
@@ -127,14 +130,14 @@ export class CommitizenPlugin {
 
     // 提示输入提交简短描述
     private async promptForSubject(): Promise<{ subject: string }> {
-        if (this.config.skipQuestions.includes('subject')) {
+        if (this.config.skipQuestions?.includes('subject')) {
             return { subject: '' }; // 跳过简短描述
         }
         return inquirer.prompt([
             {
                 type: 'input',
                 name: 'subject',
-                message: this.config.messages.subject,
+                message: this.config.messages?.subject,
                 validate: (input: string) => input.length > 0 || 'Subject is required',
                 filter: (input: string) => input.trim(),
             },
@@ -143,16 +146,16 @@ export class CommitizenPlugin {
 
     // 提示是否包含 Breaking Change
     private async promptForBreakingChange(type: CommitType): Promise<boolean> {
-        if (this.config.skipQuestions.includes('breakingChange')) {
+        if (this.config.skipQuestions?.includes('breakingChange')) {
             return false; // 跳过 Breaking Change
         }
 
-        if (this.config.allowBreakingChanges.includes(type)) {
+        if (this.config.allowBreakingChanges?.includes(type)) {
             const { breakingChange } = await inquirer.prompt([
                 {
                     type: 'confirm',
                     name: 'breakingChange',
-                    message: this.config.messages.breakingChange,
+                    message: this.config.messages?.breakingChange,
                     default: false,
                 },
             ]);
@@ -163,14 +166,14 @@ export class CommitizenPlugin {
 
     // 提示输入详细描述（可选）
     private async promptForBody(): Promise<string | undefined> {
-        if (this.config.skipQuestions.includes('body')) {
+        if (this.config.skipQuestions?.includes('body')) {
             return undefined; // 跳过详细描述
         }
         const { body } = await inquirer.prompt([
             {
                 type: 'input',
                 name: 'body',
-                message: this.config.messages.body,
+                message: this.config.messages?.body,
             },
         ]);
         return body.trim() || undefined;
@@ -178,14 +181,14 @@ export class CommitizenPlugin {
 
     // 提示输入 Footer（可选）
     private async promptForFooter(): Promise<string | undefined> {
-        if (this.config.skipQuestions.includes('footer')) {
+        if (this.config.skipQuestions?.includes('footer')) {
             return undefined; // 跳过 Footer
         }
         const { footer } = await inquirer.prompt([
             {
                 type: 'input',
                 name: 'footer',
-                message: this.config.messages.footer,
+                message: this.config.messages?.footer,
             },
         ]);
         return footer.trim() || undefined;

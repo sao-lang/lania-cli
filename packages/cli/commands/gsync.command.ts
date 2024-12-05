@@ -50,14 +50,22 @@ class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
             return;
         }
         const commitMessage = await new CommitizenPlugin().run();
-        if (commitMessage) {
-            const lintResult = await new CommitlintPlugin().run(commitMessage);
-            if (lintResult.errors) {
-                logger.error(lintResult.errors.toString(), true);
-            }
-            await this.git.commit(commitMessage);
-            await this.handlePush(remote, branch);
+        const lintResult = await new CommitlintPlugin({
+            rules: {
+                'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style']], // ✅ 合法
+            },
+        }).run(commitMessage);
+        lintResult.errors.forEach((error) => {
+            logger.error(error.message);
+        });
+        lintResult.warnings.forEach((warning) => {
+            logger.warning(warning.message);
+        });
+        if (lintResult.errors.length) {
+            process.exit(0);
         }
+        await this.git.commit(commitMessage);
+        await this.handlePush(remote, branch);
     }
     private async handlePush(remote?: string, branch?: string) {
         const promptRemote = await this.getPromptRemote(remote);
