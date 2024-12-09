@@ -84,3 +84,26 @@ export const DEFAULT_GSYNC_NORMATIVELY_RULES = [
     { value: 'revert', name: 'revert:   回退' },
     { value: 'build', name: 'build:    打包' },
 ];
+
+export const ADD_SUPPORT_TEMPLATES = {
+    v2: 'v2',
+    vue: 'vue',
+    v3: 'v3',
+    rcc: 'rcc',
+    rfc: 'rfc',
+    svelte: 'svelte',
+    jsx: 'jsx',
+    tsx: 'tsx',
+    astro: 'astro',
+    axios: 'axios',
+    router: 'router',
+    store: 'store',
+    prettier: 'prettier',
+    eslint: 'eslint',
+    stylelint: 'stylelint',
+    editorconfig: 'editorconfig',
+    gitignore: 'gitignore',
+    tsconfig: 'tsconfig',
+    commitlint: 'commitlint',
+    commitizen: 'commitizen',
+};

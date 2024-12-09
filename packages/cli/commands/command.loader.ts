@@ -5,6 +5,7 @@ import BuildCommand from './build.command';
 import DevCommand from './dev.command';
 import LintCommand from './lint.command';
 import GSyncCommand from './gsync.command';
+import AddCommand from './add.command';
 
 export default class CommandLoader {
     public static load(program: Command) {
@@ -13,6 +14,7 @@ export default class CommandLoader {
         new DevCommand().load(program);
         new LintCommand().load(program);
         new GSyncCommand().load(program);
+        new AddCommand().load(program);
         this.handleInvalidCommand(program);
     }
 
