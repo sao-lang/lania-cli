@@ -57,7 +57,7 @@ module.exports = {
     buildTemplate: series(buildTemplate()),
     buildCli: series(buildCli(false)),
     buildCliWatch: series(buildCli(true)),
-    build: series(buildCli(false), buildTemplate()),
+    build: series(buildTemplate(), buildCli(false)),
     buildCliUtils: series(buildCliUtils()),
     buildCliUtilsWatch: series(buildCliUtils(true)),
 };

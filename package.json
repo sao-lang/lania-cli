@@ -15,7 +15,9 @@
         "build-template": "gulp --gulpfile scripts/gulpfile.cjs buildTemplate",
         "build": "gulp --gulpfile scripts/gulpfile.cjs build"
     },
-    "dependencies": {},
+    "dependencies": {
+        "@lania/templates": "workspace:^"
+    },
     "devDependencies": {
         "@changesets/cli": "^2.27.1",
         "@commitlint/cli": "^17.7.1",

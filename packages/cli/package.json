@@ -21,7 +21,6 @@
     "author": "",
     "dependencies": {
         "@commitlint/core": "^19.6.0",
-        "@lania/templates": "workspace:^",
         "chalk": "^3.0.0",
         "commander": "^10.0.1",
         "cosmiconfig": "^9.0.0",
