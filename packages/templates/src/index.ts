@@ -27,21 +27,20 @@ export interface OutputFileTask {
 }
 
 export interface Template {
-    getDependenciesArray(options: TemplateOptions): {
+    getDependenciesArray(): {
         dependencies: string[];
         devDependencies: string[];
     };
-    getOutputFileTasks(
-        options: TemplateOptions,
-    ): (() => OutputFileTask | Promise<OutputFileTask>)[];
+    getOutputFileTasks(): Promise<{
+        tasks: OutputFileTask[];
+    }>;
 }
 
 export class TemplateFactory {
-
-    public static create(name: string) {
+    public static create(name: string, options: TemplateOptions) {
         switch (name) {
             case 'spa-react-template':
-                return new SpaReactTemplate();
+                return new SpaReactTemplate(options);
             default:
                 throw new Error(`Invalid template: ${name}!`);
         }

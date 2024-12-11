@@ -5,6 +5,7 @@
         "Funcer",
         "gsync",
         "gulpfile",
+        "onwarn",
         "stylelintignore",
         "textlint",
         "Textlintrc"

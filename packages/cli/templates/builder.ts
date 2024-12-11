@@ -8,15 +8,17 @@ import {
 import inquirer, { type Answers } from 'inquirer';
 import { createCheckboxQuestion, createListQuestion } from '../utils/create-questions';
 import to from '@utils/to';
-import { TemplateFactory, type TemplateOptions, type Template } from '@lania/templates';
+import { TemplateFactory, type TemplateOptions } from '@lania/templates';
 import latestVersion from 'latest-version';
 import loading from '@utils/loading';
 import EjsEngine from '@lib/engines/ejs.engine';
+import getPort from 'get-port';
 import PackageManagerFactory from '@lib/package-managers/package-manager.factory';
+import { BaseTemplate } from '@lania/templates/dist/src/esm/template.base';
 
 export class Builder {
     private options: TemplateOptions = {} as any;
-    private template: Template;
+    private template: BaseTemplate;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
         const choices: Answers = [
@@ -105,11 +107,12 @@ export class Builder {
         return { dependencies: dependenciesMap, devDependencies: devDependenciesMap };
     }
     private async outputFiles(options: TemplateOptions) {
-        const tasks = this.template.getOutputFileTasks(options);
+        this.options.port = await getPort();
+        const tasks = await this.template.createOutputTasks();
         const engine = new EjsEngine();
         for (const task of tasks) {
             // eslint-disable-next-line prefer-const
-            let { outputPath, options: taskOptions, hide, content } = await task();
+            let { outputPath, options: taskOptions, hide, content } = await task;
             if (hide || !content) {
                 continue;
             }
@@ -158,7 +161,7 @@ export class Builder {
     }
     public async build(options: CreateCommandOptions) {
         const answers = (await this.prompt(options)) as any;
-        this.template = TemplateFactory.create(answers.template);
+        this.template = TemplateFactory.create(answers.template, this.options);
         this.options = {
             ...answers,
             ...options,

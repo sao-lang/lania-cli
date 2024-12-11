@@ -1,3 +1,4 @@
+// rollup.cli.config.js
 import { defineConfig } from 'rollup';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import cjs from '@rollup/plugin-commonjs';
@@ -31,27 +32,73 @@ const resolvePlugins = () => [
     }),
 ];
 
-const packageJsonContent = JSON.parse(readFileSync(resolve(__dirname, '../packages/cli/package.json'), 'utf-8'));
+const packageJsonContent = JSON.parse(
+    readFileSync(resolve(__dirname, '../packages/cli/package.json'), 'utf-8'),
+);
 const input = resolveSubPath('commands/index.ts');
 const external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs', 'net'];
 
-export default defineConfig([
-    {
-        input,
-        output: {
-            file: resolveSubPath('dist/src/index.js'),
+const createConfig = (type) => {
+    const map = {
+        esm: {
             format: 'es',
+            entryFileNames: '[name].js',
         },
-        external,
-        plugins: resolvePlugins(),
-    },
-    {
+        cjs: {
+            format: 'cjs',
+            entryFileNames: '[name].cjs',
+        },
+    };
+    return {
         input,
         output: {
-            file: resolveSubPath('dist/src/index.cjs'),
-            format: 'cjs',
+            dir: resolveSubPath(`dist/src/${type}`),
+            format: 'es',
+            preserveModules: true, // 保留模块路径结构
+            ...map[type],
         },
         external,
         plugins: resolvePlugins(),
-    },
-]);
+        onwarn(warning, warn) {
+            if (warning.code === 'MIXED_EXPORTS') return;
+            warn(warning);
+        },
+    };
+};
+
+// export default defineConfig([
+//     {
+//         input,
+//         output: {
+//             // file: resolveSubPath('dist/src/index.js'),
+//             dir: resolveSubPath('dist/src/esm'),
+//             format: 'es',
+//             entryFileNames: '[name].js', // 输出文件名格式
+//             preserveModules: true, // 保留模块路径结构
+//         },
+//         external,
+//         plugins: resolvePlugins(),
+//         onwarn(warning, warn) {
+//             if (warning.code === 'MIXED_EXPORTS') return;
+//             warn(warning);
+//         },
+//     },
+//     {
+//         input,
+//         output: {
+//             // file: resolveSubPath('dist/src/index.cjs'),
+//             dir: resolveSubPath('dist/src/cjs'),
+//             entryFileNames: '[name].cjs',
+//             preserveModules: true, // 保留模块路径结构
+//             format: 'cjs',
+//         },
+//         external,
+//         plugins: resolvePlugins(),
+//         onwarn(warning, warn) {
+//             if (warning.code === 'MIXED_EXPORTS') return;
+//             warn(warning);
+//         },
+//     },
+// ]);
+
+export default defineConfig(['esm', 'cjs'].map((type) => createConfig(type)));

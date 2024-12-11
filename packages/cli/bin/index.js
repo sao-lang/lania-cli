@@ -1,3 +1,3 @@
 #! /usr/bin/env node
 // require('../dist/src/index.cjs');
-import '../dist/src/index.js';
+import '../dist/src/esm/commands/index.js';
