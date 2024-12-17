@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
+import fs from 'fs';
 
 // 获取当前模块的文件路径
 export const __filename = fileURLToPath(import.meta.url);
