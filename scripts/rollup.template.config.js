@@ -8,13 +8,20 @@ import { readFileSync } from 'fs';
 // import packageJsonContent from '../packages/templates/package.json' assert { type: 'json', integrity: 'sha384-ABC123' };
 import { defineConfig } from 'rollup';
 import { __dirname, resolvePath } from './utils.js';
+import * as glob from 'glob';
+
+const resolveSubPath = (subPath) => {
+    return resolvePath('templates', subPath);
+};
+const SRC_DIR = resolveSubPath('src');
+const DIST_DIR = resolveSubPath('dist');
+
+// 1. 匹配 `src/**/templates/**/*.ts` 文件
+const TEMPLATE_FILES = glob.sync('**/templates/**/*.ts', { cwd: SRC_DIR });
 
 const packageJsonContent = JSON.parse(
     readFileSync(resolve(__dirname, '../packages/cli/package.json'), 'utf-8'),
 );
-const resolveSubPath = (subPath) => {
-    return resolvePath('templates', subPath);
-};
 const resolvePlugin = () => {
     return [
         json(),
@@ -54,4 +61,45 @@ const createConfig = (type) => {
         },
     };
 };
-export default defineConfig(['esm', 'cjs'].map((type) => createConfig(type)));
+// console.log({
+//     arr: TEMPLATE_FILES.map((inputPath) => {
+//         const outputPath = path.join(
+//             DIST_DIR,
+//             path.relative(SRC_DIR, inputPath).replace(/\.ts$/, '.js'),
+//         );
+
+//         return {
+//             input: resolveSubPath(`src/templates/src/${inputPath}`), // 输入文件
+//             output: {
+//                 file: resolveSubPath(`dist/src/esm/src/${inputPath.replace(/\.ts$/, '.js')}`), // 输出文件路径
+//                 format: 'esm', // 输出为 ES 模块
+//             },
+//             plugins: [
+//                 ts({
+//                     tsconfig: path.resolve(__dirname, '../tsconfig.json'),
+//                     useTsconfigDeclarationDir: true,
+//                 }),
+//             ],
+//             outputPath
+//         };
+//     }).map(item => ({file: item.output.file, output: item.outputPath}))
+// });
+export default defineConfig([
+    ...['esm', 'cjs'].map((type) => createConfig(type)),
+    ...TEMPLATE_FILES.map((inputPath) => {
+
+        return {
+            input: resolveSubPath(`src/${inputPath}`), // 输入文件
+            output: {
+                file: resolveSubPath(`dist/src/esm/${inputPath.replace(/\.ts$/, '.js')}`), // 输出文件路径
+                format: 'esm', // 输出为 ES 模块
+            },
+            plugins: [
+                ts({
+                    tsconfig: path.resolve(__dirname, '../tsconfig.templates.json'),
+                    useTsconfigDeclarationDir: true,
+                }),
+            ],
+        };
+    }),
+]);

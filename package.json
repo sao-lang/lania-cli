@@ -16,7 +16,8 @@
         "build": "gulp --gulpfile scripts/gulpfile.cjs build"
     },
     "dependencies": {
-        "@lania/templates": "workspace:^"
+        "@lania/templates": "workspace:^",
+        "glob": "^11.0.0"
     },
     "devDependencies": {
         "@changesets/cli": "^2.27.1",

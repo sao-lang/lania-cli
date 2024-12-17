@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "declaration": false,
+        "outDir": "./packages/templates/dist",
+        "rootDir": "./packages/templates",
+        "strict": true
+    },
+    "include": ["packages/templates/src/**/templates/**/*.ts"],
+    "exclude": ["node_modules", "./packages/cli"]
+}
