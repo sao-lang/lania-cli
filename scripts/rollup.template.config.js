@@ -1,11 +1,9 @@
-// rollup.template.config.js
 import nodeResolve from '@rollup/plugin-node-resolve';
 import cjs from '@rollup/plugin-commonjs';
 import ts from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
 import path, { resolve } from 'path';
 import { readFileSync } from 'fs';
-// import packageJsonContent from '../packages/templates/package.json' assert { type: 'json', integrity: 'sha384-ABC123' };
 import { defineConfig } from 'rollup';
 import { __dirname, resolvePath } from './utils.js';
 import * as glob from 'glob';
@@ -26,18 +24,15 @@ const resolvePlugin = () => {
     ].filter(Boolean);
 };
 
-const createConfig = (type) => {
+const createConfig = () => {
     const outputConfigs = {
         esm: {
-            // file: resolveSubPath('dist/src/index.js'),
             dir: resolveSubPath('dist/src/esm'),
             format: 'es',
-            // entryFileNames: 'index.js',
             entryFileNames: '[name].js', // 输出文件名格式
             preserveModules: true, // 保留模块路径结构
         },
         cjs: {
-            // file: resolveSubPath('dist/src/index.cjs'),
             dir: resolveSubPath('dist/src/cjs'),
             format: 'cjs',
             entryFileNames: '[name].cjs',
@@ -45,7 +40,7 @@ const createConfig = (type) => {
         },
     };
     let external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs'];
-    return {
+    return ['esm', 'cjs'].map(type => ({
         input: resolveSubPath('src/index.ts'),
         output: outputConfigs[type],
         external,
@@ -54,21 +49,29 @@ const createConfig = (type) => {
             if (warning.code === 'MIXED_EXPORTS') return;
             warn(warning);
         },
-    };
+    }));
 };
 const createTemplateFileConfig = () => {
-    // 1. 匹配 `src/**/templates/**/*.ts` 文件
-    const TEMPLATE_FILES = glob.sync('**/templates/**/*.ts', { cwd: resolveSubPath('src') });
-    return TEMPLATE_FILES.map((inputPath) => {
+    const templateDirs = glob.sync('**/templates', {
+        cwd: resolveSubPath('src'),
+        absolute: true,
+    });
+    return templateDirs.map((templateDir) => {
+        const tsFiles = glob.sync('**/*.ts', {
+            cwd: templateDir,
+            absolute: true,
+        });
+        const currentDirName = path.basename(templateDir);
+        const parentDirName = path.basename(path.dirname(templateDir));
         return {
-            input: resolveSubPath(`src/${inputPath}`), // 输入文件
+            input: tsFiles, // 输入文件
             output: [
                 {
-                    file: resolveSubPath(`dist/src/esm/${inputPath.replace(/\.ts$/, '.js')}`), // 输出文件路径
+                    dir: resolveSubPath(`dist/src/esm/${parentDirName}/${currentDirName}`),
                     format: 'esm', // 输出为 ES 模块
                 },
                 {
-                    file: resolveSubPath(`dist/src/cjs/${inputPath.replace(/\.ts$/, '.js')}`), // 输出文件路径
+                    dir: resolveSubPath(`dist/src/cjs/${parentDirName}/${currentDirName}`),
                     format: 'cjs', // 输出为 ES 模块
                 },
             ],
@@ -82,6 +85,6 @@ const createTemplateFileConfig = () => {
     });
 };
 export default defineConfig([
-    ...['esm', 'cjs'].map((type) => createConfig(type)),
+    ...createConfig(),
     ...createTemplateFileConfig(),
 ]);
