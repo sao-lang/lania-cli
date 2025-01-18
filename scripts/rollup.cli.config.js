@@ -38,7 +38,7 @@ const packageJsonContent = JSON.parse(
 const input = resolveSubPath('commands/index.ts');
 const external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs', 'net'];
 
-const createConfig = (type) => {
+const createConfig = () => {
     const map = {
         esm: {
             format: 'es',
@@ -49,7 +49,7 @@ const createConfig = (type) => {
             entryFileNames: '[name].cjs',
         },
     };
-    return {
+    return ['esm', 'cjs'].map((type) => ({
         input,
         output: {
             dir: resolveSubPath(`dist/src/${type}`),
@@ -63,42 +63,7 @@ const createConfig = (type) => {
             if (warning.code === 'MIXED_EXPORTS') return;
             warn(warning);
         },
-    };
+    }));
 };
 
-// export default defineConfig([
-//     {
-//         input,
-//         output: {
-//             // file: resolveSubPath('dist/src/index.js'),
-//             dir: resolveSubPath('dist/src/esm'),
-//             format: 'es',
-//             entryFileNames: '[name].js', // 输出文件名格式
-//             preserveModules: true, // 保留模块路径结构
-//         },
-//         external,
-//         plugins: resolvePlugins(),
-//         onwarn(warning, warn) {
-//             if (warning.code === 'MIXED_EXPORTS') return;
-//             warn(warning);
-//         },
-//     },
-//     {
-//         input,
-//         output: {
-//             // file: resolveSubPath('dist/src/index.cjs'),
-//             dir: resolveSubPath('dist/src/cjs'),
-//             entryFileNames: '[name].cjs',
-//             preserveModules: true, // 保留模块路径结构
-//             format: 'cjs',
-//         },
-//         external,
-//         plugins: resolvePlugins(),
-//         onwarn(warning, warn) {
-//             if (warning.code === 'MIXED_EXPORTS') return;
-//             warn(warning);
-//         },
-//     },
-// ]);
-
-export default defineConfig(['esm', 'cjs'].map((type) => createConfig(type)));
+export default defineConfig(createConfig);

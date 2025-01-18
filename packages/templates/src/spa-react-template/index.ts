@@ -209,3 +209,4 @@ export class SpaReactTemplate extends BaseTemplate {
 }
 
 export default SpaReactTemplate;
+
