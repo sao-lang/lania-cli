@@ -1,5 +1,12 @@
-export default `
-*
-    padding: 0
-    margin: 0
-`;
+import { TemplateOptions } from '../..';
+const content = `
+* {
+    padding: 0;
+    margin: 0;
+}`;
+
+export default (options: TemplateOptions) => ({
+    content,
+    outputPath: '/index.styl',
+    hide: options.cssProcessor !== 'stylus',
+});

@@ -12,26 +12,26 @@ export default function injectVarsPlugin() {
         return hashStr.replace(/[^a-zA-Z0-9_$]/g, '_');
     };
     const createVarName = (key) => {
-        return `${key}injected_${simpleHash(key)}`;
+        return `${key}__injected_${simpleHash(key)}`;
     };
     return {
         name: 'inject-vars-plugin',
         transform(code) {
             const injection = [
                 {
-                    key: '__dirname__',
+                    key: '__dirname',
                     createNewInjection: () => {
                         return '(() => { const path = new URL(import.meta.url).pathname;return path.substring(0, path.lastIndexOf(\'/\')); })();\n';
                     },
                 },
                 {
-                    key: '__filename__',
+                    key: '__filename',
                     createNewInjection: () => {
                         return '(() => new URL(import.meta.url).pathname)();';
                     },
                 },
                 {
-                    key: '__version__',
+                    key: '__version',
                     createNewInjection: () => {
                         const packageJsonContent = JSON.parse(
                             readFileSync(
@@ -43,7 +43,7 @@ export default function injectVarsPlugin() {
                     },
                 },
                 {
-                    key: '__cwd__',
+                    key: '__cwd',
                     createNewInjection: () => {
                         return process.cwd();
                     },

@@ -1,4 +1,6 @@
-export default `
+import { TemplateOptions } from '../..';
+
+const content = `
 {
     "compilerOptions": {
         "target": "ES2020",
@@ -24,3 +26,8 @@ export default `
     "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
     "exclude": ["node_modules", "dist", "build"]
 }`;
+export default (options: TemplateOptions) => ({
+    content,
+    outputPath: '/tsconfig.json',
+    hide: options.language !== 'TypeScript',
+});

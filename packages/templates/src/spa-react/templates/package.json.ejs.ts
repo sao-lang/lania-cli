@@ -1,4 +1,4 @@
-export default `
+const content = `
 {
     "name": "<%= name %>",
     "version": "1.0.0",
@@ -23,3 +23,5 @@ export default `
         <% }) -%>
     }
 }`;
+
+export default () => ({ content, outputPath: '/package.json' });

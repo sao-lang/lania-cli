@@ -21,6 +21,7 @@ const {
 export class SpaReactTemplate extends BaseTemplate {
     static templateName = 'spa-react-template';
     protected taskConfigs: TaskConfig[] = [];
+    protected templateFilesDirName = __dirname;
     protected options: TemplateOptions;
     constructor(options: TemplateOptions) {
         super();

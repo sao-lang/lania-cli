@@ -1,4 +1,6 @@
-export default `
+import { TemplateOptions } from '../..';
+
+const content = `
 const path = require('path');
 const { Configuration } = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -199,3 +201,9 @@ module.exports = {
         maxAssetSize: 512000
     }
 };`;
+
+export default (options: TemplateOptions) => ({
+    content,
+    outputPath: '/webpack.config.cjs',
+    hide: options.buildTool !== 'webpack',
+});

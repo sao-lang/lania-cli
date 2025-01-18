@@ -1,4 +1,6 @@
-export default `
+import { TemplateOptions } from '../..';
+
+const content = `
 import <% if (buildTool === 'webpack' %>React, <% } %>{ useState } from 'react';
 <% const map = {stylus: 'styl', sass: 'scss', less: 'less', tailwindcss: 'css'}; %>
 import './App.<%= map?.[cssProcessor] ?? 'css' %>';
@@ -16,3 +18,9 @@ function App() {
 }
 
 export default App;`;
+
+export default (options: TemplateOptions) => ({
+    content,
+    outputPath: '/src/App.jsx',
+    hide: options.language !== 'JavaScript',
+});

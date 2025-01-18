@@ -1,4 +1,5 @@
-export default `
+import { TemplateOptions } from '../..';
+const content = `
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: [
@@ -10,3 +11,9 @@ module.exports = {
     plugins: [],
 }
 `;
+
+export default (options: TemplateOptions) => ({
+    content,
+    outputPath: '/tailwind.config.cjs',
+    hide: options.cssProcessor !== 'tailwindcss',
+});

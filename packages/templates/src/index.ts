@@ -50,7 +50,7 @@ export class TemplateFactory {
     }
     public static async list() {
         try {
-            const dirPath = resolve(__dirname__, '../src');
+            const dirPath = resolve(__dirname, '../src');
             const targets = await readdir(dirPath);
             return targets.filter((f) => {
                 if (!statSync(`${dirPath}/${f}`).isDirectory()) {

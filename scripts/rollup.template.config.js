@@ -22,10 +22,8 @@ const resolvePlugin = () => {
         injectVarsPlugin(),
     ].filter(Boolean);
 };
-
-const getPackageJsonContent = () => JSON.parse(
-    readFileSync(resolve(__dirname, '../packages/core/package.json'), 'utf-8'),
-);
+const getPackageJsonContent = () =>
+    JSON.parse(readFileSync(resolve(__dirname, '../packages/core/package.json'), 'utf-8'));
 const createConfig = () => {
     const outputConfigs = {
         esm: {
@@ -42,11 +40,15 @@ const createConfig = () => {
         },
     };
     const packageJsonContent = getPackageJsonContent();
-    let external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs'];
     return ['esm', 'cjs'].map((type) => ({
         input: resolveSubPath('src/index.ts'),
         output: outputConfigs[type],
-        external,
+        external: [
+            ...Object.keys(packageJsonContent.dependencies || {}),
+            'path',
+            'fs',
+            'fs/promises',
+        ],
         plugins: resolvePlugin(),
         onwarn(warning, warn) {
             if (warning.code === 'MIXED_EXPORTS') return;
@@ -66,24 +68,31 @@ const createTemplateFileConfig = () => {
         });
         const currentDirName = path.basename(templateDir);
         const parentDirName = path.basename(path.dirname(templateDir));
+        const packageJsonContent = getPackageJsonContent();
         return {
-            input: tsFiles, // 输入文件
+            input: tsFiles,
             output: [
                 {
                     dir: resolveSubPath(`dist/src/esm/${parentDirName}/${currentDirName}`),
-                    format: 'esm', // 输出为 ES 模块
+                    format: 'esm',
                 },
                 {
                     dir: resolveSubPath(`dist/src/cjs/${parentDirName}/${currentDirName}`),
-                    format: 'cjs', // 输出为 ES 模块
+                    format: 'cjs',
                 },
+            ],
+            external: [
+                ...Object.keys(packageJsonContent.dependencies || {}),
+                'path',
+                'fs',
+                'fs/promises',
             ],
             plugins: [
                 ts({
                     tsconfig: path.resolve(__dirname, '../tsconfig.templates.json'),
                     useTsconfigDeclarationDir: true,
                 }),
-                injectVarsPlugin()
+                injectVarsPlugin(),
             ],
         };
     });

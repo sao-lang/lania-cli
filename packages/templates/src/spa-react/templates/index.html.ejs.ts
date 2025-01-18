@@ -1,4 +1,4 @@
-export default `
+const content = `
 <!doctype html>
 <html lang="en">
 
@@ -19,3 +19,8 @@ export default `
     </body>
 
 </html>`;
+
+export default () => ({
+    content,
+    outputPath: '/index.html',
+});

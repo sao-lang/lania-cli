@@ -1,4 +1,4 @@
-export default `
+const content = `
 {
     "name": "<%= name %>",
     "type": "spa",
@@ -9,3 +9,8 @@ export default `
     "buildTool": "<%= buildTool %>",
     "frame": "react",
 }`;
+
+export default () => ({
+    content,
+    outputPath: '/lan.config.json',
+});
