@@ -131,6 +131,12 @@ importers:
       '@commitlint/core':
         specifier: ^19.6.0
         version: 19.6.0(@types/node@20.5.1)(typescript@5.1.6)
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
+      '@lania-cli/templates':
+        specifier: workspace:^
+        version: link:../templates
       chalk:
         specifier: ^3.0.0
         version: 3.0.0
@@ -225,6 +231,9 @@ importers:
 
   packages/templates:
     dependencies:
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
       get-port:
         specifier: ^7.0.0
         version: 7.0.0

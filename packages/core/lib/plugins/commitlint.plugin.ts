@@ -12,7 +12,7 @@ export class CommitlintPlugin {
     }
     private async loadConfig(config: string | Record<string, any>) {
         if (typeof config === 'string') {
-            const configResult = await new ConfigurationLoader().load('commitlint');
+            const configResult = await ConfigurationLoader.load('commitlint');
             return await load(configResult);
         }
         return await load(config);

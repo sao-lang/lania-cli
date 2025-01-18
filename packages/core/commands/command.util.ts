@@ -12,14 +12,14 @@ export interface LanConfig {
 
 export const getLanConfig = async (lanConfigPath?: string) => {
     if (!lanConfigPath) {
-        return (await new ConfigurationLoader().load({
+        return (await ConfigurationLoader.load({
             module: 'lan',
             searchPlaces: ['lan.config.json'],
         })) as LanConfig;
     }
     const lanBasename = path.basename(lanConfigPath);
     const lanDirname = path.dirname(lanConfigPath);
-    return (await new ConfigurationLoader().load(
+    return (await ConfigurationLoader.load(
         {
             module: 'lan',
             searchPlaces: [lanBasename || 'lan.config.json'],

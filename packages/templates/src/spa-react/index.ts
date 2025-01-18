@@ -4,7 +4,8 @@ import { BaseTemplate, TaskConfig } from '../template.base';
 // import envProduction from './templates/.env.production.ejs';
 // import configJsEjs from './templates/config.js.ejs';
 // import configTsEjs from './templates/config.ts.ejs';
-import {
+import { TEMPLATES_CONSTANTS } from '@lania-cli/common';
+const {
     ESLINT_DEV_DEPENDENCIES,
     ESLINT_PRETTIER_DEV_DEPENDENCIES,
     ESLINT_TYPESCRIPT_DEV_DEPENDENCIES,
@@ -15,7 +16,7 @@ import {
     STYLELINT_STYLUS_DEV_DEPENDENCIES,
     TAILWIND_DEV_DEPENDENCIES,
     TYPESCRIPT_DEV_DEPENDENCIES,
-} from './constant';
+} = TEMPLATES_CONSTANTS.SPA_REACT_TEMPLATE;
 
 export class SpaReactTemplate extends BaseTemplate {
     static templateName = 'spa-react-template';

@@ -63,13 +63,13 @@ export abstract class Compiler<Config extends Record<string, any> = any, Server 
         if (configPath && typeof module === 'string') {
             const dirname = path.dirname(configPath);
             const basename = path.basename(configPath);
-            const configResult = await new ConfigurationLoader().load(
+            const configResult = await ConfigurationLoader.load(
                 { module, searchPlaces: [basename] },
                 dirname,
             );
             return configResult as Config;
         }
-        const result = await new ConfigurationLoader().load(module, configPath);
+        const result = await ConfigurationLoader.load(module, configPath);
         return (result || {}) as Config;
     }
     protected async mergeConfig(baseConfig?: Config): Promise<Config> {

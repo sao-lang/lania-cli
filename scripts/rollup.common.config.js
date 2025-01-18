@@ -17,7 +17,6 @@ const resolvePlugins = () => [
 
 const createConfig = () => {
     const input = resolveSubPath('index.ts');
-    console.log({ input });
     const external = ['path', 'fs', 'net'];
     const map = {
         esm: {

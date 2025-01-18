@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "commitlintrc",
         "czrc",
         "deepmerge",
         "execa",
@@ -9,7 +10,9 @@
         "nuxt",
         "onwarn",
         "pinia",
+        "pnpmfile",
         "stylelintignore",
+        "stylelintrc",
         "textlint",
         "Textlintrc"
     ]

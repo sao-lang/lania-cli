@@ -6,7 +6,7 @@ export type LinterConfiguration = ConfigurationLoadType | Record<string, any>;
 
 export const getModuleConfig = async (config: LinterConfiguration) => {
     if (typeof config === 'string') {
-        const moduleConfig = await new ConfigurationLoader().load(config);
+        const moduleConfig = await ConfigurationLoader.load(config);
         return moduleConfig as Record<string, any>;
     }
     return config;
