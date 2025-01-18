@@ -1,6 +1,12 @@
 module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
+    globals: {
+        __dirname__: 'readonly',
+        __filename__: 'readonly',
+        __version__: 'readonly',
+        __cwd__: 'readonly',
+    },
     env: {
         browser: true,
         node: true,

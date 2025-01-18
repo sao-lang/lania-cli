@@ -1,5 +1,5 @@
 import { getLanConfig } from './command.util';
-import { LINTERS } from '@lib/constants/cli.constant';
+import { LINTERS } from '@lania-cli/common';
 import { series } from '@utils/task';
 import Prettier from '@linters/prettier.linter.new';
 import EsLinter from '@linters/eslint.linter.new';

@@ -1,7 +1,7 @@
 import inquirer from 'inquirer';
 import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
 import GitRunner from '@runners/git.runner';
-import { ADD_NEW_REMOTE_CHOICE } from '@lib/constants/cli.constant';
+import { ADD_NEW_REMOTE_CHOICE } from '@lania-cli/common';
 import loading from '@utils/loading';
 import { CommitizenPlugin } from '@lib/plugins/commitizen.plugin';
 import { CommitlintPlugin } from '@lib/plugins/commitlint.plugin';

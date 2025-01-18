@@ -1,5 +1,5 @@
 {
-    "name": "@lania/templates",
+    "name": "@lania-cli/templates",
     "version": "0.0.3",
     "description": "",
     "main": "dist/src/esm/index.js",

@@ -18,7 +18,7 @@ import {
 } from './constant';
 
 export class SpaReactTemplate extends BaseTemplate {
-    public name = 'spa-react-template';
+    static templateName = 'spa-react-template';
     protected taskConfigs: TaskConfig[] = [];
     protected options: TemplateOptions;
     constructor(options: TemplateOptions) {
@@ -209,4 +209,3 @@ export class SpaReactTemplate extends BaseTemplate {
 }
 
 export default SpaReactTemplate;
-

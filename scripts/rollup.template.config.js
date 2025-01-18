@@ -7,23 +7,25 @@ import { readFileSync } from 'fs';
 import { defineConfig } from 'rollup';
 import { __dirname, resolvePath } from './utils.js';
 import * as glob from 'glob';
+import injectVarsPlugin from './inject-vars-plugin.js';
 
 const resolveSubPath = (subPath) => {
     return resolvePath('templates', subPath);
 };
 
-const packageJsonContent = JSON.parse(
-    readFileSync(resolve(__dirname, '../packages/cli/package.json'), 'utf-8'),
-);
 const resolvePlugin = () => {
     return [
         json(),
         ts({ tsconfig: path.resolve(__dirname, '../tsconfig.template.json') }),
         cjs(),
         nodeResolve({ preferBuiltins: true }),
+        injectVarsPlugin(),
     ].filter(Boolean);
 };
 
+const getPackageJsonContent = () => JSON.parse(
+    readFileSync(resolve(__dirname, '../packages/core/package.json'), 'utf-8'),
+);
 const createConfig = () => {
     const outputConfigs = {
         esm: {
@@ -39,8 +41,9 @@ const createConfig = () => {
             preserveModules: true, // 保留模块路径结构
         },
     };
+    const packageJsonContent = getPackageJsonContent();
     let external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs'];
-    return ['esm', 'cjs'].map(type => ({
+    return ['esm', 'cjs'].map((type) => ({
         input: resolveSubPath('src/index.ts'),
         output: outputConfigs[type],
         external,
@@ -80,11 +83,9 @@ const createTemplateFileConfig = () => {
                     tsconfig: path.resolve(__dirname, '../tsconfig.templates.json'),
                     useTsconfigDeclarationDir: true,
                 }),
+                injectVarsPlugin()
             ],
         };
     });
 };
-export default defineConfig([
-    ...createConfig(),
-    ...createTemplateFileConfig(),
-]);
+export default defineConfig([...createConfig(), ...createTemplateFileConfig()]);

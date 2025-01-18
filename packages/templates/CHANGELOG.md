@@ -1,4 +1,4 @@
-# @lania/templates
+# @lania-cli/templates
 
 ## 0.0.3
 

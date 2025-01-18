@@ -1,8 +1,4 @@
-import text from '@utils/text';
-
 export const PROJECT_TYPES = ['spa', 'ssr', 'nodejs', 'toolkit', 'components', 'vanilla'];
-
-// export const TEMPLATES_LIST = ['spa-react-template'];
 
 export const PROJECT_TYPE_FRAMES_MAP = {
     spa: ['vue', 'react', 'svelte', 'lit', 'preact', 'solid', 'alpine'],

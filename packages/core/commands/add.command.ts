@@ -1,4 +1,4 @@
-import { ADD_SUPPORT_TEMPLATES } from '@lib/constants/cli.constant';
+import { ADD_SUPPORT_TEMPLATES } from '@lania-cli/common';
 import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
 
 interface AddCommandOptions {
@@ -7,9 +7,9 @@ interface AddCommandOptions {
 }
 
 class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
-    async handle({filepath, template}: AddCommandOptions = {}) {
+    async handle({ filepath, template }: AddCommandOptions = {}) {
         filepath = filepath || process.cwd();
-        template = (template || ADD_SUPPORT_TEMPLATES.rfc as keyof typeof ADD_SUPPORT_TEMPLATES);
+        template = template || (ADD_SUPPORT_TEMPLATES.rfc as keyof typeof ADD_SUPPORT_TEMPLATES);
         if (!ADD_SUPPORT_TEMPLATES[template]) {
             throw new Error('Invalid template!');
         }

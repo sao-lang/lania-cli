@@ -6,7 +6,7 @@ export interface TaskConfig {
 }
 
 export abstract class BaseTemplate {
-    public abstract name: string;
+    static templateName: string = 'base-template';
     protected abstract options: TemplateOptions;
     protected abstract taskConfigs: TaskConfig[];
     abstract getDependenciesArray(options: TemplateOptions): {

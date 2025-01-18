@@ -1,11 +1,14 @@
 {
     "cSpell.words": [
+        "czrc",
         "deepmerge",
         "execa",
         "Funcer",
         "gsync",
         "gulpfile",
+        "nuxt",
         "onwarn",
+        "pinia",
         "stylelintignore",
         "textlint",
         "Textlintrc"

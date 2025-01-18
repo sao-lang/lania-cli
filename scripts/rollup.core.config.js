@@ -1,4 +1,4 @@
-// rollup.cli.config.js
+// rollup.core.config.js
 import { defineConfig } from 'rollup';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import cjs from '@rollup/plugin-commonjs';
@@ -8,8 +8,9 @@ import alias from '@rollup/plugin-alias';
 import { readFileSync } from 'fs';
 import { resolvePath, __dirname } from './utils.js';
 import { resolve } from 'path';
+import injectVarsPlugin from './inject-vars-plugin.js';
 
-const resolveSubPath = (subPath) => resolvePath('cli', subPath);
+const resolveSubPath = (subPath) => resolvePath('core', subPath);
 
 const resolvePlugins = () => [
     json(),
@@ -18,27 +19,29 @@ const resolvePlugins = () => [
     nodeResolve({ preferBuiltins: true }),
     alias({
         entries: [
-            { find: '@commands', replacement: '../cli/commands' },
-            { find: '@utils', replacement: '../cli/utils' },
-            { find: '@lib', replacement: '../cli/lib' },
-            { find: '@compilers', replacement: '../cli/lib/compilers' },
-            { find: '@runners', replacement: '../cli/lib/runners' },
-            { find: '@linters', replacement: '../cli/lib/linters' },
-            { find: '@constants', replacement: '../cli/constants' },
-            { find: '@package-managers', replacement: '../cli/lib/package-managers' },
-            { find: '@configuration', replacement: '../cli/lib/configuration' },
-            { find: '@engines', replacement: '../cli/lib/engines' },
+            { find: '@commands', replacement: '../core/commands' },
+            { find: '@utils', replacement: '../core/utils' },
+            { find: '@lib', replacement: '../core/lib' },
+            { find: '@compilers', replacement: '../core/lib/compilers' },
+            { find: '@runners', replacement: '../core/lib/runners' },
+            { find: '@linters', replacement: '../core/lib/linters' },
+            { find: '@constants', replacement: '../core/constants' },
+            { find: '@package-managers', replacement: '../core/lib/package-managers' },
+            { find: '@configuration', replacement: '../core/lib/configuration' },
+            { find: '@engines', replacement: '../core/lib/engines' },
         ],
     }),
+    injectVarsPlugin(),
 ];
 
-const packageJsonContent = JSON.parse(
-    readFileSync(resolve(__dirname, '../packages/cli/package.json'), 'utf-8'),
+const getPackageJsonContent = () => JSON.parse(
+    readFileSync(resolve(__dirname, '../packages/core/package.json'), 'utf-8'),
 );
-const input = resolveSubPath('commands/index.ts');
-const external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs', 'net'];
 
 const createConfig = () => {
+    const input = resolveSubPath('commands/index.ts');
+    const packageJsonContent = getPackageJsonContent();
+    const external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs', 'net'];
     const map = {
         esm: {
             format: 'es',

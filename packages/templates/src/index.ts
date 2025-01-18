@@ -1,8 +1,8 @@
 import { readdir } from 'fs/promises';
-import { SpaReactTemplate } from './spa-react-template';
+import { SpaReactTemplate } from './spa-react';
 import { statSync } from 'fs';
 import { resolve } from 'path';
-import { __dirname } from './utils';
+import { BaseTemplate } from './template.base';
 
 export interface TemplateOptions {
     name: string;
@@ -38,16 +38,19 @@ export interface Template {
 
 export class TemplateFactory {
     public static create(name: string, options: TemplateOptions) {
-        switch (name) {
-            case 'spa-react-template':
-                return new SpaReactTemplate(options);
-            default:
-                throw new Error(`Invalid template: ${name}!`);
+        const templateMap = {
+            [SpaReactTemplate.templateName]: SpaReactTemplate,
+        };
+        for (const key in templateMap) {
+            if (name && name === key && key !== BaseTemplate.templateName) {
+                return new templateMap[key](options);
+            }
         }
+        throw new Error(`Invalid template: ${name}!`);
     }
     public static async list() {
         try {
-            const dirPath = resolve(__dirname, '../src');
+            const dirPath = resolve(__dirname__, '../src');
             const targets = await readdir(dirPath);
             return targets.filter((f) => {
                 if (!statSync(`${dirPath}/${f}`).isDirectory()) {

@@ -1,4 +1,4 @@
-import { PACKAGE_TOOLS } from '@lib/constants/cli.constant';
+import { PACKAGE_TOOLS } from '@lania-cli/common';
 import GitRunner from '@runners/git.runner';
 import { mkdir, readdir } from 'fs/promises';
 import path from 'path';

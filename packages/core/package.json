@@ -1,5 +1,5 @@
 {
-    "name": "@lania/cli",
+    "name": "@lania-cli/core",
     "version": "0.0.3",
     "description": "",
     "main": "dist/src/esm/commands/index.js",
@@ -21,7 +21,6 @@
     "scripts": {},
     "author": "",
     "dependencies": {
-        "@lania/templates": "workspace:^",
         "@commitlint/core": "^19.6.0",
         "chalk": "^3.0.0",
         "commander": "^10.0.1",
