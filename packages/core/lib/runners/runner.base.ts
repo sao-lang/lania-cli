@@ -1,9 +1,6 @@
+import { RunnerRunOptions } from '@lania-cli/types';
 import { $ } from 'execa';
 
-export interface RunnerRunOptions {
-    silent?: boolean;
-    cwd?: string;
-}
 
 class BaseRunner {
     public async run(command: string, args: string[] = [], options: RunnerRunOptions = {}) {

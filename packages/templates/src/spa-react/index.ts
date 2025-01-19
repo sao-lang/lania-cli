@@ -1,5 +1,5 @@
-import { type TemplateOptions } from '..';
-import { BaseTemplate, TaskConfig } from '../template.base';
+import { LintToolEnum, TaskConfig, TemplateOptions } from '@lania-cli/types';
+import { BaseTemplate } from '../template.base';
 // import envDevelopment from './templates/.env.development.ejs';
 // import envProduction from './templates/.env.production.ejs';
 // import configJsEjs from './templates/config.js.ejs';
@@ -176,10 +176,10 @@ export class SpaReactTemplate extends BaseTemplate {
         return [];
     }
     private getLintToolDevDependencies(options: TemplateOptions) {
-        const useEslint = options.lintTools.includes('eslint');
-        const usePrettier = options.lintTools.includes('prettier');
-        const useStylelint = options.lintTools.includes('stylelint');
-        const useEditorConfig = options.lintTools.includes('editorConfig');
+        const useEslint = options.lintTools.includes(LintToolEnum.eslint);
+        const usePrettier = options.lintTools.includes(LintToolEnum.prettier);
+        const useStylelint = options.lintTools.includes(LintToolEnum.stylelint);
+        const useEditorConfig = options.lintTools.includes(LintToolEnum.editorconfig);
         const useTs = options.language === 'TypeScript';
         const devDependencies: string[] = [];
         if (usePrettier) {

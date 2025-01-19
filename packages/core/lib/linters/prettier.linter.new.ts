@@ -1,35 +1,17 @@
-import Linter, { LinterHandleDirOptions } from './linter.base.new';
-import { LinterConfiguration, getFileExt, getModuleConfig } from './linter.util';
+import Linter from './linter.base.new';
+import { getFileExt, getModuleConfig } from './linter.util';
 
 import prettier from 'prettier';
 import stylus from 'prettier-plugin-stylus';
 import ejs from 'prettier-plugin-ejs';
 import svelte from 'prettier-plugin-svelte';
 import { readFile, writeFile } from 'fs/promises';
-
-export type PrettierSupportFileType =
-    | 'js'
-    | 'json'
-    | 'ts'
-    | 'jsx'
-    | 'tsx'
-    | 'vue'
-    | 'svelte'
-    | 'css'
-    | 'html'
-    | 'scss'
-    | 'less'
-    | 'styl'
-    | 'md'
-    | 'yaml'
-    | 'astro'
-    | 'yml'
-    | 'ejs';
-
-export interface PrettierOutput {
-    filePath: string;
-    isFormatted?: boolean;
-}
+import {
+    LinterConfiguration,
+    LinterHandleDirOptions,
+    PrettierOutput,
+    PrettierSupportFileType,
+} from '@lania-cli/types';
 
 const transformParser = (fileType: PrettierSupportFileType) => {
     switch (fileType) {

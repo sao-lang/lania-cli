@@ -2,11 +2,17 @@
   "name": "@lania-cli/types",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/src/esm/commands/index.js",
+  "types": "dist/src/esm/commands/index.d.ts",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/rollup": "^0.54.0",
+    "@types/webpack": "^5.28.5"
+  }
 }

@@ -1,10 +1,6 @@
 import { stat } from 'fs/promises';
 import { getFileExt, traverseFiles } from './linter.util';
 
-export interface LinterHandleDirOptions {
-    fix?: boolean;
-    ignorePath?: string;
-}
 export default abstract class Linter<
     SupportFileType extends string,
     LintOutput extends Record<string, any>,

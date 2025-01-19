@@ -1,20 +1,18 @@
-import { ADD_SUPPORT_TEMPLATES } from '@lania-cli/common';
-import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
-
-interface AddCommandOptions {
-    filepath?: string;
-    template?: keyof typeof ADD_SUPPORT_TEMPLATES;
-}
+import { ADD_COMMAND_SUPPORT_TEMPLATES } from '@lania-cli/common';
+import { LaniaCommand } from './command.base';
 
 class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     async handle({ filepath, template }: AddCommandOptions = {}) {
         filepath = filepath || process.cwd();
-        template = template || (ADD_SUPPORT_TEMPLATES.rfc as keyof typeof ADD_SUPPORT_TEMPLATES);
-        if (!ADD_SUPPORT_TEMPLATES[template]) {
+        template =
+            template ||
+            (ADD_COMMAND_SUPPORT_TEMPLATES.rfc as keyof typeof ADD_COMMAND_SUPPORT_TEMPLATES);
+        if (!ADD_COMMAND_SUPPORT_TEMPLATES[template]) {
             throw new Error('Invalid template!');
         }
     }
 }
+import { AddCommandOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
 export default class AddCommand extends LaniaCommand<[AddCommandOptions]> {
     protected actor = new AddAction();

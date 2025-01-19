@@ -4,18 +4,14 @@ import { series } from '@utils/task';
 import Prettier from '@linters/prettier.linter.new';
 import EsLinter from '@linters/eslint.linter.new';
 import StyleLinter from '@linters/stylelint.linter.new';
-import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
-
-interface LintActionOptions {
-    linters?: string[];
-    fix?: boolean;
-}
-interface LinterConfigItem {
-    linter?: string;
-    config?: Record<string, any>;
-}
-
-type LintActionHandleConfigsParam = (LinterConfigItem | string)[];
+import { LaniaCommand } from './command.base';
+import {
+    LaniaCommandActionInterface,
+    LintActionHandleConfigsParam,
+    LintActionOptions,
+    LintToolEnum,
+    LinterConfigItem,
+} from '@lania-cli/types';
 
 type LinterMap = {
     prettier: Prettier;
@@ -50,7 +46,9 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
             return [];
         }
         return finalLinterConfigs.filter((linter) =>
-            LINTERS.includes(typeof linter === 'string' ? linter : linter?.linter),
+            LINTERS.includes(
+                (typeof linter === 'string' ? linter : linter?.linter) as LintToolEnum,
+            ),
         );
     }
     private async getLinterConfigs(linter?: string[]) {

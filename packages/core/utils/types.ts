@@ -1,5 +1,3 @@
-import type { ConfigurationLoadType } from '@lib/configuration/configuration.loader';
-
 /**项目类型*/
 export type ProjectType = 'spa' | 'ssr' | 'nodejs' | 'vanilla' | 'toolkit' | 'components';
 
@@ -125,9 +123,4 @@ export interface Config extends TemplateOptions {
             name: string;
         }[];
     };
-}
-
-export interface CompilerBaseConfigOption {
-    module?: ConfigurationLoadType | { module: string; searchPlaces?: string[] };
-    configPath?: string;
 }

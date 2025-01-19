@@ -19,6 +19,7 @@
     "license": "ISC",
     "dependencies": {
         "@lania-cli/common": "workspace:^",
+        "@lania-cli/types": "workspace:^",
         "get-port": "^7.0.0"
     }
 }

@@ -3,38 +3,9 @@ import { SpaReactTemplate } from './spa-react';
 import { statSync } from 'fs';
 import { resolve } from 'path';
 import { BaseTemplate } from './template.base';
+import { TemplateOptions } from '@lania-cli/types';
 
-export interface TemplateOptions {
-    name: string;
-    buildTool: string;
-    cssProcessor: string;
-    packageTool: string;
-    lintTools: string[];
-    language: 'TypeScript' | 'JavaScript';
-    port?: number;
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-    template?: string;
-    [x: string]: any;
-}
 
-export interface OutputFileTask {
-    outputPath: string;
-    options: TemplateOptions;
-    templatePath?: string;
-    content?: string;
-    hide?: boolean;
-}
-
-export interface Template {
-    getDependenciesArray(): {
-        dependencies: string[];
-        devDependencies: string[];
-    };
-    getOutputFileTasks(): Promise<{
-        tasks: OutputFileTask[];
-    }>;
-}
 
 export class TemplateFactory {
     public static create(name: string, options: TemplateOptions) {

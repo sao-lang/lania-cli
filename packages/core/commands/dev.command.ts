@@ -4,17 +4,8 @@ import logger from '@utils/logger';
 import getPort from 'get-port';
 import { getLanConfig } from './command.util';
 import webpack from 'webpack';
-import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
-
-type DevActionOptions = {
-    port: number | string;
-    config: string;
-    hmr: boolean;
-    open: boolean;
-    host: string;
-    path: string;
-    mode: string;
-};
+import { LaniaCommand } from './command.base';
+import { DevActionOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
 const { DefinePlugin } = webpack;
 class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {

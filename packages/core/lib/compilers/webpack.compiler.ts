@@ -1,4 +1,4 @@
-import { Compiler, ConfigOption } from './compiler.base';
+import { Compiler } from './compiler.base';
 import logger from '@utils/logger';
 import text from '@utils/text';
 import path from 'path';
@@ -6,6 +6,7 @@ import webpack, { type Configuration, type StatsAsset } from 'webpack';
 import DevServer from 'webpack-dev-server';
 import { logOnBuildWebpackPlugin } from './compiler.plugin';
 import to from '@utils/to';
+import { ConfigOption } from '@lania-cli/types';
 
 export default class WebpackCompiler extends Compiler<Configuration, DevServer> {
     protected server: DevServer;

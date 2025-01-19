@@ -1,22 +1,5 @@
+import { ModuleName } from '@lania-cli/types';
 import { cosmiconfig } from 'cosmiconfig';
-export type ConfigurationLoadType =
-    | 'npm'
-    | 'pnpm'
-    | 'yarn'
-    | 'prettier'
-    | 'package'
-    | 'eslint'
-    | 'stylelint'
-    | 'commitlint'
-    | 'markdownlint'
-    | 'tsc'
-    | 'editorconfig'
-    | 'webpack'
-    | 'vite'
-    | 'gulp'
-    | 'rollup';
-
-type ModuleName = ConfigurationLoadType | { module: string; searchPlaces?: string[] };
 
 const getConfigOptions = (moduleName: ModuleName) => {
     if (typeof moduleName === 'string') {

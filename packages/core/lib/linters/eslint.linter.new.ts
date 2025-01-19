@@ -1,32 +1,8 @@
 import { ESLint } from 'eslint';
-import Linter, { LinterHandleDirOptions } from './linter.base.new';
+import Linter from './linter.base.new';
 import { LinterConfiguration, getModuleConfig } from './linter.util';
 import { readFile, writeFile } from 'fs/promises';
-
-export type EsLinterSupportFileType =
-    | 'ts'
-    | 'tsx'
-    | 'js'
-    | 'jsx'
-    | 'vue'
-    | 'astro'
-    | 'svelte'
-    | 'cjs'
-    | 'mjs';
-
-export interface EsLinterOutput {
-    filePath: string;
-    output: {
-        description: string;
-        line: number;
-        endColumn: number;
-        endLine: number;
-        column: number;
-        type: 'error' | 'warning';
-    }[];
-    errorCount: number;
-    warningCount: number;
-}
+import { EsLinterOutput, EsLinterSupportFileType, LinterHandleDirOptions } from '@lania-cli/types';
 
 export default class EsLinter extends Linter<EsLinterSupportFileType, EsLinterOutput> {
     private config: LinterConfiguration;

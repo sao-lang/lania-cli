@@ -1,11 +1,6 @@
-import { OutputFileTask, TemplateOptions } from '.';
 import path from 'path';
 import fs from 'fs';
-export interface TaskConfig {
-    filePath: string;
-    outputPath: string;
-    hide?: boolean;
-}
+import { OutputFileTask, TaskConfig, TemplateOptions } from '@lania-cli/types';
 
 export abstract class BaseTemplate {
     static templateName: string = 'base-template';

@@ -1,9 +1,10 @@
 import { writeFile } from 'fs/promises';
 import { dirname } from 'path';
 import ejs from 'ejs';
-import PrettierLinter, { type PrettierSupportFileType } from '@linters/prettier.linter.new';
+import PrettierLinter from '@linters/prettier.linter.new';
 import { mkDirs } from './engine.util';
 import { getFileExt } from '@linters/linter.util';
+import { PrettierSupportFileType } from '@lania-cli/types';
 
 export default class EjsEngine {
     public async render(

@@ -1,7 +1,8 @@
 import to from '@utils/to';
-import Runner, { RunnerRunOptions } from './runner.base';
+import Runner from './runner.base';
 import path from 'path';
 import fs from 'fs';
+import { RunnerRunOptions } from '@lania-cli/types';
 
 export default class GitRunner extends Runner<'git'> {
     protected command = 'git' as const;

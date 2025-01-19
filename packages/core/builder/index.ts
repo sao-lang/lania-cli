@@ -1,15 +1,15 @@
-import { CreateCommandOptions } from '@commands/create.command';
 import { CSS_PROCESSORS, LINT_TOOLS, PACKAGE_TOOLS, UNIT_TEST_TOOLS } from '@lania-cli/common';
 import inquirer, { type Answers } from 'inquirer';
 import { createCheckboxQuestion, createListQuestion } from '../utils/create-questions';
 import to from '@utils/to';
-import { TemplateFactory, type TemplateOptions } from '@lania-cli/templates';
+import { TemplateFactory } from '@lania-cli/templates';
 import latestVersion from 'latest-version';
 import loading from '@utils/loading';
 import EjsEngine from '@lib/engines/ejs.engine';
 import getPort from 'get-port';
 import PackageManagerFactory from '@lib/package-managers/package-manager.factory';
 import { BaseTemplate } from '@lania-cli/templates/dist/src/esm/template.base';
+import { CreateCommandOptions, TemplateOptions } from '@lania-cli/types';
 
 export class Builder {
     private options: TemplateOptions = {} as any;

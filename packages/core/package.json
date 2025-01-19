@@ -23,6 +23,7 @@
     "dependencies": {
         "@lania-cli/common": "workspace:^",
         "@lania-cli/templates": "workspace:^",
+        "@lania-cli/types": "workspace:^",
         "@commitlint/core": "^19.6.0",
         "chalk": "^3.0.0",
         "commander": "^10.0.1",

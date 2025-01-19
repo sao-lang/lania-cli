@@ -1,18 +1,12 @@
 import inquirer from 'inquirer';
-import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
+import { LaniaCommand } from './command.base';
 import GitRunner from '@runners/git.runner';
 import { ADD_NEW_REMOTE_CHOICE } from '@lania-cli/common';
 import loading from '@utils/loading';
 import { CommitizenPlugin } from '@lib/plugins/commitizen.plugin';
 import { CommitlintPlugin } from '@lib/plugins/commitlint.plugin';
 import logger from '@utils/logger';
-
-type GSyncActionOptions = {
-    message?: string;
-    branch?: string;
-    normatively?: boolean;
-    remote?: string;
-};
+import { GSyncActionOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
 class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
     private git = new GitRunner();

@@ -1,14 +1,8 @@
+import { LanConfig } from '@lania-cli/types';
 import ConfigurationLoader from '@lib/configuration/configuration.loader';
 import path from 'path';
 
 export const checkLaniaConfigFile = () => {};
-
-export interface LanConfig {
-    language?: 'JavaScript' | 'TypeScript';
-    buildTool?: 'tsc' | 'vite' | 'webpack' | 'rollup';
-    frame?: 'react' | 'vue' | 'svelte';
-    linters?: ({ linter: string; config: Record<string, any> } | string)[];
-}
 
 export const getLanConfig = async (lanConfigPath?: string) => {
     if (!lanConfigPath) {
@@ -26,8 +20,4 @@ export const getLanConfig = async (lanConfigPath?: string) => {
         },
         lanDirname,
     )) as LanConfig;
-
-    // if (JSON.stringify(config) === '{}') {
-    //     throw new Error('LAN configuration not found!');
-    // }
 };

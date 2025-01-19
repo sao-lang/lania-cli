@@ -1,23 +1,9 @@
+import { LogOnBuildRollupPluginOptions, LogOnBuildWebpackPluginOptions } from '@lania-cli/types';
 import logger from '@utils/logger';
 import text from '@utils/text';
 import path from 'path';
-import type { NormalizedOutputOptions, OutputBundle } from 'rollup';
 import type { PluginOption } from 'vite';
-import type { Compiler, Stats, StatsError } from 'webpack';
-export interface LogOnBuildWebpackPluginOptions {
-    onDone?: (stats: Stats) => void;
-    onWatch?: (compiler: Compiler) => void;
-    onBeforeRun?: (compiler: Compiler) => void;
-}
-export interface LogOnBuildRollupPluginOptions {
-    onBuildEnd?: () => void | Promise<void>;
-    onWriteBundleEnd?: () => void | Promise<void>;
-    onWriteBundle?: (
-        options: NormalizedOutputOptions,
-        bundle: OutputBundle,
-    ) => void | Promise<void>;
-    onBuildStart?: () => void | Promise<void>;
-}
+import type { Compiler, StatsError } from 'webpack';
 const logWebpackErrors = (errors: StatsError[], isWarning: boolean = false) => {
     errors.forEach(({ moduleIdentifier, message }, index) => {
         if (moduleIdentifier) {
@@ -73,7 +59,7 @@ export const logOnBuildRollupPlugin = (options?: LogOnBuildRollupPluginOptions):
             await options.onBuildEnd?.();
         },
         async writeBundle(outputOptions, bundle) {
-            await options.onWriteBundle?.(outputOptions, bundle);
+            await options.onWriteBundle?.(outputOptions, bundle as any);
             await options.onWriteBundleEnd?.();
         },
         watchChange(id) {

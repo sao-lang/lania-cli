@@ -1,5 +1,5 @@
+import { PackageManagerName } from '@lania-cli/types';
 import NpmPackageManager from './npm.package-manager';
-import { type PackageManagerName } from './package-manager.base';
 import PnpmPackageManager from './pnpm.package-manager';
 import YarnPackageManager from './yarn.package-manager';
 import { detect } from 'detect-package-manager';

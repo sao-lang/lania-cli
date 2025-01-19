@@ -1,17 +1,12 @@
 import stylelint from 'stylelint';
-import { EsLinterOutput } from './eslint.linter.new';
-import Linter, { LinterHandleDirOptions } from './linter.base.new';
-import { LinterConfiguration, getModuleConfig } from './linter.util';
-
-export type StyleLinterSupportFileType =
-    | 'css'
-    | 'styl'
-    | 'sass'
-    | 'less'
-    | 'vue'
-    | 'svelte'
-    | 'astro';
-export interface StyleLinterOutput extends EsLinterOutput {}
+import Linter from './linter.base.new';
+import { getModuleConfig } from './linter.util';
+import {
+    LinterConfiguration,
+    LinterHandleDirOptions,
+    StyleLinterOutput,
+    StyleLinterSupportFileType,
+} from '@lania-cli/types';
 
 export default class StyleLinter extends Linter<StyleLinterSupportFileType, StyleLinterOutput> {
     private config: LinterConfiguration;

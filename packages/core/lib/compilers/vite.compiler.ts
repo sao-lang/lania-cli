@@ -1,14 +1,14 @@
 import { build, createServer, createLogger, mergeConfig } from 'vite';
 import type { ViteDevServer, InlineConfig } from 'vite';
 import { Compiler } from './compiler.base';
-import type { ConfigOption } from './compiler.base';
 import logger from '@utils/logger';
 import path from 'path';
 import fs from 'fs';
 import to from '@utils/to';
 import text from '@utils/text';
 import type { OutputBundle } from 'rollup';
-import { LogOnBuildRollupPluginOptions, logOnBuildRollupPlugin } from './compiler.plugin';
+import { logOnBuildRollupPlugin } from './compiler.plugin';
+import { ConfigOption, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
 
 export default class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> {
     protected configOption: ConfigOption;

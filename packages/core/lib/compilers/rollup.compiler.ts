@@ -3,12 +3,12 @@ import { Compiler } from './compiler.base';
 import to from '@utils/to';
 import fs from 'fs';
 import path from 'path';
-import type { ConfigOption } from './compiler.base';
 
 import { type RollupOptions, rollup, OutputBundle } from 'rollup';
 import logger from '@utils/logger';
 import { mergeConfig } from 'vite';
-import { LogOnBuildRollupPluginOptions, logOnBuildRollupPlugin } from './compiler.plugin';
+import { logOnBuildRollupPlugin } from './compiler.plugin';
+import { ConfigOption, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
 
 export class RollupCompiler extends Compiler<RollupOptions> {
     protected configOption: ConfigOption;

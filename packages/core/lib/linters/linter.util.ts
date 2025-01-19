@@ -1,8 +1,7 @@
-import ConfigurationLoader, { ConfigurationLoadType } from '@configuration/configuration.loader';
+import ConfigurationLoader from '@configuration/configuration.loader';
+import { LinterConfiguration } from '@lania-cli/types';
 import { readdir, stat } from 'fs/promises';
 import { extname, join } from 'path';
-
-export type LinterConfiguration = ConfigurationLoadType | Record<string, any>;
 
 export const getModuleConfig = async (config: LinterConfiguration) => {
     if (typeof config === 'string') {

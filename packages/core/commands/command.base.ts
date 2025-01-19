@@ -1,16 +1,6 @@
+import { CommandNeededArgsInterface, LaniaCommandActionInterface } from '@lania-cli/types';
 import logger from '@utils/logger';
 import { Command } from 'commander';
-
-export interface LaniaCommandActionInterface<Args extends any[] = any[]> {
-    handle(...args: Args): Promise<void>;
-}
-
-export interface CommandNeededArgsInterface {
-    name: string;
-    description?: string;
-    options: { flags: string; description?: string; defaultValue?: string | boolean | string[] }[];
-    alias?: string;
-}
 
 export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
     protected abstract actor: LaniaCommandActionInterface<ActionArgs>;

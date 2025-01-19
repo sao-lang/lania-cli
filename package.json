@@ -20,6 +20,7 @@
         "@lania-cli/common": "workspace:^",
         "@lania-cli/core": "workspace:^",
         "@lania-cli/templates": "workspace:^",
+        "@lania-cli/types": "workspace:^",
         "glob": "^11.0.0"
     },
     "devDependencies": {

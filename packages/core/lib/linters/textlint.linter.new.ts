@@ -1,11 +1,12 @@
 import { createLinter, loadTextlintrc } from 'textlint';
-import type { EsLinterOutput } from './eslint.linter.new';
-import Linter, { LinterHandleDirOptions } from './linter.base.new';
-import { LinterConfiguration, getModuleConfig } from './linter.util';
-
-type TextLinterSupportFileType = 'txt' | 'md';
-
-export interface TextLinterOutput extends EsLinterOutput {}
+import Linter from './linter.base.new';
+import { getModuleConfig } from './linter.util';
+import {
+    LinterConfiguration,
+    LinterHandleDirOptions,
+    TextLinterOutput,
+    TextLinterSupportFileType,
+} from '@lania-cli/types';
 
 export default class TextLinter extends Linter<TextLinterSupportFileType, TextLinterOutput> {
     private config: LinterConfiguration;

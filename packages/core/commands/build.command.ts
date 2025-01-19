@@ -4,14 +4,8 @@ import { getLanConfig } from './command.util';
 // import TscCompiler from '@lib/compilers/tsc.compiler';
 import { RollupCompiler } from '@lib/compilers/rollup.compiler';
 import webpack, { Configuration } from 'webpack';
-import { LaniaCommand, LaniaCommandActionInterface } from './command.base';
-
-interface BuildActionOptions {
-    watch?: boolean;
-    config?: string;
-    path?: string;
-    mode?: string;
-}
+import { LaniaCommand } from './command.base';
+import { BuildActionOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
 const { DefinePlugin } = webpack;
 class BuildAction implements LaniaCommandActionInterface<[BuildActionOptions]> {

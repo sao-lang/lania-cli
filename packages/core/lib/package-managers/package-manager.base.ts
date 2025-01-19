@@ -1,22 +1,11 @@
-import Runner, { type RunnerRunOptions } from '@runners/runner.base';
+import {
+    PackageManagerCommandFlags,
+    PackageManagerCommands,
+    PackageManagerName,
+    RunnerRunOptions,
+} from '@lania-cli/types';
+import Runner from '@runners/runner.base';
 import { readFile } from 'fs/promises';
-
-export interface PackageManagerCommandFlags {
-    saveFlag: string;
-    saveDevFlag: string;
-    silentFlag: string;
-    initFlag: string;
-}
-
-export interface PackageManagerCommands {
-    install: string;
-    add: string;
-    update: string;
-    remove: string;
-    init: string;
-}
-
-export type PackageManagerName = 'npm' | 'yarn' | 'pnpm';
 
 export default abstract class PackageManager<
     Command extends PackageManagerName,
