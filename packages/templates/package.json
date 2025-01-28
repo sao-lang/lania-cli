@@ -2,9 +2,9 @@
     "name": "@lania-cli/templates",
     "version": "0.0.3",
     "description": "",
-    "main": "dist/src/esm/index.js",
+    "main": "dist/src/esm/src/index.js",
     "type": "module",
-    "types": "dist/src/esm/index.d.ts",
+    "types": "dist/src/esm/src/index.d.ts",
     "publishConfig": {
         "access": "public"
     },
@@ -21,5 +21,8 @@
         "@lania-cli/common": "workspace:^",
         "@lania-cli/types": "workspace:^",
         "get-port": "^7.0.0"
+    },
+    "devDependencies": {
+        "@types/inquirer": "^9.0.3"
     }
 }

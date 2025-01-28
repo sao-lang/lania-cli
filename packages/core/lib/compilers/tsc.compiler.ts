@@ -1,4 +1,3 @@
-import { type ConfigurationLoadType } from '@lib/configuration/configuration.loader';
 import logger from '@utils/logger';
 import path from 'path';
 import tsc from 'typescript';

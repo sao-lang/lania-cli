@@ -10,8 +10,8 @@
         "release:only": "nrm use npm && changeset publish --registry=https://registry.npmjs.org",
         "prepare": "husky install",
         "eslint": "eslint ./**/*.ts --fix",
-        "build-cli": "gulp --gulpfile scripts/gulpfile.cjs buildCli",
-        "build-cli:watch": "gulp --gulpfile scripts/gulpfile.cjs buildCliWatch",
+        "build-core": "gulp --gulpfile scripts/gulpfile.cjs buildCore",
+        "build-core:watch": "gulp --gulpfile scripts/gulpfile.cjs buildCoreWatch",
         "build-template": "gulp --gulpfile scripts/gulpfile.cjs buildTemplate",
         "build": "gulp --gulpfile scripts/gulpfile.cjs build",
         "build-common": "gulp --gulpfile scripts/gulpfile.cjs buildCommon"

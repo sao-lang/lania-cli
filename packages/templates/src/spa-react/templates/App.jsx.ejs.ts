@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { LangEnum, TemplateOptions } from '@lania-cli/types';
 
 const content = `
 import <% if (buildTool === 'webpack' %>React, <% } %>{ useState } from 'react';
@@ -22,5 +22,5 @@ export default App;`;
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/src/App.jsx',
-    hide: options.language !== 'JavaScript',
+    hide: options.language !== LangEnum.JavaScript,
 });

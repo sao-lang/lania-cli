@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { CssProcessorEnum, TemplateOptions } from '@lania-cli/types';
 
 const content = `
 .button {
@@ -11,5 +11,5 @@ const content = `
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/src/App.scss',
-    hide: options.cssProcessor !== 'scss',
+    hide: options.cssProcessor !== CssProcessorEnum.sass,
 });

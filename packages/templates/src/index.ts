@@ -3,18 +3,17 @@ import { SpaReactTemplate } from './spa-react';
 import { statSync } from 'fs';
 import { resolve } from 'path';
 import { BaseTemplate } from './template.base';
-import { TemplateOptions } from '@lania-cli/types';
 
 
 
 export class TemplateFactory {
-    public static create(name: string, options: TemplateOptions) {
+    public static create(name: string) {
         const templateMap = {
             [SpaReactTemplate.templateName]: SpaReactTemplate,
         };
         for (const key in templateMap) {
             if (name && name === key && key !== BaseTemplate.templateName) {
-                return new templateMap[key](options);
+                return new templateMap[key]();
             }
         }
         throw new Error(`Invalid template: ${name}!`);

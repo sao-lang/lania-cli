@@ -1,13 +1,4 @@
 {
     "extends": "./tsconfig.json",
-    // "compilerOptions": {
-    //     "target": "es2016", // 目标语法
-    //     "module": "esnext", // 模块格式
-    //     "declaration": false,
-    //     "outDir": "./packages/templates/dist",
-    //     "rootDir": "./packages/templates",
-    //     "strict": true
-    // },
     "include": ["packages/templates/src/**/templates/**/*.ts"],
-    "exclude": ["node_modules", "./packages/core"]
 }

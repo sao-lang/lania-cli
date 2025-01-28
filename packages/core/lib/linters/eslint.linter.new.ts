@@ -1,8 +1,13 @@
 import { ESLint } from 'eslint';
 import Linter from './linter.base.new';
-import { LinterConfiguration, getModuleConfig } from './linter.util';
+import { getModuleConfig } from './linter.util';
 import { readFile, writeFile } from 'fs/promises';
-import { EsLinterOutput, EsLinterSupportFileType, LinterHandleDirOptions } from '@lania-cli/types';
+import {
+    EsLinterOutput,
+    EsLinterSupportFileType,
+    LinterConfiguration,
+    LinterHandleDirOptions,
+} from '@lania-cli/types';
 
 export default class EsLinter extends Linter<EsLinterSupportFileType, EsLinterOutput> {
     private config: LinterConfiguration;

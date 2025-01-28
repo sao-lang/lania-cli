@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { LangEnum, TemplateOptions } from '@lania-cli/types';
 const content = `
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -18,5 +18,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/main.tsx',
-    hide: options.language !== 'TypeScript',
+    hide: options.language !== LangEnum.TypeScript,
 });

@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { BuildToolEnum, TemplateOptions } from '@lania-cli/types';
 
 const content = `
 const path = require('path');
@@ -205,5 +205,5 @@ module.exports = {
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/webpack.config.cjs',
-    hide: options.buildTool !== 'webpack',
+    hide: options.buildTool !== BuildToolEnum.webpack,
 });

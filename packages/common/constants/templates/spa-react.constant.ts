@@ -31,3 +31,4 @@ export const STYLELINT_PRETTIER_DEV_DEPENDENCIES = ['stylelint-config-prettier']
 
 export const STYLELINT_LESS_DEV_DEPENDENCIES = ['postcss-less'];
 export const STYLELINT_STYLUS_DEV_DEPENDENCIES = ['stylelint-plugin-stylus', 'postcss-styl'];
+export const REACT_DEPENDENCIES = ['react', 'react-dom'];

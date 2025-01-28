@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { CssProcessorEnum, TemplateOptions } from '@lania-cli/types';
 const content = `
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -15,5 +15,5 @@ module.exports = {
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/tailwind.config.cjs',
-    hide: options.cssProcessor !== 'tailwindcss',
+    hide: options.cssProcessor !== CssProcessorEnum.tailwindcss,
 });

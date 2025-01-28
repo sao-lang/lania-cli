@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { LangEnum, TemplateOptions } from '@lania-cli/types';
 
 const content = `
 {
@@ -29,5 +29,5 @@ const content = `
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/tsconfig.json',
-    hide: options.language !== 'TypeScript',
+    hide: options.language !== LangEnum.TypeScript,
 });

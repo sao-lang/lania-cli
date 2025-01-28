@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { CssProcessorEnum, TemplateOptions } from '@lania-cli/types';
 const content = `
 @tailwind base;
 @tailwind components;
@@ -8,5 +8,5 @@ const content = `
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/tailwind.css',
-    hide: options.cssProcessor !== 'tailwindcss',
+    hide: options.cssProcessor !== CssProcessorEnum.tailwindcss,
 });

@@ -6,8 +6,8 @@ import ts from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import { readFileSync } from 'fs';
-import { resolvePath, __dirname } from './utils.js';
 import { resolve } from 'path';
+import { resolvePath, __dirname } from './utils.js';
 import injectVarsPlugin from './inject-vars-plugin.js';
 
 const resolveSubPath = (subPath) => resolvePath('core', subPath);

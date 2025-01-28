@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { LangEnum, TemplateOptions } from '@lania-cli/types';
 const content = `
 import <% if (buildTool === 'webpack'){ %>React, <% } %>{ useState } from 'react';
 <% const map = {stylus: 'styl', sass: 'scss', less: 'less', tailwindcss: 'css'}; %>
@@ -23,5 +23,5 @@ export default App;`;
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/src/App.tsx',
-    hide: options.language !== 'TypeScript',
+    hide: options.language !== LangEnum.TypeScript,
 });

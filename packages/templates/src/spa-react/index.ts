@@ -1,10 +1,23 @@
-import { LintToolEnum, TaskConfig, TemplateOptions } from '@lania-cli/types';
+import {
+    AddCommandOptions,
+    BuildToolEnum,
+    CreateCommandOptions,
+    CssProcessorEnum,
+    FrameEnum,
+    LangEnum,
+    LintToolEnum,
+    ProjectTypeEnum,
+    TemplateOptions,
+} from '@lania-cli/types';
 import { BaseTemplate } from '../template.base';
-// import envDevelopment from './templates/.env.development.ejs';
-// import envProduction from './templates/.env.production.ejs';
-// import configJsEjs from './templates/config.js.ejs';
-// import configTsEjs from './templates/config.ts.ejs';
-import { TEMPLATES_CONSTANTS } from '@lania-cli/common';
+import {
+    CSS_PROCESSORS,
+    DEFAULT_NO,
+    LINT_TOOLS,
+    PACKAGE_TOOLS,
+    TEMPLATES_CONSTANTS,
+    UNIT_TEST_TOOLS,
+} from '@lania-cli/common';
 const {
     ESLINT_DEV_DEPENDENCIES,
     ESLINT_PRETTIER_DEV_DEPENDENCIES,
@@ -16,104 +29,85 @@ const {
     STYLELINT_STYLUS_DEV_DEPENDENCIES,
     TAILWIND_DEV_DEPENDENCIES,
     TYPESCRIPT_DEV_DEPENDENCIES,
+    REACT_DEPENDENCIES,
 } = TEMPLATES_CONSTANTS.SPA_REACT_TEMPLATE;
 
 export class SpaReactTemplate extends BaseTemplate {
     static templateName = 'spa-react-template';
-    protected taskConfigs: TaskConfig[] = [];
     protected templateFilesDirName = __dirname;
-    protected options: TemplateOptions;
-    constructor(options: TemplateOptions) {
+    constructor() {
         super();
-        this.options = options;
-        const { language, cssProcessor } = options;
-        const useTs = language === 'TypeScript';
-        const jsxExtName = useTs ? 'tsx' : 'jsx';
-        const jsExtName = useTs ? 'ts' : 'js';
-        const cssExtMap = {
-            sass: 'scss',
-            stylus: 'styl',
-            less: 'less',
-            tailwindcss: 'css',
-        };
-        const cssExtName = cssExtMap?.[cssProcessor] ?? 'css';
-        const useWebpack = options.buildTool === 'webpack';
-        this.taskConfigs = [
-            { filePath: './templates/package.json.ejs', outputPath: '/package.json' },
+    }
+    public createPromptQuestions(options: CreateCommandOptions) {
+        return [
             {
-                outputPath: `/src/App.${jsxExtName}`,
-                filePath:
-                    jsxExtName === 'jsx' ? './templates/App.jsx.ejs' : './templates/App.tsx.ejs',
+                message: 'Please select a css processor:',
+                name: 'cssProcessor',
+                choices: CSS_PROCESSORS,
+                default: CssProcessorEnum.sass,
+                when: ({ template }: { template: string }) => {
+                    if (
+                        [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some((item) =>
+                            template.includes(item),
+                        )
+                    ) {
+                        return false;
+                    }
+                    return true;
+                },
             },
             {
-                outputPath: `/src/main.${jsxExtName}`,
-                filePath:
-                    jsxExtName === 'jsx' ? './templates/main.jsx.ejs' : './templates/main.tsx.ejs',
+                message: 'Please select the lint tools:',
+                name: 'lintTools',
+                choices: LINT_TOOLS,
             },
             {
-                outputPath: `/src/App.${cssExtName}`,
-                filePath: {
-                    scss: './templates/App.scss.ejs',
-                    less: './templates/App.less.ejs',
-                    css: './templates/App.css.ejs',
-                    styl: './templates/App.styl.ejs',
-                }[cssExtName],
+                message: 'Please select a unit testing tool',
+                name: 'unitTestTool',
+                choices: [...UNIT_TEST_TOOLS, DEFAULT_NO],
             },
             {
-                outputPath: `/src/index.${cssExtName}`,
-                filePath: {
-                    scss: './templates/index.scss.ejs',
-                    less: './templates/index.less.ejs',
-                    css: './templates/index.css.ejs',
-                    styl: './templates/index.styl.ejs',
-                }[cssExtName],
+                name: 'buildTool',
+                message: 'Please select a build tool:',
+                choices: ({ template }: { template: string }) => {
+                    const flag = [
+                        ProjectTypeEnum.spa,
+                        ProjectTypeEnum.ssr,
+                        ProjectTypeEnum.nodejs,
+                        ProjectTypeEnum.vanilla,
+                    ].some((item) => template.includes(item));
+                    if (flag) {
+                        return [BuildToolEnum.webpack, BuildToolEnum.vite];
+                    }
+                    return [BuildToolEnum.rollup, BuildToolEnum.gulp, BuildToolEnum.tsc];
+                },
             },
             {
-                outputPath: '/src/vite-env.d.ts',
-                filePath: './templates/vite-env.D.ts.ejs',
-                hide: options.buildTool !== 'vite',
-            },
-            {
-                outputPath: useWebpack ? '/webpack.config.cjs' : `/vite.config.${jsExtName}`,
-                filePath: useWebpack
-                    ? './templates/webpack.config.cjs.ejs'
-                    : {
-                          js: './templates/vite.config.cjs.ejs',
-                          ts: './templates/vite.config.ts.ejs',
-                      }[jsExtName],
-            },
-            {
-                outputPath: '/index.html',
-                filePath: './templates/index.html.ejs',
-            },
-            {
-                outputPath: '/tsconfig.json',
-                hide: !useTs,
-                filePath: './templates/tsconfig.json.ejs',
-            },
-            {
-                outputPath: '/tailwind.config.js',
-                hide: options.cssProcessor !== 'tailwindcss',
-                filePath: './templates/tailwind.config.cjs.ejs',
-            },
-            {
-                outputPath: '/postcss.config.js',
-                hide: options.cssProcessor !== 'tailwindcss',
-                filePath: './templates/postcss.config.cjs.ejs',
-            },
-            {
-                outputPath: '/.gitignore',
-                filePath: './templates/.gitignore.ejs',
-            },
-            {
-                outputPath: '/lan.config.json',
-                filePath: './templates/.gitignore.ejs',
+                name: 'packageTool',
+                message: 'Please select a packaging tool:',
+                choices: PACKAGE_TOOLS,
+                when: () => {
+                    if (options.packageManager) {
+                        return false;
+                    }
+                    return true;
+                },
             },
         ];
     }
-    public getDependenciesArray() {
-        const dependenciesArray = ['react', 'react-dom'];
-        const devDependenciesArray: string[] = this.getDevDependencies(this.options);
+    public combineAnswersWithOptions(answers: Record<string, string | boolean | number>) {
+        answers.useCssProcessor = answers.cssProcessor === CssProcessorEnum.css ? false : true;
+        answers.useTs = true;
+        for (const key in answers) {
+            if (answers[key] === DEFAULT_NO) {
+                delete answers[key];
+            }
+        }
+        return answers;
+    }
+    public getDependenciesArray(options: TemplateOptions) {
+        const dependenciesArray = REACT_DEPENDENCIES;
+        const devDependenciesArray: string[] = this.getDevDependencies(options);
         return {
             dependencies: dependenciesArray,
             devDependencies: devDependenciesArray,
@@ -124,26 +118,26 @@ export class SpaReactTemplate extends BaseTemplate {
         const buildToolDevDependencies = this.getBuildToolDevDependencies(options);
         const lintToolDevDependencies = this.getLintToolDevDependencies(options);
         devDependencies.push(...buildToolDevDependencies, ...lintToolDevDependencies);
-        if (options.language === 'TypeScript') {
+        if (options.language === LangEnum.TypeScript) {
             devDependencies.push(...TYPESCRIPT_DEV_DEPENDENCIES);
         }
         if (options.cssProcessor) {
             devDependencies.push(options.cssProcessor);
         }
-        if (options.cssProcessor === 'tailwindcss') {
+        if (options.cssProcessor === CssProcessorEnum.tailwindcss) {
             devDependencies.push(...TAILWIND_DEV_DEPENDENCIES);
         }
         return devDependencies;
     }
     private getBuildToolDevDependencies(options: TemplateOptions) {
-        if (options.buildTool === 'webpack') {
-            const isNotTailwindcss = options.cssProcessor !== 'tailwindcss';
+        if (options.buildTool === BuildToolEnum.webpack) {
+            const isNotTailwindcss = options.cssProcessor !== CssProcessorEnum.tailwindcss;
             return [
                 '@babel/plugin-transform-runtime',
                 '@babel/runtime',
                 '@babel/preset-env',
                 '@babel/core',
-                options.language === 'TypeScript' ? '@babel/preset-typescript' : '',
+                options.language === LangEnum.TypeScript ? '@babel/preset-typescript' : '',
                 'html-webpack-plugin',
                 'mini-css-extract-plugin',
                 'babel-loader',
@@ -180,10 +174,10 @@ export class SpaReactTemplate extends BaseTemplate {
         const usePrettier = options.lintTools.includes(LintToolEnum.prettier);
         const useStylelint = options.lintTools.includes(LintToolEnum.stylelint);
         const useEditorConfig = options.lintTools.includes(LintToolEnum.editorconfig);
-        const useTs = options.language === 'TypeScript';
+        const useTs = options.language === LangEnum.TypeScript;
         const devDependencies: string[] = [];
         if (usePrettier) {
-            devDependencies.push('prettier');
+            devDependencies.push(LintToolEnum.prettier);
         }
         if (useEslint) {
             devDependencies.push(
@@ -193,7 +187,7 @@ export class SpaReactTemplate extends BaseTemplate {
             );
         }
         if (useEditorConfig) {
-            devDependencies.push('editorConfig');
+            devDependencies.push(LintToolEnum.editorconfig);
         }
         if (useStylelint) {
             devDependencies.push(

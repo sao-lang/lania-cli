@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { BuildToolEnum, LangEnum, TemplateOptions } from '@lania-cli/types';
 
 const content = `
 import { defineConfig } from 'vite';
@@ -56,5 +56,5 @@ export default defineConfig({
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/vite.config.ts',
-    hide: options.buildTool !== 'vite' || options.language !== 'TypeScript',
+    hide: options.buildTool !== BuildToolEnum.vite || options.language !== LangEnum.TypeScript,
 });

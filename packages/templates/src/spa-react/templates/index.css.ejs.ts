@@ -1,4 +1,4 @@
-import { TemplateOptions } from '../..';
+import { CssProcessorEnum, TemplateOptions } from '@lania-cli/types';
 const content = `
 * {
     padding: 0;
@@ -8,5 +8,5 @@ const content = `
 export default (options: TemplateOptions) => ({
     content,
     outputPath: '/index.css',
-    hide: options.cssProcessor !== 'css',
+    hide: options.cssProcessor !== CssProcessorEnum.css,
 });

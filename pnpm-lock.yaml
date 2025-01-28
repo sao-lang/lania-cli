@@ -250,6 +250,10 @@ importers:
       get-port:
         specifier: ^7.0.0
         version: 7.0.0
+    devDependencies:
+      '@types/inquirer':
+        specifier: ^9.0.3
+        version: 9.0.3
 
   packages/types:
     devDependencies:
