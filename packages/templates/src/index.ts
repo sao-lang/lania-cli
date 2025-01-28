@@ -33,3 +33,6 @@ export class TemplateFactory {
         }
     }
 }
+
+export * from './spa-react';
+export * from './template.base';

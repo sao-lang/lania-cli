@@ -3,7 +3,7 @@ import { LaniaCommand } from './command.base';
 
 class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     async handle({ filepath, template }: AddCommandOptions = {}) {
-        filepath = filepath || process.cwd();
+        filepath = filepath || __cwd;
         template =
             template ||
             (ADD_COMMAND_SUPPORT_TEMPLATES.rfc as keyof typeof ADD_COMMAND_SUPPORT_TEMPLATES);

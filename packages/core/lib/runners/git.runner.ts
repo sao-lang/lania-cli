@@ -110,7 +110,7 @@ export default class GitRunner extends Runner<'git'> {
 
     public async isInit() {
         return new Promise((resolve: (res: boolean) => void) => {
-            const gitDir = path.join(process.cwd(), '.git');
+            const gitDir = path.join(__cwd, '.git');
             fs.access(gitDir, fs.constants.F_OK, (err) => {
                 if (err) {
                     return resolve(false);

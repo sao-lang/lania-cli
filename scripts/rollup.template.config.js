@@ -1,4 +1,3 @@
-import nodeResolve from '@rollup/plugin-node-resolve';
 import cjs from '@rollup/plugin-commonjs';
 import ts from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
@@ -7,6 +6,7 @@ import { defineConfig } from 'rollup';
 import { __dirname, resolvePath, getPackageJsonDependencies } from './utils.js';
 import * as glob from 'glob';
 import injectVarsPlugin from './inject-vars-plugin.js';
+import dts from 'rollup-plugin-dts';
 
 const resolveSubPath = (subPath) => {
     return resolvePath('templates', subPath);
@@ -17,7 +17,6 @@ const resolvePlugin = () => {
         json(),
         ts({ tsconfig: path.resolve(__dirname, '../tsconfig.template.json') }),
         cjs(),
-        nodeResolve({ preferBuiltins: true }),
         injectVarsPlugin(),
     ].filter(Boolean);
 };
@@ -27,7 +26,7 @@ const createConfig = () => {
         esm: {
             dir: resolveSubPath('dist/src/esm'),
             format: 'es',
-            entryFileNames: '[name].js', // 输出文件名格式
+            // entryFileNames: '[name].js', // 输出文件名格式
             preserveModules: true, // 保留模块路径结构
         },
         // cjs: {
@@ -48,39 +47,50 @@ const createConfig = () => {
         },
     }));
 };
-// const createTemplateFileConfig = () => {
-//     const templateDirs = glob.sync('**/templates', {
-//         cwd: resolveSubPath('src'),
-//         absolute: true,
-//     });
-//     return templateDirs.map((templateDir) => {
-//         const tsFiles = glob.sync('**/*.ts', {
-//             cwd: templateDir,
-//             absolute: true,
-//         });
-//         const currentDirName = path.basename(templateDir);
-//         const parentDirName = path.basename(path.dirname(templateDir));
-//         return {
-//             input: tsFiles,
-//             output: [
-//                 {
-//                     dir: resolveSubPath(`dist/src/esm/${parentDirName}/${currentDirName}`),
-//                     format: 'esm',
-//                 },
-//                 // {
-//                 //     dir: resolveSubPath(`dist/src/cjs/${parentDirName}/${currentDirName}`),
-//                 //     format: 'cjs',
-//                 // },
-//             ],
-//             external: ['path', 'fs', 'fs/promises', ...dependencies],
-//             plugins: [
-//                 ts({
-//                     tsconfig: path.resolve(__dirname, '../tsconfig.templates.json'),
-//                     // useTsconfigDeclarationDir: true,
-//                 }),
-//                 injectVarsPlugin(),
-//             ],
-//         };
-//     });
-// };
-export default defineConfig([...createConfig()]);
+const createTemplateFileConfig = () => {
+    const templateDirs = glob.sync('**/templates', {
+        cwd: resolveSubPath('src'),
+        absolute: true,
+    });
+    return templateDirs.map((templateDir) => {
+        const tsFiles = glob.sync('**/*.ts', {
+            cwd: templateDir,
+            absolute: true,
+        });
+        const currentDirName = path.basename(templateDir);
+        const parentDirName = path.basename(path.dirname(templateDir));
+        return {
+            input: tsFiles,
+            output: [
+                {
+                    dir: resolveSubPath(`dist/src/esm/${parentDirName}/${currentDirName}`),
+                    format: 'esm',
+                },
+                // {
+                //     dir: resolveSubPath(`dist/src/cjs/${parentDirName}/${currentDirName}`),
+                //     format: 'cjs',
+                // },
+            ],
+            external: ['path', 'fs', 'fs/promises', ...dependencies],
+            plugins: [
+                ts({
+                    tsconfig: path.resolve(__dirname, '../tsconfig.templates.json'),
+                    // useTsconfigDeclarationDir: true,
+                }),
+                injectVarsPlugin(),
+            ],
+        };
+    });
+};
+export default defineConfig([
+    ...createConfig(),
+    ...createTemplateFileConfig(),
+    {
+        input: resolveSubPath('dist/src/esm/templates/src/index.d.ts'),
+        output: {
+            file: resolveSubPath('dist/src/esm/index.d.ts'),
+            format: 'esm',
+        },
+        plugins: [dts()],
+    },
+]);

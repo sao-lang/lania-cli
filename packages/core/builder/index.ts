@@ -1,17 +1,16 @@
 import inquirer from 'inquirer';
 import to from '@utils/to';
-import { TemplateFactory } from '@lania-cli/templates';
+import { SpaReactTemplate, TemplateFactory } from '@lania-cli/templates';
 import latestVersion from 'latest-version';
 import loading from '@utils/loading';
 import EjsEngine from '@lib/engines/ejs.engine';
 import getPort from 'get-port';
 import PackageManagerFactory from '@lib/package-managers/package-manager.factory';
 import { CreateCommandOptions, TemplateOptions } from '@lania-cli/types';
-import { BaseTemplate } from '@lania-cli/templates/dist/src/esm/templates/src/template.base';
 
 export class Builder {
     private options: TemplateOptions = {} as any;
-    private template: BaseTemplate;
+    private template: SpaReactTemplate;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
         const { template } = await inquirer.prompt({
@@ -21,13 +20,11 @@ export class Builder {
             choices: templateList,
         });
         this.template = TemplateFactory.create(template);
-        // @ts-ignore
         const choices = this.template.createPromptQuestions(options);
         const answers = await inquirer.prompt(choices);
         return answers;
     }
     private async getDependencies(options: TemplateOptions) {
-        // @ts-ignore
         const { dependencies, devDependencies } = this.template.getDependenciesArray(
             options as TemplateOptions,
         );
@@ -52,19 +49,19 @@ export class Builder {
         const tasks = await this.template.createOutputTasks(options);
         const engine = new EjsEngine();
         for (const task of tasks) {
-            // @ts-ignore
             // eslint-disable-next-line prefer-const
-            let { outputPath, options: taskOptions, hide, content } = await task;
+            let { outputPath, hide, content } = await task;
             if (hide || !content) {
                 continue;
             }
             outputPath = options.directory ? `${options.directory}${outputPath}` : outputPath;
             await loading(`Generating ${outputPath}...`, async () => {
                 const [compileErr] = await to(
-                    engine.render(content, `${process.cwd()}${outputPath}`, {
-                        ...options,
-                        ...taskOptions,
-                    }),
+                    engine.render(
+                        content,
+                        `${__cwd}${outputPath}`,
+                        options as Record<string, any>,
+                    ),
                 );
                 if (compileErr) {
                     return {

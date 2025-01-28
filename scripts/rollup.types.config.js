@@ -2,7 +2,7 @@ import { defineConfig } from 'rollup';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import cjs from '@rollup/plugin-commonjs';
 import ts from 'rollup-plugin-typescript2';
-import { resolvePath, __dirname } from './utils.js';
+import { resolvePath, __dirname, getPackageJsonDependencies } from './utils.js';
 import injectVarsPlugin from './inject-vars-plugin.js';
 import path from 'path';
 
@@ -17,7 +17,8 @@ const resolvePlugins = () => [
 
 const createConfig = () => {
     const input = resolveSubPath('index.ts');
-    const external = ['path', 'fs', 'net'];
+    const dependencies = getPackageJsonDependencies('types');
+    const external = [...dependencies];
     const map = {
         esm: {
             format: 'es',
@@ -28,7 +29,7 @@ const createConfig = () => {
             entryFileNames: '[name].cjs',
         },
     };
-    return ['esm', 'cjs'].map((type) => ({
+    return ['esm'].map((type) => ({
         input,
         output: {
             dir: resolveSubPath(`dist/src/${type}`),

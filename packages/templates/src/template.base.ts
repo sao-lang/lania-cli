@@ -25,7 +25,7 @@ export abstract class BaseTemplate {
             files.map(async (file) => {
                 const content = await import(file);
                 const task = content.default as (options: TemplateOptions) => OutputFileTask;
-                return task?.(options) ?? {};
+                return (task?.(options) ?? {}) as OutputFileTask;
             }),
         );
     }

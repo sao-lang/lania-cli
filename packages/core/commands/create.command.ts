@@ -14,7 +14,7 @@ class CreateAction implements LaniaCommandActionInterface<[string, CreateCommand
         return !validatePkgName(name).errors;
     }
     private async check(name: string, directory: string, packageManager: string) {
-        const cwd = process.cwd();
+        const cwd = __cwd;
         if (packageManager && !PACKAGE_TOOLS.includes(packageManager as PackageToolEnum)) {
             return {
                 status: false,
@@ -22,7 +22,7 @@ class CreateAction implements LaniaCommandActionInterface<[string, CreateCommand
             };
         }
         if (name === '.' || !name) {
-            this.options.name = path.basename(process.cwd());
+            this.options.name = path.basename(__cwd);
             if (!this.validateProjectName(this.options.name)) {
                 return {
                     status: false,

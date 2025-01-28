@@ -5,9 +5,7 @@ import cjs from '@rollup/plugin-commonjs';
 import ts from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-import { resolvePath, __dirname } from './utils.js';
+import { resolvePath, getPackageJsonDependencies } from './utils.js';
 import injectVarsPlugin from './inject-vars-plugin.js';
 
 const resolveSubPath = (subPath) => resolvePath('core', subPath);
@@ -33,15 +31,10 @@ const resolvePlugins = () => [
     }),
     injectVarsPlugin(),
 ];
-
-const getPackageJsonContent = () => JSON.parse(
-    readFileSync(resolve(__dirname, '../packages/core/package.json'), 'utf-8'),
-);
-
 const createConfig = () => {
     const input = resolveSubPath('commands/index.ts');
-    const packageJsonContent = getPackageJsonContent();
-    const external = [...Object.keys(packageJsonContent.dependencies || {}), 'path', 'fs', 'net'];
+    const dependencies = getPackageJsonDependencies('core');
+    const external = [...dependencies, 'path', 'fs', 'net'];
     const map = {
         esm: {
             format: 'es',
@@ -52,7 +45,7 @@ const createConfig = () => {
             entryFileNames: '[name].cjs',
         },
     };
-    return ['esm', 'cjs'].map((type) => ({
+    return ['esm'].map((type) => ({
         input,
         output: {
             dir: resolveSubPath(`dist/src/${type}`),

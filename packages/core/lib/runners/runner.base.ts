@@ -9,7 +9,7 @@ class BaseRunner {
             const $$ = $({
                 shell: true,
                 stdio: silent ? 'pipe' : 'inherit',
-                cwd: cwd || process.cwd(),
+                cwd: cwd || __cwd,
             });
             const childProcess = $$`${command} ${args.join(' ')}`;
             let message = '';

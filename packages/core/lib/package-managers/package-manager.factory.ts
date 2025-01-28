@@ -16,7 +16,7 @@ export default class PackageManagerFactory {
                 throw new Error(`Package manager ${name} is not managed.`);
         }
     }
-    public static async find(cwd = process.cwd()) {
+    public static async find(cwd = __cwd) {
         return await detect({ cwd });
     }
 }

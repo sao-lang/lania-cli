@@ -35,7 +35,7 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
                         (linter as LinterConfigItem)?.config,
                         fix,
                     );
-                    await checkLinter.lint(process.cwd());
+                    await checkLinter.lint(__cwd);
                 };
             }),
         );
@@ -63,7 +63,7 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         config?: Record<string, any>,
         fix?: boolean,
     ): LinterMap[T] | undefined {
-        const cwd = process.cwd();
+        const cwd = __cwd;
         switch (linter) {
             case 'prettier':
                 return new Prettier(config || 'prettier', {
