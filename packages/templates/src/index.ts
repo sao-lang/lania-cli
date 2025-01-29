@@ -3,9 +3,6 @@ import { SpaReactTemplate } from './spa-react';
 import { statSync } from 'fs';
 import { resolve } from 'path';
 import { BaseTemplate } from './template.base';
-
-
-
 export class TemplateFactory {
     public static create(name: string) {
         const templateMap = {

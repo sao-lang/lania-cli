@@ -11,5 +11,4 @@
         "jsx": "preserve", // jsx 不转义
         "lib": ["esnext"] // 支持的类库 esnext及dom
     },
-    "include": ["packages/**/*.ts","packages/**/*.d.ts", "global.d.ts"]
 }

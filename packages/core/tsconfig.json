@@ -15,5 +15,6 @@
             "@configuration/*": ["./lib/configuration/*"],
             "@engines/*": ["./lib/engines/*"]
         }
-    }
+    },
+    "include": ["global.d.ts", "packages/**/*.ts"]
 }
