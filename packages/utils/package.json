@@ -10,10 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chalk": "^3.0.0",
+    "color": "^4.2.3",
+    "inquirer": "^8.2.5",
     "ora": "^5.4.1"
   },
   "devDependencies": {
     "@lania-cli/types": "workspace:^",
+    "@types/color": "^4.2.0",
     "@types/ora": "^3.2.0"
   }
 }
