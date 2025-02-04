@@ -14,7 +14,8 @@
         "build-core:watch": "gulp --gulpfile scripts/gulpfile.cjs buildCoreWatch",
         "build-template": "gulp --gulpfile scripts/gulpfile.cjs buildTemplate",
         "build": "gulp --gulpfile scripts/gulpfile.cjs build",
-        "build-common": "gulp --gulpfile scripts/gulpfile.cjs buildCommon"
+        "build-common": "gulp --gulpfile scripts/gulpfile.cjs buildCommon",
+        "build-types": "gulp --gulpfile scripts/gulpfile.cjs buildTypes"
     },
     "dependencies": {
         "@lania-cli/common": "workspace:^",

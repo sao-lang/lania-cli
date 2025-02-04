@@ -3,5 +3,5 @@
     "compilerOptions": {
         "declaration": true
     },
-    "exclude": ["./packages/core", "./packages/templates", "./packages/types"]
+    "include": ["./packages/common"]
 }

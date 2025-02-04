@@ -45,7 +45,7 @@ export default function injectVarsPlugin() {
                 {
                     key: '__cwd',
                     createNewInjection: () => {
-                        return __cwd;
+                        return 'process.cwd()';
                     },
                 },
             ].reduce((oldInjection, { key, createNewInjection }) => {

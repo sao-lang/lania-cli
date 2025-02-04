@@ -24,3 +24,5 @@ export * from './runners/runner.base';
 export * from './package-managers/package-manager.base';
 
 export * from './templates/template.base';
+
+export * from './cli-utils';

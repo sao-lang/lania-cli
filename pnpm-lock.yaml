@@ -16,7 +16,7 @@ importers:
         version: link:packages/core
       '@lania-cli/templates':
         specifier: workspace:^
-        version: link:packages/templates
+        version: link:packages/utils
       '@lania-cli/types':
         specifier: workspace:^
         version: link:packages/types
@@ -143,7 +143,7 @@ importers:
         version: link:../common
       '@lania-cli/templates':
         specifier: workspace:^
-        version: link:../templates
+        version: link:../utils
       '@lania-cli/types':
         specifier: workspace:^
         version: link:../types
@@ -263,6 +263,19 @@ importers:
       '@types/webpack':
         specifier: ^5.28.5
         version: 5.28.5
+
+  packages/utils:
+    dependencies:
+      ora:
+        specifier: ^5.4.1
+        version: 5.4.1
+    devDependencies:
+      '@lania-cli/types':
+        specifier: workspace:^
+        version: link:../types
+      '@types/ora':
+        specifier: ^3.2.0
+        version: 3.2.0
 
 packages:
 
@@ -2180,6 +2193,13 @@ packages:
 
   /@types/normalize-package-data@2.4.2:
     resolution: {integrity: sha512-lqa4UEhhv/2sjjIQgjX8B+RBjj47eo0mzGasklVJ78UKGQY1r0VpB9XHDaZZO9qzEFDdy4MrXLuEaSmPrPSe/A==}
+    dev: true
+
+  /@types/ora@3.2.0:
+    resolution: {integrity: sha512-jll99xUKpiFbIFZSQcxm4numfsLaOWBzWNaRk3PvTSE7BPqTzzOCFmS0mQ7m8qkTfmYhuYbehTGsxkvRLPC++w==}
+    deprecated: This is a stub types definition. ora provides its own type definitions, so you do not need this installed.
+    dependencies:
+      ora: 5.4.1
     dev: true
 
   /@types/qs@6.9.11:

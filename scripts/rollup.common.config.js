@@ -1,5 +1,4 @@
 import { defineConfig } from 'rollup';
-import nodeResolve from '@rollup/plugin-node-resolve';
 import cjs from '@rollup/plugin-commonjs';
 import ts from 'rollup-plugin-typescript2';
 import { resolvePath, __dirname, getPackageJsonDependencies } from './utils.js';
@@ -11,7 +10,6 @@ const resolveSubPath = (subPath) => resolvePath('common', subPath);
 const resolvePlugins = () => [
     ts({ tsconfig: path.resolve(__dirname, '../tsconfig.common.json') }),
     cjs(),
-    nodeResolve({ preferBuiltins: true }),
     injectVarsPlugin(),
 ];
 

@@ -16,5 +16,5 @@
             "@engines/*": ["./lib/engines/*"]
         }
     },
-    "include": ["global.d.ts", "packages/**/*.ts"]
+    "include": ["../../global.d.ts", "./**/*.ts"]
 }

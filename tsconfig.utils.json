@@ -3,5 +3,5 @@
     "compilerOptions": {
         "declaration": true
     },
-    "include": ["./packages/types"]
+    "include": ["./packages/utils"]
 }
