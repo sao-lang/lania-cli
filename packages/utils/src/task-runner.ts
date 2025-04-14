@@ -103,19 +103,16 @@ export class TaskRunner extends EventEmitter {
 
     // 并行执行任务
     private async runParallelTasks(tasks: Task[]) {
-        const runningTasks = [];
-
-        for (const task of tasks) {
-            if (this.abortController.signal.aborted) break;
-
-            if (runningTasks.length >= this.maxParallel) {
-                await Promise.race(runningTasks);
-            }
-
-            runningTasks.push(this.executeTaskWithRetry(task));
-        }
-
-        await Promise.all(runningTasks);
+       const pool = new Set<Promise<void>>();
+       for (const task of tasks) {
+           if (this.abortController.signal.aborted) break;
+           while (pool.size >= this.maxParallel) {
+               await Promise.race(pool);
+           }
+           const promise = this.executeTaskWithRetry(task).finally(() => pool.delete(promise));
+           pool.add(promise);
+       }
+       await Promise.all(pool);
     }
 
     // 带重试的任务执行
