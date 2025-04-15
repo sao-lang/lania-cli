@@ -1,10 +1,9 @@
 {
     "name": "@lania-cli/templates",
     "version": "0.0.3",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "description": "",
-    "main": "dist/src/esm/index.js",
-    "type": "module",
-    "types": "dist/src/esm/index.d.ts",
     "publishConfig": {
         "access": "public"
     },

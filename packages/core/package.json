@@ -21,11 +21,12 @@
     "scripts": {},
     "author": "",
     "dependencies": {
+        "@commitlint/core": "^19.6.0",
         "@lania-cli/common": "workspace:^",
         "@lania-cli/templates": "workspace:^",
         "@lania-cli/types": "workspace:^",
-        "@commitlint/core": "^19.6.0",
         "chalk": "^3.0.0",
+        "cli-progress": "^3.12.0",
         "commander": "^10.0.1",
         "cosmiconfig": "^9.0.0",
         "deepmerge": "^4.3.1",

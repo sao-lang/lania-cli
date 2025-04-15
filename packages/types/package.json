@@ -2,8 +2,8 @@
   "name": "@lania-cli/types",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/src/esm/index.js",
-  "types": "dist/src/esm/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -7,6 +7,7 @@ import EjsEngine from '@lib/engines/ejs.engine';
 import getPort from 'get-port';
 import PackageManagerFactory from '@lib/package-managers/package-manager.factory';
 import { CreateCommandOptions, TemplateOptions } from '@lania-cli/types';
+import { DEFAULT_NO } from '@lania-cli/common';
 
 export class Builder {
     private options: TemplateOptions = {} as any;
@@ -57,11 +58,7 @@ export class Builder {
             outputPath = options.directory ? `${options.directory}${outputPath}` : outputPath;
             await loading(`Generating ${outputPath}...`, async () => {
                 const [compileErr] = await to(
-                    engine.render(
-                        content,
-                        `${__cwd}${outputPath}`,
-                        options as Record<string, any>,
-                    ),
+                    engine.render(content, `${__cwd}${outputPath}`, options as Record<string, any>),
                 );
                 if (compileErr) {
                     return {

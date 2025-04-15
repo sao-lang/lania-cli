@@ -5,8 +5,8 @@ import path from 'path';
 import { defineConfig } from 'rollup';
 import { __dirname, resolvePath, getPackageJsonDependencies } from './utils.js';
 import * as glob from 'glob';
-import injectVarsPlugin from './inject-vars-plugin.js';
-import dts from 'rollup-plugin-dts';
+// import injectVarsPlugin from './inject-vars-plugin.js';
+import { globalReplacePlugin } from './inject-plugin.js';
 
 const resolveSubPath = (subPath) => {
     return resolvePath('templates', subPath);
@@ -17,24 +17,25 @@ const resolvePlugin = () => {
         json(),
         ts({ tsconfig: path.resolve(__dirname, '../tsconfig.template.json') }),
         cjs(),
-        injectVarsPlugin(),
+        globalReplacePlugin({
+            __dirname: {
+                raw: `(() => { 
+    const path = new URL(import.meta.url).pathname;
+    return path.substring(0, path.lastIndexOf('/'));
+  })()`,
+            },
+        }),
+        // injectVarsPlugin(),
     ].filter(Boolean);
 };
 const dependencies = getPackageJsonDependencies('templates');
 const createConfig = () => {
     const outputConfigs = {
         esm: {
-            dir: resolveSubPath('dist/src/esm'),
+            dir: resolveSubPath('dist'),
             format: 'es',
-            // entryFileNames: '[name].js', // 输出文件名格式
             preserveModules: true, // 保留模块路径结构
         },
-        // cjs: {
-        //     dir: resolveSubPath('dist/src/cjs'),
-        //     format: 'cjs',
-        //     entryFileNames: '[name].cjs',
-        //     preserveModules: true, // 保留模块路径结构
-        // },
     };
     return ['esm'].map((type) => ({
         input: resolveSubPath('src/index.ts'),
@@ -63,34 +64,18 @@ const createTemplateFileConfig = () => {
             input: tsFiles,
             output: [
                 {
-                    dir: resolveSubPath(`dist/src/esm/${parentDirName}/${currentDirName}`),
+                    dir: resolveSubPath(`dist/${parentDirName}/${currentDirName}`),
                     format: 'esm',
                 },
-                // {
-                //     dir: resolveSubPath(`dist/src/cjs/${parentDirName}/${currentDirName}`),
-                //     format: 'cjs',
-                // },
             ],
             external: ['path', 'fs', 'fs/promises', ...dependencies],
             plugins: [
                 ts({
                     tsconfig: path.resolve(__dirname, '../tsconfig.templates.json'),
-                    // useTsconfigDeclarationDir: true,
                 }),
-                injectVarsPlugin(),
+                // injectVarsPlugin(),
             ],
         };
     });
 };
-export default defineConfig([
-    ...createConfig(),
-    ...createTemplateFileConfig(),
-    {
-        input: resolveSubPath('dist/src/esm/templates/src/index.d.ts'),
-        output: {
-            file: resolveSubPath('dist/src/esm/index.d.ts'),
-            format: 'esm',
-        },
-        plugins: [dts()],
-    },
-]);
+export default defineConfig([...createConfig(), ...createTemplateFileConfig()]);

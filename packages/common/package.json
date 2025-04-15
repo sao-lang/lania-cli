@@ -1,17 +1,17 @@
 {
-  "name": "@lania-cli/common",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/src/esm/common/index.js",
-  "types": "dist/src/esm/common/index.d.ts",
-  "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@lania-cli/types": "workspace:^"
-  }
+    "name": "@lania-cli/common",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@lania-cli/types": "workspace:^"
+    }
 }

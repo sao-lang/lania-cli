@@ -23,16 +23,12 @@ const createConfig = () => {
         esm: {
             format: 'es',
             entryFileNames: '[name].js',
-        },
-        cjs: {
-            format: 'cjs',
-            entryFileNames: '[name].cjs',
-        },
+        }
     };
     return ['esm'].map((type) => ({
         input,
         output: {
-            dir: resolveSubPath(`dist/src/${type}`),
+            dir: resolveSubPath('dist'),
             format: 'es',
             preserveModules: true,
             ...map[type],
