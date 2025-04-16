@@ -22,31 +22,30 @@ export function globalReplacePlugin(replacements, options = {}) {
 
             walk(ast, {
                 enter(node, parent) {
-                    // 跳过不是 Identifier 的节点
                     if (node.type !== 'Identifier') return;
 
                     const name = node.name;
-                    const replacement = replacements[name];
-                    // 如果没有匹配到需要替换的变量，直接跳过
+
                     if (!Object.prototype.hasOwnProperty.call(replacements, name)) return;
+
+                    const replacement = replacements[name];
                     if (replacement === undefined) return;
 
-                    // 跳过对象的 key 或属性访问的 key（不替换对象中的键名）
-                    if (
+                    // 忽略对象 key 或成员属性名
+                    const isObjectKey =
                         parent &&
-                        ((parent.type === 'Property' && parent.key === node && !parent.computed) || // 对象的键名
-                            (parent.type === 'MemberExpression' && parent.property === node && !parent.computed)) // 对象访问的属性名
-                    ) {
-                        return;
-                    }
+                        ((parent.type === 'Property' && parent.key === node && !parent.computed) ||
+                            (parent.type === 'MemberExpression' &&
+                                parent.property === node &&
+                                !parent.computed));
+                    if (isObjectKey) return;
 
                     let replacementCode;
 
-                    // 检查 replacement 是否为对象，并且有 'raw' 属性
                     if (
                         typeof replacement === 'object' &&
                         replacement !== null &&
-                        Object.prototype.hasOwnProperty.call(replacement, 'raw')
+                        'raw' in replacement
                     ) {
                         if (typeof replacement.raw !== 'string') {
                             throw new Error(
@@ -55,7 +54,6 @@ export function globalReplacePlugin(replacements, options = {}) {
                         }
                         replacementCode = replacement.raw;
                     } else {
-                        // 替换成普通值，确保是字符串类型
                         try {
                             replacementCode = JSON.stringify(replacement);
                         } catch {
@@ -69,8 +67,11 @@ export function globalReplacePlugin(replacements, options = {}) {
                         }
                     }
 
-                    // 执行替换
-                    s.overwrite(node.start, node.end, replacementCode); // replacementCode 必须是 string
+                    if (parent?.type === 'Property' && parent.shorthand) {
+                        replacementCode = `${name}:${replacementCode}`;
+                    }
+
+                    s.overwrite(node.start, node.end, replacementCode);
                 },
             });
 
