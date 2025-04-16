@@ -1,29 +1,40 @@
 import { lint, load } from '@commitlint/core';
 import ConfigurationLoader from '@lib/configuration/configuration.loader';
 
-// 定义插件配置类型
-interface CommitLintPluginConfig {}
+type CommitlintConfigSource = string | Record<string, any>;
+
+export interface CommitlintPluginConfig {
+    config?: CommitlintConfigSource;
+}
 
 export class CommitlintPlugin {
-    private config: Record<string, any> | string;
+    private config: CommitlintConfigSource;
 
-    constructor(config: CommitLintPluginConfig = {}) {
-        this.config = config; // 如果没有传入配置，使用默认配置
+    constructor(options: CommitlintPluginConfig = {}) {
+        this.config = options.config ?? {};
     }
-    private async loadConfig(config: string | Record<string, any>) {
-        if (typeof config === 'string') {
-            const configResult = await ConfigurationLoader.load('commitlint');
-            return await load(configResult);
+
+    // 加载配置（支持路径字符串或对象）
+    private async loadConfig(): Promise<Awaited<ReturnType<typeof load>>> {
+        if (typeof this.config === 'string') {
+            const resolved = await ConfigurationLoader.load('commitlint');
+            return load(resolved);
         }
-        return await load(config);
+        return load(this.config);
     }
-    // run 方法接受回调函数和可选的 commitMessage 或文件路径
-    public async run(commitMessage?: string): Promise<ReturnType<typeof lint>> {
-        const config = await this.loadConfig(this.config);
-        const result = await lint(
-            commitMessage,
-            config.rules, // 使用传入的配置
-        );
-        return result;
+
+    // 校验提交信息（支持直接传 message）
+    public async run(commitMessage?: string): ReturnType<typeof lint> {
+        if (!commitMessage) {
+            throw new Error('commitMessage is required for linting.');
+        }
+
+        try {
+            const config = await this.loadConfig();
+            return await lint(commitMessage, config.rules);
+        } catch (err) {
+            console.error('Commitlint failed:', err);
+            throw err;
+        }
     }
 }
