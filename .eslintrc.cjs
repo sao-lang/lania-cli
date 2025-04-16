@@ -19,8 +19,7 @@ module.exports = {
     ],
 
     rules: {
-        semi: ['warn', 'always'],
-        quotes: ['error', 'single'],
+        quotes: ['warn', 'single'],
         eqeqeq: ['error', 'allow-null'],
         'no-this-before-super': 'warn',
         'no-dupe-keys': 'error',

@@ -48,7 +48,7 @@ class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
             rules: {
                 'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style']], // ✅ 合法
             },
-        }).run(commitMessage);
+        } as Record<string, any>).run(commitMessage);
         lintResult.errors.forEach((error) => {
             logger.error(error.message);
         });

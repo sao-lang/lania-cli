@@ -3,7 +3,6 @@ import { SpaReactTemplate } from './spa-react';
 import { statSync } from 'fs';
 import { resolve } from 'path';
 import { BaseTemplate } from './template.base';
-console.log({ __filename });
 export class TemplateFactory {
     public static create(name: string) {
         const templateMap = {
@@ -35,4 +34,3 @@ export class TemplateFactory {
 export * from './spa-react';
 export * from './template.base';
 
-console.log(__dirname);

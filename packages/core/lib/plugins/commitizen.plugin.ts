@@ -67,7 +67,7 @@ export class CommitizenPlugin {
         this.config = { ...DEFAULT_CONFIG, ...config };
     }
 
-    async run(): Promise<string | void> {
+    async run(): Promise<string> {
         const { type } = await this.promptForType();
         const { scope } = await this.promptForScope(type);
         const { subject } = await this.promptForSubject();
@@ -211,7 +211,7 @@ export class CommitizenPlugin {
         return message;
     }
 
-    private async confirmCommit(commitMessage: string): Promise<string | void> {
+    private async confirmCommit(commitMessage: string): Promise<string> {
         const confirmed = await this.promptConfirm(
             'confirm',
             `${this.config.messages.confirmCommit}\n\n提交信息：\n${commitMessage}\n`,

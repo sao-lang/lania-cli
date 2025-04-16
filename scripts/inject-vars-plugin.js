@@ -1,65 +1,83 @@
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-import { __dirname } from './utils.js';
-export default function injectVarsPlugin() {
-    const simpleHash = (key) => {
-        let hash = 0;
-        for (let i = 0; i < key.length; i++) {
-            hash = (hash << 5) - hash + key.charCodeAt(i);
-            hash |= 0;
-        }
-        let hashStr = hash.toString(16);
-        return hashStr.replace(/[^a-zA-Z0-9_$]/g, '_');
-    };
-    const createVarName = (key) => {
-        return `${key}__injected_${simpleHash(key)}`;
-    };
+import { createFilter } from '@rollup/pluginutils';
+import { walk } from 'estree-walker';
+import MagicString from 'magic-string';
+
+/**
+ * @param {Object<string, string|number|boolean|{ raw: string }>} replacements
+ * @param {Object} [options]
+ * @param {string|string[]} [options.include]
+ * @param {string|string[]} [options.exclude]
+ */
+export function globalReplacePlugin(replacements, options = {}) {
+    const filter = createFilter(options.include, options.exclude);
+
     return {
-        name: 'inject-vars-plugin',
-        transform(code) {
-            const injection = [
-                {
-                    key: '__dirname',
-                    createNewInjection: () => {
-                        return '(() => { const path = new URL(import.meta.url).pathname;return path.substring(0, path.lastIndexOf(\'/\')); })();\n';
-                    },
+        name: 'custom-global-replace',
+
+        transform(code, id) {
+            if (!filter(id)) return null;
+
+            const ast = this.parse(code);
+            const s = new MagicString(code);
+
+            walk(ast, {
+                enter(node, parent) {
+                    if (node.type !== 'Identifier') return;
+
+                    const name = node.name;
+
+                    if (!Object.prototype.hasOwnProperty.call(replacements, name)) return;
+
+                    const replacement = replacements[name];
+                    if (replacement === undefined) return;
+
+                    // 忽略对象 key 或成员属性名
+                    const isObjectKey =
+                        parent &&
+                        ((parent.type === 'Property' && parent.key === node && !parent.computed) ||
+                            (parent.type === 'MemberExpression' &&
+                                parent.property === node &&
+                                !parent.computed));
+                    if (isObjectKey) return;
+
+                    let replacementCode;
+
+                    if (
+                        typeof replacement === 'object' &&
+                        replacement !== null &&
+                        'raw' in replacement
+                    ) {
+                        if (typeof replacement.raw !== 'string') {
+                            throw new Error(
+                                `[globalReplacePlugin] "raw" replacement for "${name}" must be a string. Got: ${typeof replacement.raw}`,
+                            );
+                        }
+                        replacementCode = replacement.raw;
+                    } else {
+                        try {
+                            replacementCode = JSON.stringify(replacement);
+                        } catch {
+                            replacementCode = String(replacement);
+                        }
+
+                        if (typeof replacementCode !== 'string') {
+                            throw new Error(
+                                `[globalReplacePlugin] Replacement for "${name}" must resolve to a string. Got: ${typeof replacementCode}`,
+                            );
+                        }
+                    }
+
+                    if (parent?.type === 'Property' && parent.shorthand) {
+                        replacementCode = `${name}:${replacementCode}`;
+                    }
+
+                    s.overwrite(node.start, node.end, replacementCode);
                 },
-                {
-                    key: '__filename',
-                    createNewInjection: () => {
-                        return '(() => new URL(import.meta.url).pathname)();';
-                    },
-                },
-                {
-                    key: '__version',
-                    createNewInjection: () => {
-                        const packageJsonContent = JSON.parse(
-                            readFileSync(
-                                resolve(__dirname, '../packages/core/package.json'),
-                                'utf-8',
-                            ),
-                        );
-                        return JSON.stringify(packageJsonContent.version);
-                    },
-                },
-                {
-                    key: '__cwd',
-                    createNewInjection: () => {
-                        return 'process.cwd()';
-                    },
-                },
-            ].reduce((oldInjection, { key, createNewInjection }) => {
-                if (!code.includes(key)) {
-                    return oldInjection;
-                }
-                const varName = createVarName(key);
-                code = code.replace(new RegExp(key, 'g'), varName);
-                const newInjection = createNewInjection();
-                const newCode = `const ${varName} = ${newInjection};\n`;
-                return newCode;
-            }, '');
+            });
+
             return {
-                code: injection + code,
+                code: s.toString(),
+                map: s.generateMap({ hires: true }),
             };
         },
     };
