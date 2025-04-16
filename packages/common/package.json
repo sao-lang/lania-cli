@@ -12,6 +12,11 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@lania-cli/types": "workspace:^"
+        "@lania-cli/types": "workspace:^",
+        "chalk": "^3.0.0",
+        "cli-progress": "^3.12.0",
+        "figlet": "^1.6.0",
+        "inquirer": "^8.2.5",
+        "ora": "^5.4.1"
     }
 }
