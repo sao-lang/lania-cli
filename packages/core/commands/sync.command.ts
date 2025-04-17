@@ -129,7 +129,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
 export default class SyncCommand extends LaniaCommand<[SyncActionOptions]> {
     protected actor = new SyncAction();
     protected commandNeededArgs = {
-        name: 'gsync',
+        name: 'sync',
         description: 'One-click operation of git push code.',
         options: [
             { flags: '-m, --message [message]', description: 'Message when code is committed.' },
