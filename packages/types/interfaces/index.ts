@@ -4,7 +4,7 @@ export * from './commands/build.command';
 export * from './commands/command.base';
 export * from './commands/command.util';
 export * from './commands/dev.command';
-export * from './commands/gsync.command';
+export * from './commands/sync.command';
 export * from './commands/lint.command';
 
 export * from './configuration/configuration.loader';
