@@ -1,4 +1,4 @@
-export type GSyncActionOptions = {
+export type SyncActionOptions = {
     message?: string;
     branch?: string;
     normatively?: boolean;
