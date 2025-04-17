@@ -6,3 +6,4 @@ dist-ssr
 .history
 build
 packages/**/dist
+packages/**/node_modules
