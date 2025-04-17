@@ -75,7 +75,7 @@ class CreateAction implements LaniaCommandActionInterface<[string, CreateCommand
         }
         await new Builder().build({ name, ...this.options });
         if (!command.skipGit) {
-            await new GitRunner().init({ silent: true });
+            await new GitRunner().git.init({ silent: true });
         }
     }
 }
