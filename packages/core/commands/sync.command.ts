@@ -6,12 +6,14 @@ import loading from '@utils/loading';
 import { CommitizenPlugin } from '@lib/plugins/commitizen.plugin';
 import { CommitlintPlugin } from '@lib/plugins/commitlint.plugin';
 import logger from '@utils/logger';
-import { GSyncActionOptions, LaniaCommandActionInterface } from '@lania-cli/types';
+import { SyncActionOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
-class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
+class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     private git = new GitRunner();
-    public async handle(options: GSyncActionOptions) {
-        const { message, remote = 'origin', branch = 'master', normatively } = options;
+    public async handle(options: SyncActionOptions) {
+        const currentBranch = await this.git.getCurrentBranch();
+        const { message, remote = 'origin', branch = currentBranch, normatively } = options;
+
         const isInstalled = await this.git.isInstalled();
         if (!isInstalled) {
             throw new Error('Please install Git first!');
@@ -124,8 +126,8 @@ class GSyncAction implements LaniaCommandActionInterface<[GSyncActionOptions]> {
     }
 }
 
-export default class GSyncCommand extends LaniaCommand<[GSyncActionOptions]> {
-    protected actor = new GSyncAction();
+export default class SyncCommand extends LaniaCommand<[SyncActionOptions]> {
+    protected actor = new SyncAction();
     protected commandNeededArgs = {
         name: 'gsync',
         description: 'One-click operation of git push code.',
