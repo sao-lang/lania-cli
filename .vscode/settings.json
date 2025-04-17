@@ -8,12 +8,14 @@
         "gsync",
         "gulpfile",
         "nuxt",
+        "oneline",
         "onwarn",
         "pinia",
         "pnpmfile",
         "stylelintignore",
         "stylelintrc",
         "textlint",
-        "Textlintrc"
+        "Textlintrc",
+        "Unpushed"
     ]
 }

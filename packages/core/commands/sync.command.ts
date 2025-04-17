@@ -21,28 +21,27 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             await this.git.git.init();
         }
         await this.git.stage.addAllFiles();
-        // await this.handleCommit(message);
-        console.log('flag');
-        const flag = await this.git.workspace.isClean();
-        if (!flag) {
+        const isClean = await this.git.workspace.isClean();
+        const noUnpushedCommits = !(await this.git.branch.hasUnpushedCommits());
+        if (isClean && noUnpushedCommits) {
+            logger.error('There are no files to sync!', true);
             return;
         }
         const currentBranch = await this.git.branch.getCurrent();
         const { message, remote = 'origin', branch = currentBranch, normatively } = options;
         if (!normatively) {
-            const messagePromptRes = await inquirer.prompt({
-                name: 'message',
-                message: 'Please input the message you will commit:',
-                default: message,
-                type: 'input',
-            });
-            if (!messagePromptRes.message) {
-                throw new Error('Please input the message you will commit!');
+            if (!isClean) {
+                const messagePromptRes = await inquirer.prompt({
+                    name: 'message',
+                    message: 'Please input the message you will commit:',
+                    default: message,
+                    type: 'input',
+                });
+                if (!messagePromptRes.message) {
+                    throw new Error('Please input the message you will commit!');
+                }
+                await this.git.workspace.commit(messagePromptRes.message);
             }
-            // if (flag && !message) {
-            //     throw new Error('No committed, Working tree clean!');
-            // }
-            await this.git.workspace.commit(messagePromptRes.message);
             await this.handlePush(remote, branch);
             return;
         }
@@ -73,15 +72,11 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         if (!promptBranch) {
             throw new Error('Please select a branch you will push!');
         }
-        const noCommits = await this.git.branch.hasPushedCommitsEqual(remote, branch);
-        if (noCommits) {
-            throw new Error('No commits to push.');
-        }
         loading('Start to push code', async () => {
             try {
-                const needsSetUpstream = await this.git.remote.needSetUpstream();
+                const needsSetUpstream = await this.git.branch.needSetUpstream();
                 needsSetUpstream
-                    ? await this.git.remote.setUpstream(promptRemote, promptBranch)
+                    ? await this.git.branch.setUpstream(promptRemote, promptBranch)
                     : await this.git.remote.push(promptRemote, promptBranch);
                 return {
                     status: 'succeed',
@@ -114,6 +109,9 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     }
     private async getPromptRemote(selectedRemote?: string) {
         const remotes = await this.git.remote.list();
+        if (!remotes.length) {
+            throw new Error('You haven\'t added a remote yet');
+        }
         if (!selectedRemote) {
             const { remote: promptRemote } = await inquirer.prompt({
                 name: 'remote',

@@ -3,10 +3,10 @@ import Runner from './runner.base';
 import path from 'path';
 import fs from 'fs';
 import { RunnerRunOptions } from '@lania-cli/types';
-class GitBranch  extends Runner<'git'> {
+class GitBranch extends Runner<'git'> {
     protected command = 'git' as const;
     constructor() {
-        super()
+        super();
     }
     // 获取当前分支
     public async getCurrent() {
@@ -93,29 +93,55 @@ class GitBranch  extends Runner<'git'> {
     public async abortCurrentCherryPick() {
         await this.run('cherry-pick', ['--abort']);
     }
-    public async hasPushedCommitsEqual(remote: string, branch: string) {
-        const res = await this.run('rev-parse', [`${branch}`]);
-        const remoteRes = await this.run('rev-parse', [`${remote}/${branch}`]);
-        return res?.trim() === remoteRes?.trim();
+    public async hasUnpushedCommits() {
+        try {
+            const output = (await this.run('rev-list --count @{u}..')).trim();
+            return parseInt(output, 10) > 0;
+        } catch (e) {
+            if (await this.needSetUpstream()) {
+                return true;
+            }
+            return false;
+        }
+    }
+    public async needSetUpstream() {
+        try {
+            await this.run('git rev-parse --abbrev-ref --symbolic-full-name @{u}');
+            return false; // 有 upstream，不需要设置
+        } catch (e) {
+            return true; // 没有 upstream，需要设置
+        }
+    }
+    // 设置上游分支
+    public async setUpstream(remote: string, branch: string) {
+        await this.run('push', ['--set-upstream', remote, branch]);
     }
 }
 
-class GitRemote  extends Runner<'git'> {
+class GitRemote extends Runner<'git'> {
     protected command = 'git' as const;
     constructor() {
-        super()
+        super();
     }
     // 获取所有远程仓库
     public async list() {
         const result = await this.run('remote', ['-v']);
-        return result
-            .split('\n')
-            .map((line) => {
-                const [name, urlWithType] = line.split('\t');
-                const url = urlWithType.replace(/\s\((fetch|push)\)/, '');
-                return { name, url };
-            })
-            .filter((value, index, self) => self.findIndex((v) => v.name === value.name) === index);
+        if (!result) {
+            return [];
+        }
+        return (
+            result
+                .split('\n')
+                ?.filter(Boolean)
+                ?.map((line) => {
+                    const [name, urlWithType] = line.split('\t');
+                    const url = urlWithType.replace(/\s\((fetch|push)\)/, '');
+                    return { name, url };
+                })
+                ?.filter(
+                    (value, index, self) => self.findIndex((v) => v.name === value.name) === index,
+                ) ?? []
+        );
     }
     // 添加远程仓库
     public async add(name: string, url: string) {
@@ -134,37 +160,17 @@ class GitRemote  extends Runner<'git'> {
     public async pull(remote: string, branch: string) {
         await this.run('pull', [remote, branch]);
     }
-    // 设置上游分支
-    public async setUpstream(remote: string, branch: string) {
-        await this.run('push', ['--set-upstream', remote, branch]);
-    }
     // 检查远程仓库的状态
     public async status(remote: string) {
         const result = await this.run('ls-remote', [remote]);
         return result;
     }
-    public async needSetUpstream(options?: RunnerRunOptions) {
-        const currentBranch = await new GitBranch().getCurrent();
-        // 检查是否已经设置了上游分支
-        const upstreamBranch = await this.run(
-            'rev-parse',
-            ['--abbrev-ref', '--symbolic-full-name', `${currentBranch}@{u}`],
-            options,
-        );
-
-        if (upstreamBranch) {
-            return false; // 已经设置上游分支，不需要 --set-upstream
-        }
-        // 如果没有上游分支，再检查远程仓库是否已有该分支
-        const remote = await this.run('ls-remote', ['--heads', 'origin', currentBranch], options);
-        return !remote; // 如果远程没有该分支，则需要 --set-upstream
-    }
 }
 
-class GitStage  extends Runner<'git'> {
+class GitStage extends Runner<'git'> {
     protected command = 'git' as const;
     constructor() {
-        super()
+        super();
     }
     // 获取暂存区文件
     public async getFiles() {
@@ -189,15 +195,15 @@ class GitStage  extends Runner<'git'> {
     }
 }
 
-class GitWorkspace  extends Runner<'git'> {
+class GitWorkspace extends Runner<'git'> {
     protected command = 'git' as const;
     constructor() {
-        super()
+        super();
     }
     // 获取工作区文件的差异
     public async getChangedFiles() {
         const output = await this.run('diff', ['--name-only']);
-        return output.split('\n').filter(Boolean);
+        return output?.split('\n')?.filter(Boolean) ?? [];
     }
     // 获取工作区状态
     public async status() {
@@ -226,51 +232,35 @@ class GitWorkspace  extends Runner<'git'> {
     // 获取所有提交的文件
     public async getCommitFiles(commitHash: string) {
         const files = await this.run('show', ['--name-only', commitHash]);
-        return files.split('\n').filter(Boolean);
+        return files?.split('\n')?.filter(Boolean) ?? [];
     }
 
     // 通用的获取提交日志方法
     public async getCommitLog(
         options: {
             limit?: number; // 限制日志条数
-            from?: string; // 从指定提交开始
-            to?: string; // 到指定提交结束
             author?: string; // 按作者筛选提交日志
-            fromDate?: string; // 从指定日期开始
-            toDate?: string; // 到指定日期结束
+            date?: [string, string];
+            commit?: [string, string];
             showOneline?: boolean; // 是否以单行显示每个提交
             format?: string; // 定制格式化输出（例如：--pretty=%B）
         } = {},
     ) {
-        const args: string[] = [];
-        // 根据传入的 options 构建命令行参数
-        if (options.limit) {
-            args.push(`-n ${options.limit}`);
-        }
-        if (options.from && options.to) {
-            args.push(options.from, options.to);
-        } else if (options.from) {
-            args.push(options.from);
-        } else if (options.to) {
-            args.push(options.to);
-        }
-        if (options.author) {
-            args.push('--author', options.author);
-        }
-        if (options.fromDate || options.toDate) {
-            if (options.fromDate) {
-                args.push(`--since=${options.fromDate}`);
+        const map = {
+            limit: [`-n ${options.limit}`],
+            commit: [options.commit[0], options.commit[1]],
+            author: ['--author', options.author],
+            date: [`--since=${options.date[0]}`, `--until=${options.date[1]}`],
+            showOneline: ['--oneline'],
+            format: [`--pretty=${options.format}`],
+        };
+        const args = Object.keys(map).reduce((acc, key) => {
+            if (options[key]) {
+                acc.push(map[key]);
             }
-            if (options.toDate) {
-                args.push(`--until=${options.toDate}`);
-            }
-        }
-        if (options.showOneline !== false) {
-            args.push('--oneline');
-        }
-        if (options.format) {
-            args.push(`--pretty=${options.format}`);
-        }
+            return acc;
+        }, [] as string[]);
+
         // 执行 git log 命令
         const log = await this.run('log', args);
 
@@ -282,10 +272,10 @@ class GitWorkspace  extends Runner<'git'> {
     }
 }
 
-class GitUser  extends Runner<'git'> {
+class GitUser extends Runner<'git'> {
     protected command = 'git' as const;
     constructor() {
-        super()
+        super();
     }
 
     // 获取 Git 用户配置
@@ -302,15 +292,15 @@ class GitUser  extends Runner<'git'> {
     }
 }
 
-class GitTag  extends Runner<'git'> {
+class GitTag extends Runner<'git'> {
     protected command = 'git' as const;
     constructor() {
-        super()
+        super();
     }
     // 获取所有标签
     public async list() {
         const result = await this.run('tag', []);
-        return result.split('\n').filter(Boolean);
+        return result?.split('\n')?.filter(Boolean) ?? [];
     }
     // 创建新标签
     public async create(tag: string, message: string) {
@@ -322,10 +312,10 @@ class GitTag  extends Runner<'git'> {
     }
 }
 
-class Git  extends Runner<'git'> {
+class Git extends Runner<'git'> {
     protected command = 'git' as const;
     constructor() {
-        super()
+        super();
     }
 
     // 克隆仓库
