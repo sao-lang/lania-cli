@@ -4,7 +4,7 @@ import logger from '@utils/logger';
 import BuildCommand from './build.command';
 import DevCommand from './dev.command';
 import LintCommand from './lint.command';
-import GSyncCommand from './gsync.command';
+import SyncCommand from './sync.command';
 import AddCommand from './add.command';
 
 export default class CommandLoader {
@@ -13,7 +13,7 @@ export default class CommandLoader {
         new BuildCommand().load(program);
         new DevCommand().load(program);
         new LintCommand().load(program);
-        new GSyncCommand().load(program);
+        new SyncCommand().load(program);
         new AddCommand().load(program);
         this.handleInvalidCommand(program);
     }
