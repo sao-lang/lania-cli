@@ -1,7 +1,7 @@
 import inquirer from 'inquirer';
 import { LaniaCommand } from './command.base';
 // import GitRunner from '@runners/git.runner';
-import { GitRunner } from '@runners/git.runner.new';
+import { GitRunner } from '@runners/git.runner';
 import loading from '@utils/loading';
 import { CommitizenPlugin } from '@lib/plugins/commitizen.plugin';
 import { CommitlintPlugin } from '@lib/plugins/commitlint.plugin';
