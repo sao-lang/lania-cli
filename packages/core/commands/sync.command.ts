@@ -1,7 +1,7 @@
 import inquirer from 'inquirer';
 import { LaniaCommand } from './command.base';
-import GitRunner from '@runners/git.runner';
-import { ADD_NEW_REMOTE_CHOICE } from '@lania-cli/common';
+// import GitRunner from '@runners/git.runner';
+import { GitRunner } from '@runners/git.runner.new';
 import loading from '@utils/loading';
 import { CommitizenPlugin } from '@lib/plugins/commitizen.plugin';
 import { CommitlintPlugin } from '@lib/plugins/commitlint.plugin';
@@ -9,25 +9,26 @@ import logger from '@utils/logger';
 import { SyncActionOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
 class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
-    private git = new GitRunner();
+    // private git = new GitRunner();
+    private git: GitRunner = new GitRunner();
     public async handle(options: SyncActionOptions) {
-        const currentBranch = await this.git.getCurrentBranch();
-        const { message, remote = 'origin', branch = currentBranch, normatively } = options;
-
-        const isInstalled = await this.git.isInstalled();
+        const isInstalled = await this.git.git.isInstalled();
         if (!isInstalled) {
             throw new Error('Please install Git first!');
         }
-        const isInit = await this.git.isInit();
+        const isInit = await this.git.git.isInit();
         if (!isInit) {
-            await this.git.init();
+            await this.git.git.init();
         }
-        await this.git.addAllFiles();
+        await this.git.stage.addAllFiles();
         // await this.handleCommit(message);
-        const flag = await this.git.hasUncommittedChanges();
+        console.log('flag');
+        const flag = await this.git.workspace.isClean();
         if (!flag) {
             return;
         }
+        const currentBranch = await this.git.branch.getCurrent();
+        const { message, remote = 'origin', branch = currentBranch, normatively } = options;
         if (!normatively) {
             const messagePromptRes = await inquirer.prompt({
                 name: 'message',
@@ -41,7 +42,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             // if (flag && !message) {
             //     throw new Error('No committed, Working tree clean!');
             // }
-            await this.git.commit(messagePromptRes.message);
+            await this.git.workspace.commit(messagePromptRes.message);
             await this.handlePush(remote, branch);
             return;
         }
@@ -60,7 +61,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         if (lintResult.errors.length) {
             process.exit(0);
         }
-        await this.git.commit(commitMessage);
+        await this.git.workspace.commit(commitMessage);
         await this.handlePush(remote, branch);
     }
     private async handlePush(remote?: string, branch?: string) {
@@ -68,27 +69,20 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         if (!promptRemote) {
             throw new Error('Please select a remote you will push!');
         }
-        const branches = await this.git.getBranches();
-        const { branch: promptBranch } = await inquirer.prompt({
-            name: 'branch',
-            message: 'Please select the branch you will push:',
-            choices: branches.map((branch) => ({ name: branch, value: branch })),
-            default: [branch],
-            type: 'checkbox',
-        });
+        const promptBranch = await this.getPromptBranch();
         if (!promptBranch) {
             throw new Error('Please select a branch you will push!');
         }
-        const noCommits = await this.git.checkIfCommitsCanBePushed(remote, branch);
+        const noCommits = await this.git.branch.hasPushedCommitsEqual(remote, branch);
         if (noCommits) {
             throw new Error('No commits to push.');
         }
         loading('Start to push code', async () => {
             try {
-                const needsSetUpstream = await this.git.needsSetUpstreamOnPushCode();
+                const needsSetUpstream = await this.git.remote.needSetUpstream();
                 needsSetUpstream
-                    ? await this.git.pushSetUpstream(promptRemote, promptBranch)
-                    : await this.git.push(promptRemote, promptBranch);
+                    ? await this.git.remote.setUpstream(promptRemote, promptBranch)
+                    : await this.git.remote.push(promptRemote, promptBranch);
                 return {
                     status: 'succeed',
                     error: null,
@@ -102,27 +96,37 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             }
         });
     }
-    private async getPromptRemote(remote?: string): Promise<string> {
-        const remotes = await this.git.getRemotes();
-        const { remote: promptRemote } = await inquirer.prompt({
-            name: 'remote',
-            message: 'Please select the remote you will push:',
-            choices: [...remotes.map(({ name }) => ({ name, value: name })), ADD_NEW_REMOTE_CHOICE],
-            default: [remote],
-            type: 'checkbox',
-        });
-        if (promptRemote !== ADD_NEW_REMOTE_CHOICE) {
-            return promptRemote;
+    private async getPromptBranch(selectedBranch?: string) {
+        const branches = await this.git.branch.listLocal();
+        if (!selectedBranch) {
+            const { branch: promptBranch } = await inquirer.prompt({
+                name: 'branch',
+                message: 'Please select the branch you will push:',
+                choices: branches.map((branch) => ({ name: branch, value: branch })),
+                type: 'checkbox',
+            });
+            return promptBranch as string;
         }
-        const { addRemote } = await inquirer.prompt({
-            name: 'addRemote',
-            message: 'Please input the remote you will add:',
-            type: 'input',
-        });
-        if (!addRemote) {
-            throw new Error('You did not add remote!');
+        if (!branches.find((branch) => branch === selectedBranch)) {
+            throw new Error('The branch you entered was not found!');
         }
-        return addRemote;
+        return selectedBranch;
+    }
+    private async getPromptRemote(selectedRemote?: string) {
+        const remotes = await this.git.remote.list();
+        if (!selectedRemote) {
+            const { remote: promptRemote } = await inquirer.prompt({
+                name: 'remote',
+                message: 'Please select the remote you will push:',
+                choices: remotes.map(({ name }) => ({ name, value: name })),
+                type: 'checkbox',
+            });
+            return promptRemote as string;
+        }
+        if (!remotes.find(({ name }) => name === selectedRemote)) {
+            throw new Error('The remote you entered was not found!');
+        }
+        return selectedRemote;
     }
 }
 
