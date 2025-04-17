@@ -3,8 +3,11 @@ import Runner from './runner.base';
 import path from 'path';
 import fs from 'fs';
 import { RunnerRunOptions } from '@lania-cli/types';
-class GitBranch {
-    constructor(private run: Runner<'git'>['run']) {}
+class GitBranch  extends Runner<'git'> {
+    protected command = 'git' as const;
+    constructor() {
+        super()
+    }
     // 获取当前分支
     public async getCurrent() {
         const cwd = process.cwd();
@@ -97,8 +100,11 @@ class GitBranch {
     }
 }
 
-class GitRemote {
-    constructor(private run: Runner<'git'>['run']) {}
+class GitRemote  extends Runner<'git'> {
+    protected command = 'git' as const;
+    constructor() {
+        super()
+    }
     // 获取所有远程仓库
     public async list() {
         const result = await this.run('remote', ['-v']);
@@ -138,7 +144,7 @@ class GitRemote {
         return result;
     }
     public async needSetUpstream(options?: RunnerRunOptions) {
-        const currentBranch = await new GitBranch(this.run).getCurrent();
+        const currentBranch = await new GitBranch().getCurrent();
         // 检查是否已经设置了上游分支
         const upstreamBranch = await this.run(
             'rev-parse',
@@ -155,8 +161,11 @@ class GitRemote {
     }
 }
 
-class GitStage {
-    constructor(private run: Runner<'git'>['run']) {}
+class GitStage  extends Runner<'git'> {
+    protected command = 'git' as const;
+    constructor() {
+        super()
+    }
     // 获取暂存区文件
     public async getFiles() {
         const output = await this.run('diff', ['--name-only', '--cached']);
@@ -180,8 +189,11 @@ class GitStage {
     }
 }
 
-class GitWorkspace {
-    constructor(private run: Runner<'git'>['run']) {}
+class GitWorkspace  extends Runner<'git'> {
+    protected command = 'git' as const;
+    constructor() {
+        super()
+    }
     // 获取工作区文件的差异
     public async getChangedFiles() {
         const output = await this.run('diff', ['--name-only']);
@@ -270,8 +282,11 @@ class GitWorkspace {
     }
 }
 
-class GitUser {
-    constructor(private run: Runner<'git'>['run']) {}
+class GitUser  extends Runner<'git'> {
+    protected command = 'git' as const;
+    constructor() {
+        super()
+    }
 
     // 获取 Git 用户配置
     public async getConfig() {
@@ -287,8 +302,11 @@ class GitUser {
     }
 }
 
-class GitTag {
-    constructor(private run: Runner<'git'>['run']) {}
+class GitTag  extends Runner<'git'> {
+    protected command = 'git' as const;
+    constructor() {
+        super()
+    }
     // 获取所有标签
     public async list() {
         const result = await this.run('tag', []);
@@ -304,8 +322,11 @@ class GitTag {
     }
 }
 
-class Git {
-    constructor(private run: Runner<'git'>['run']) {}
+class Git  extends Runner<'git'> {
+    protected command = 'git' as const;
+    constructor() {
+        super()
+    }
 
     // 克隆仓库
     public async clone(repoUrl: string, targetDir?: string) {
@@ -357,12 +378,13 @@ export class GitRunner extends Runner<'git'> {
 
     constructor() {
         super();
-        this.branch = new GitBranch(this.run);
-        this.remote = new GitRemote(this.run);
-        this.stage = new GitStage(this.run);
-        this.workspace = new GitWorkspace(this.run);
-        this.user = new GitUser(this.run);
-        this.git = new Git(this.run);
-        this.tag = new GitTag(this.run);
+        this.branch = new GitBranch();
+        this.remote = new GitRemote();
+        this.stage = new GitStage();
+        this.workspace = new GitWorkspace();
+        this.user = new GitUser();
+        this.git = new Git();
+        this.tag = new GitTag();
     }
 }
+export default GitRunner;
