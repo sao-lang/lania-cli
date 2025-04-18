@@ -15,7 +15,8 @@
             "@configuration/*": ["./lib/configuration/*"],
             "@engines/*": ["./lib/engines/*"],
             "@lania-cli/*": ["../packages/*/src"]
-        }
+        },
+        "moduleResolution": "NodeNext"
     },
     "include": ["../../global.d.ts", "./**/*.ts"]
 }
