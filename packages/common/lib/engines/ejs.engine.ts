@@ -1,39 +1,42 @@
 import { writeFile } from 'fs/promises';
 import { dirname } from 'path';
 import ejs from 'ejs';
-import PrettierLinter from '../linters/prettier.linter';
 import { mkDirs } from '../../utils/dir';
 import { getFileExt } from '../../utils/file';
 import { PrettierSupportFileType } from '@lania-cli/types';
+import path from 'path';
+import fs from 'fs/promises';
 
-export default class EjsEngine {
-    public async render(
-        content: string,
-        outputPath: string,
-        options: Record<string, string | number | boolean>,
-    ) {
-        const templateCode = ejs.render(content, options) as string;
-        const fileTypes = PrettierLinter.listFileTypes();
-        const ext = getFileExt<PrettierSupportFileType>(outputPath);
-        if (!fileTypes.includes(ext)) {
-            await mkDirs(dirname(outputPath));
-            await writeFile(outputPath, templateCode, 'utf-8');
-            return;
-        }
-        const code = await PrettierLinter.formatContent(
-            templateCode,
-            {
-                semi: true,
-                printWidth: 200,
-                tabWidth: 4,
-                singleQuote: true,
-                trailingComma: 'all',
-                useTabs: false,
-                jsxSingleQuote: false,
-            },
-            ext,
-        );
-        await mkDirs(dirname(outputPath));
-        await writeFile(outputPath, code, 'utf-8');
+export class EjsRenderer {
+    format: (code: string, fileType: string) => string;
+    constructor (format: (code: string, fileType: string) => string) {
+        this.format = format;
     }
+  async renderFromString(template: string, data: Record<string, any>, outputPath): Promise<string> {
+    const transformedCode = ejs.render(template, data, { async: true });
+      const ext = getFileExt<PrettierSupportFileType>(outputPath);
+      const formatedCode = this.format(transformedCode, ext) ?? transformedCode;
+      if (outputPath) {
+          
+          await mkDirs(dirname(outputPath));
+        await writeFile(outputPath, formatedCode, 'utf-8');
+      }
+  }
+
+  /**
+   * 渲染模板文件
+   * @param filePath 模板文件路径（绝对路径或相对路径）
+   * @param data 注入的数据对象
+   */
+  async renderFromFile(filePath: string, data: Record<string, any>, outputPath: string): Promise<string> {
+    const absPath = path.resolve(filePath);
+    const template = await fs.readFile(absPath, 'utf-8');
+    const transformedCode this.renderFromString(template, data);
+      const ext = getFileExt<PrettierSupportFileType>(outputPath);
+      const formatedCode = this.format(transformedCode) ?? transformedCode;
+      if (outputPath) {
+          await mkDirs(dirname(outputPath));
+        await writeFile(outputPath, formatedCode, 'utf-8');
+      }
+  }
 }
