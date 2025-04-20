@@ -5,9 +5,14 @@ import { Command } from 'commander';
 export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
     protected abstract actor: LaniaCommandActionInterface<ActionArgs>;
     protected abstract commandNeededArgs: CommandNeededArgsInterface;
-    public load(program: Command) {
-        const { name, description, options, alias } = this.commandNeededArgs;
-        program = program.command(name);
+    protected subcommands?: LaniaCommand[];
+    protected program: Command;
+    constructor() {
+        this.load();
+    }
+    public load() {
+        const { name, description, options, alias } = this.commandNeededArgs ?? {};
+        let program = new Command(name);
         description && (program = program.description(description));
         options?.forEach(({ flags, defaultValue, description }) => {
             program = program.option(flags, description, defaultValue);
@@ -19,6 +24,9 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
             } catch (e) {
                 logger.error(e.message, true);
             }
+        });
+        this.subcommands?.forEach((subcommand) => {
+            program.addCommand(subcommand.load());
         });
         return program;
     }

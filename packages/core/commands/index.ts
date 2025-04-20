@@ -14,7 +14,7 @@ const bootstrap = async () => {
         CommandLoader.load(program);
         program.parse(process.argv);
     } catch (e) {
-        logger.error(e.message, true);
+        logger.error(e, true);
     }
 };
 bootstrap();

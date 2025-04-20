@@ -9,12 +9,16 @@ import AddCommand from './add.command';
 
 export default class CommandLoader {
     public static load(program: Command) {
-        new CreateCommand().load(program);
-        new BuildCommand().load(program);
-        new DevCommand().load(program);
-        new LintCommand().load(program);
-        new SyncCommand().load(program);
-        new AddCommand().load(program);
+        [
+            new CreateCommand(),
+            new BuildCommand(),
+            new DevCommand(),
+            new LintCommand(),
+            new SyncCommand(),
+            new AddCommand(),
+        ].forEach((command) => {
+            program.addCommand(command.load());
+        });
         this.handleInvalidCommand(program);
     }
 

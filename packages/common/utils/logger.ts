@@ -41,7 +41,7 @@ export const logger = {
         console.log(formatMessage('log', msg, opts));
     },
     info(msg: string, opts?: LoggerOptions) {
-        console.info(formatMessage('info', msg, opts));
+        console.info(`Info: ${formatMessage('info', msg, opts)}`);
     },
     warn(msg: string, opts?: LoggerOptions) {
         console.warn(formatMessage('warn', msg, opts));

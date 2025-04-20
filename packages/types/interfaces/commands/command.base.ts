@@ -7,4 +7,5 @@ export interface CommandNeededArgsInterface {
     description?: string;
     options: { flags: string; description?: string; defaultValue?: string | boolean | string[] }[];
     alias?: string;
+    helpDescription?: string;
 }

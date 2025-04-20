@@ -1,12 +1,103 @@
 import inquirer from 'inquirer';
 import { LaniaCommand } from './command.base';
-// import GitRunner from '@runners/git.runner';
 import { GitRunner } from '@runners/git.runner';
-import loading from '@utils/loading';
+// import loading from '@utils/loading';
 import { CommitizenPlugin } from '@lib/plugins/commitizen.plugin';
 import { CommitlintPlugin } from '@lib/plugins/commitlint.plugin';
 import logger from '@utils/logger';
-import { SyncActionOptions, LaniaCommandActionInterface } from '@lania-cli/types';
+import { TaskProgressManager, to } from '@lania-cli/common';
+import {
+    SyncActionOptions,
+    MergeActionOptions,
+    LaniaCommandActionInterface,
+} from '@lania-cli/types';
+
+function toFlag(name: string): string {
+    return '--' + name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+class MergeAction implements LaniaCommandActionInterface<[MergeActionOptions]> {
+    private git: GitRunner = new GitRunner();
+    async handle(options: MergeActionOptions = {}): Promise<void> {
+        const { branch: selectedBranch, ...rest } = options;
+        console.log(options);
+        console.log({ selectedBranch });
+        const promptBranch = await this.getPromptBranch(selectedBranch);
+        if (!promptBranch) {
+            throw new Error('Please select a branch you will push!');
+        }
+        const flags = Object.keys(rest).reduce((acc, key) => {
+            if (rest[key]) {
+                acc.push(toFlag(key));
+            }
+            return acc;
+        }, [] as string[]);
+        const taskProgressManager = new TaskProgressManager(true, false);
+        taskProgressManager.init(`merge from branch: ${promptBranch}`, 1);
+        const [err] = await to(this.git.branch.merge(promptBranch, flags));
+        if (err) {
+            throw err;
+        }
+        taskProgressManager.completeAll();
+    }
+
+    private async getPromptBranch(selectedBranch?: string) {
+        const branches = await this.git.branch.listLocal();
+        if (!selectedBranch) {
+            const { branch: promptBranch } = await inquirer.prompt({
+                name: 'branch',
+                message: 'Please select the branch you will merge:',
+                choices: branches.map((branch) => ({ name: branch, value: branch })),
+                type: 'list',
+            });
+            return promptBranch as string;
+        }
+        if (!branches.find((branch) => branch === selectedBranch)) {
+            throw new Error('The branch you entered was not found!');
+        }
+        return selectedBranch;
+    }
+}
+
+class MergeCommand extends LaniaCommand<[MergeActionOptions]> {
+    protected actor = new MergeAction();
+    protected commandNeededArgs = {
+        name: 'merge',
+        description: 'Used for git branch merging.',
+        options: [
+            {
+                flags: '-b, --branch <branch>',
+                description: 'The name of the branch to merge into the current branch.',
+            },
+            {
+                flags: '--no-ff',
+                description:
+                    'Create a merge commit even when the merge could be resolved as a fast-forward.',
+            },
+            {
+                flags: '--ff-only',
+                description: 'Refuse to merge unless the merge can be resolved as a fast-forward.',
+            },
+            {
+                flags: '--squash',
+                description:
+                    'Combine all commits from the branch into a single commit without creating a merge commit.',
+            },
+            {
+                flags: '--no-commit',
+                description:
+                    'Perform the merge but do not automatically create a commit, allowing you to inspect or modify changes first.',
+            },
+            {
+                flags: '--abort',
+                description:
+                    'Abort the current in-progress merge and revert back to the pre-merge state.',
+            },
+        ],
+        helpDescription: 'display help for command.',
+        alias: '-m',
+    };
+}
 
 class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     // private git = new GitRunner();
@@ -28,19 +119,14 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             return;
         }
         const currentBranch = await this.git.branch.getCurrent();
-        const { message, remote = 'origin', branch = currentBranch, normatively } = options;
+        const { message, remote, branch = currentBranch, normatively } = options;
         if (!normatively) {
             if (!isClean) {
-                const messagePromptRes = await inquirer.prompt({
-                    name: 'message',
-                    message: 'Please input the message you will commit:',
-                    default: message,
-                    type: 'input',
-                });
-                if (!messagePromptRes.message) {
+                const promptMessage = await this.getPromptMessage(message);
+                if (!promptMessage) {
                     throw new Error('Please input the message you will commit!');
                 }
-                await this.git.workspace.commit(messagePromptRes.message);
+                await this.git.workspace.commit(promptMessage);
             }
             await this.handlePush(remote, branch);
             return;
@@ -68,28 +154,25 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         if (!promptRemote) {
             throw new Error('Please select a remote you will push!');
         }
-        const promptBranch = await this.getPromptBranch();
+        const promptBranch = await this.getPromptBranch(branch);
         if (!promptBranch) {
             throw new Error('Please select a branch you will push!');
         }
-        loading('Start to push code', async () => {
-            try {
+
+        const taskProgressManager = new TaskProgressManager(true, false);
+        taskProgressManager.init(`Push code: ${promptBranch}`, 1);
+        const [err] = await to<void, Error>(
+            (async () => {
                 const needsSetUpstream = await this.git.branch.needSetUpstream();
                 needsSetUpstream
                     ? await this.git.branch.setUpstream(promptRemote, promptBranch)
                     : await this.git.remote.push(promptRemote, promptBranch);
-                return {
-                    status: 'succeed',
-                    error: null,
-                    message: `Sync code successfully, branch: ${branch}, remote: ${remote}.`,
-                };
-            } catch (e) {
-                return {
-                    status: 'fail',
-                    error: e,
-                };
-            }
-        });
+            })(),
+        );
+        if (!err) {
+            throw err;
+        }
+        taskProgressManager.completeAll();
     }
     private async getPromptBranch(selectedBranch?: string) {
         const branches = await this.git.branch.listLocal();
@@ -98,7 +181,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
                 name: 'branch',
                 message: 'Please select the branch you will push:',
                 choices: branches.map((branch) => ({ name: branch, value: branch })),
-                type: 'checkbox',
+                type: 'list',
             });
             return promptBranch as string;
         }
@@ -117,7 +200,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
                 name: 'remote',
                 message: 'Please select the remote you will push:',
                 choices: remotes.map(({ name }) => ({ name, value: name })),
-                type: 'checkbox',
+                type: 'list',
             });
             return promptRemote as string;
         }
@@ -126,10 +209,22 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         }
         return selectedRemote;
     }
+    private async getPromptMessage(inputMessage?: string) {
+        if (!inputMessage) {
+            const { message } = await inquirer.prompt({
+                name: 'message',
+                message: 'Please input the message you will commit:',
+                type: 'input',
+            });
+            return message;
+        }
+        return inputMessage;
+    }
 }
 
 export default class SyncCommand extends LaniaCommand<[SyncActionOptions]> {
     protected actor = new SyncAction();
+    protected subcommands?: LaniaCommand<any[]>[] = [new MergeCommand()];
     protected commandNeededArgs = {
         name: 'sync',
         description: 'One-click operation of git push code.',

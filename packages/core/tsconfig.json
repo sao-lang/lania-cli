@@ -13,10 +13,8 @@
             "@constants/*": ["lib/constants/*"],
             "@package-manager/*": ["./lib/package-managers/*"],
             "@configuration/*": ["./lib/configuration/*"],
-            "@engines/*": ["./lib/engines/*"],
-            "@lania-cli/*": ["../packages/*/src"]
-        },
-        "moduleResolution": "NodeNext"
+            "@engines/*": ["./lib/engines/*"]
+        }
     },
     "include": ["../../global.d.ts", "./**/*.ts"]
 }

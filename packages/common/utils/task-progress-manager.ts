@@ -78,6 +78,20 @@ export class TaskProgressManager {
         this.callbacks.push(callback);
     }
 
+    complete(group: string) {
+        const total = this.totalMap.get(group);
+        if (total !== undefined) {
+            this.set(group, total); // 标记任务为完成，设置进度为总步数
+            this.emit(group); // 更新显示
+        }
+    }
+
+    completeAll() {
+        [...this.completedMap.keys()].forEach((key) => {
+            this.complete(key);
+        });
+    }
+
     private emit(group: string) {
         const info = this.getProgress(group);
         if (!info) return;
@@ -86,7 +100,13 @@ export class TaskProgressManager {
             const spinner = this.spinners.get(group);
             if (spinner) {
                 spinner.text = `[${group}] ${info.completed}/${info.total} (${info.percent}%)`;
-                if (info.completed >= info.total) spinner.succeed(`[${group}] Done.`);
+                if (info.completed >= info.total) {
+                    if (!this.useBar) {
+                        spinner.succeed(`[${group}] Done.`);
+                    } else {
+                        spinner.stop(); // 避免双输出
+                    }
+                }
             }
         }
 

@@ -28,7 +28,6 @@
         "chalk": "^3.0.0",
         "cli-progress": "^3.12.0",
         "commander": "^10.0.1",
-        "conf": "^13.1.0",
         "cosmiconfig": "^9.0.0",
         "deepmerge": "^4.3.1",
         "detect-package-manager": "^3.0.1",
@@ -39,7 +38,6 @@
         "get-port": "^7.0.0",
         "inquirer": "^8.2.5",
         "latest-version": "^7.0.0",
-        "lodash-es": "^4.17.21",
         "ora": "^5.4.1",
         "prettier": "^3.0.1",
         "prettier-plugin-ejs": "^0.0.18",
@@ -54,12 +52,10 @@
         "vite": "^5.0.10",
         "webpack": "^5.89.0",
         "webpack-dev-server": "^4.15.1",
-        "webpack-merge": "^5.10.0",
-        "zod": "^3.24.3"
+        "webpack-merge": "^5.10.0"
     },
     "license": "ISC",
     "devDependencies": {
-        "@types/conf": "^3.0.3",
         "@types/eslint": "^8.56.0",
         "@types/stylelint": "^14.0.0"
     }
