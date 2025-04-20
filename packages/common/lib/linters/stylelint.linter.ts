@@ -1,5 +1,5 @@
 import stylelint from 'stylelint';
-import Linter from './linter.base.new';
+import Linter from './linter.base';
 import { getModuleConfig } from './linter.util';
 import {
     LinterConfiguration,

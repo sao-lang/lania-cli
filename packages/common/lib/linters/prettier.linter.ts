@@ -1,5 +1,6 @@
-import Linter from './linter.base.new';
-import { getFileExt, getModuleConfig } from './linter.util';
+import Linter from './linter.base';
+import { getModuleConfig } from './linter.util';
+import { getFileExt } from '../../utils/file';
 
 import prettier from 'prettier';
 import stylus from 'prettier-plugin-stylus';

@@ -1,9 +1,9 @@
 import { writeFile } from 'fs/promises';
 import { dirname } from 'path';
 import ejs from 'ejs';
-import PrettierLinter from '@linters/prettier.linter.new';
-import { mkDirs } from './engine.util';
-import { getFileExt } from '@linters/linter.util';
+import PrettierLinter from '../linters/prettier.linter';
+import { mkDirs } from '../../utils/dir';
+import { getFileExt } from '../../utils/file';
 import { PrettierSupportFileType } from '@lania-cli/types';
 
 export default class EjsEngine {

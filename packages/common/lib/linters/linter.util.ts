@@ -1,7 +1,7 @@
-import ConfigurationLoader from '@configuration/configuration.loader';
+import ConfigurationLoader from '../configuration/configuration.loader';
 import { LinterConfiguration } from '@lania-cli/types';
 import { readdir, stat } from 'fs/promises';
-import { extname, join } from 'path';
+import { join } from 'path';
 
 export const getModuleConfig = async (config: LinterConfiguration) => {
     if (typeof config === 'string') {
@@ -23,8 +23,4 @@ export const traverseFiles = async (dir: string, cb?: (filePath: string) => Prom
             await cb?.(filePath);
         }
     }
-};
-
-export const getFileExt = <T extends string>(filePath: string) => {
-    return extname(filePath).replace('.', '') as T;
 };

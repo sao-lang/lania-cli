@@ -1,5 +1,6 @@
 import { stat } from 'fs/promises';
-import { getFileExt, traverseFiles } from './linter.util';
+import { traverseFiles } from './linter.util';
+import { getFileExt } from '../../utils/file';
 
 export default abstract class Linter<
     SupportFileType extends string,

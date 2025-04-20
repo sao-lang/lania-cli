@@ -10,6 +10,7 @@
         "nuxt",
         "oneline",
         "onwarn",
+        "perttier",
         "pinia",
         "pnpmfile",
         "stylelintignore",

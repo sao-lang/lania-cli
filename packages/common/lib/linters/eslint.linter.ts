@@ -1,5 +1,5 @@
 import { ESLint } from 'eslint';
-import Linter from './linter.base.new';
+import Linter from './linter.base';
 import { getModuleConfig } from './linter.util';
 import { readFile, writeFile } from 'fs/promises';
 import {

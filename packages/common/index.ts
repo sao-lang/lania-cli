@@ -10,4 +10,9 @@ export * from './lib/runners/git.runner';
 export * from './lib/plugins/commitizen.plugin';
 export * from './lib/plugins/commitlint.plugin';
 export * from './lib/plugins/i18n.plugin';
+export * from './lib/engines/ejs.engine';
+export * from './lib/linters/eslint.linter'
+export * from './lib/linters/prettier.linter';
+export * from './lib/linters/stylelint.linter';
+export * from './lib/linters/textlint.linter';
 export const TEMPLATES_CONSTANTS = { SPA_REACT_TEMPLATE };

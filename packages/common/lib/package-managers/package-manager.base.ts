@@ -4,7 +4,7 @@ import {
     PackageManagerName,
     RunnerRunOptions,
 } from '@lania-cli/types';
-import Runner from '@runners/runner.base';
+import Runner from '../runners/runner.base';
 import { readFile } from 'fs/promises';
 
 export default abstract class PackageManager<
@@ -28,7 +28,7 @@ export default abstract class PackageManager<
     }
 
     private async getPackageJsonContent() {
-        return JSON.parse(await readFile(`${__cwd}/package.json`, 'utf-8'));
+        return JSON.parse(await readFile(`${process.cwd()}/package.json`, 'utf-8'));
     }
 
     public async install(options: RunnerRunOptions = {}) {
