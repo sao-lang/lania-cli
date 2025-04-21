@@ -1,14 +1,12 @@
 import { Compiler } from './compiler.base';
-import logger from '@utils/logger';
-import text from '@utils/text';
 import path from 'path';
 import webpack, { type Configuration, type StatsAsset } from 'webpack';
 import DevServer from 'webpack-dev-server';
 import { logOnBuildWebpackPlugin } from './compiler.plugin';
-import to from '@utils/to';
+import {to, styleText, logger} from '@lania-cli/common'
 import { ConfigOption } from '@lania-cli/types';
 
-export default class WebpackCompiler extends Compiler<Configuration, DevServer> {
+export  class WebpackCompiler extends Compiler<Configuration, DevServer> {
     protected server: DevServer;
     protected configOption: ConfigOption;
 
@@ -77,10 +75,10 @@ export default class WebpackCompiler extends Compiler<Configuration, DevServer> 
                 const { time, version, assets, outputPath } = stats.toJson();
                 if (!watch) {
                     this.logBundles(assets, outputPath);
-                    const versionModifiedText = text(`webpack v${version}`, {
+                    const versionModifiedText = styleText(`webpack v${version}`, {
                         color: '#1da8cd',
                     });
-                    const modeModifiedText = text(`build for ${mode || 'development'}`, {
+                    const modeModifiedText = styleText(`build for ${mode || 'development'}`, {
                         color: '#21a579',
                     });
                     logger.info(`[Webpack] ${versionModifiedText} ${modeModifiedText}`);
@@ -116,8 +114,8 @@ export default class WebpackCompiler extends Compiler<Configuration, DevServer> 
         assets.forEach(({ name, size }) => {
             const filename = `${path.basename(outputPath)}/${name}`;
             const fileSize = (size / 1024).toFixed(2);
-            const filenameModifiedText = text(`${filename}`, { color: '#6a7c80' });
-            const fileSizeModifiedText = text(`${fileSize}K`, {
+            const filenameModifiedText = styleText(`${filename}`, { color: '#6a7c80' });
+            const fileSizeModifiedText = styleText(`${fileSize}K`, {
                 bold: true,
                 color: '#7a7c80',
             });
@@ -125,3 +123,4 @@ export default class WebpackCompiler extends Compiler<Configuration, DevServer> 
         });
     }
 }
+export default WebpackCompiler;
