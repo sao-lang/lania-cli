@@ -1,16 +1,14 @@
 import { build, createServer, createLogger, mergeConfig } from 'vite';
 import type { ViteDevServer, InlineConfig } from 'vite';
 import { Compiler } from './compiler.base';
-import logger from '@utils/logger';
 import path from 'path';
 import fs from 'fs';
-import to from '@utils/to';
-import text from '@utils/text';
+import {to, styleText, logger} from '@lania-cli/common';
 import type { OutputBundle } from 'rollup';
 import { logOnBuildRollupPlugin } from './compiler.plugin';
 import { ConfigOption, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
 
-export default class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> {
+export  class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> {
     protected configOption: ConfigOption;
     protected server: ViteDevServer;
     constructor(configPath?: string) {
@@ -74,7 +72,7 @@ export default class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> 
     private createViteLogger() {
         const customLogger = createLogger();
         customLogger.error = (msg) => logger.error(`[Vite] ${msg}`);
-        customLogger.warn = (msg) => logger.warning(`[Vite] ${msg}`);
+        customLogger.warn = (msg) => logger.warn(`[Vite] ${msg}`);
         customLogger.info = (msg) => logger.info(`[Vite] ${msg}`);
         return customLogger;
     }
@@ -90,7 +88,7 @@ export default class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> 
             const name = `${path.basename(dir)}/${fileName}`;
             const size = (stats.size / 1024).toFixed(2) + 'K';
             logger.info(
-                `${text(name, { color: '#6a7c80' })} ${text(size, {
+                `${styleText(name, { color: '#6a7c80' })} ${styleText(size, {
                     bold: true,
                     color: '#7a7c80',
                 })}`,
@@ -99,3 +97,4 @@ export default class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> 
         await Promise.all(bundleEntries);
     }
 }
+export default ViteCompiler;
