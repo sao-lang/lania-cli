@@ -1,11 +1,10 @@
-import text from '@utils/text';
+import { styleText, logger } from '@lania-cli/common';
 import { Compiler } from './compiler.base';
-import to from '@utils/to';
+import { to } from '@lania-cli/common';
 import fs from 'fs';
 import path from 'path';
 
 import { type RollupOptions, rollup, OutputBundle } from 'rollup';
-import logger from '@utils/logger';
 import { mergeConfig } from 'vite';
 import { logOnBuildRollupPlugin } from './compiler.plugin';
 import { ConfigOption, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
@@ -24,7 +23,7 @@ export class RollupCompiler extends Compiler<RollupOptions> {
                 if (!configuration.watch) {
                     const now = new Date().getTime();
                     logger.log(`built in ${(now - prevDate) / 1000}s`, {
-                        color: '#21a579',
+                        style: { color: '#21a579' },
                     });
                 }
             },
@@ -55,10 +54,10 @@ export class RollupCompiler extends Compiler<RollupOptions> {
             if (!error) {
                 const name = `${path.basename(dir)}/${fileName}`;
                 const size = (stats.size / 1024).toFixed(2) + 'K';
-                const nameModifiedText = text(name, {
+                const nameModifiedText = styleText(name, {
                     color: '#6a7c80',
                 });
-                const sizeModifiedText = text(size, {
+                const sizeModifiedText = styleText(size, {
                     bold: true,
                     color: '#7a7c80',
                 });
@@ -69,3 +68,5 @@ export class RollupCompiler extends Compiler<RollupOptions> {
         }
     }
 }
+
+export default RollupCompiler;
