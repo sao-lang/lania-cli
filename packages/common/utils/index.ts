@@ -4,3 +4,6 @@ export * from './task-executor';
 export * from './task-progress-manager';
 export * from './style-text';
 export * from './to';
+export * from './file';
+export * from './dir';
+export * from './command';
