@@ -1,9 +1,9 @@
 {
-    "name": "@lania-cli/command-sync",
+    "name": "@lania-cli/command-lint",
     "version": "1.0.0",
     "description": "",
     "bin": {
-        "lan-sync": "./bin/index.js"
+        "lan-build": "./bin/index.js"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -16,6 +16,7 @@
     "license": "ISC",
     "dependencies": {
         "@lania-cli/types": "workspace:^",
+        "@lania-cli/linters": "workspace:^",
         "@lania-cli/common": "workspace:^"
     }
 }

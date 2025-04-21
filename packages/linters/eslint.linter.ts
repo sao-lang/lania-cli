@@ -9,7 +9,7 @@ import {
     LinterHandleDirOptions,
 } from '@lania-cli/types';
 
-export default class EsLinter extends Linter<EsLinterSupportFileType, EsLinterOutput> {
+export class EsLinter extends Linter<EsLinterSupportFileType, EsLinterOutput> {
     private config: LinterConfiguration;
     private options: LinterHandleDirOptions;
     protected fileTypes: EsLinterSupportFileType[];
@@ -64,3 +64,5 @@ export default class EsLinter extends Linter<EsLinterSupportFileType, EsLinterOu
         return this.innerLinter;
     }
 }
+
+export default EsLinter

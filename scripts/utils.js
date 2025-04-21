@@ -42,7 +42,12 @@ export const createCommonInjectVars = () => {
 export const resolvePlugins = (packageName = 'core') => {
     if (packageName === 'common') {
         return [
-            ts({ tsconfig: path.resolve(__dirname, '../tsconfig.common.json') }),
+            ts({
+                tsconfig: path.resolve(
+                    __dirname,
+                    `../packages/${packageName}/tsconfig.${packageName}.json`,
+                ),
+            }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
@@ -70,28 +75,53 @@ export const resolvePlugins = (packageName = 'core') => {
     if (packageName === 'template') {
         return [
             json(),
-            ts({ tsconfig: path.resolve(__dirname, '../tsconfig.template.json') }),
+            ts({
+                tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.template.json'),
+            }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
     if (packageName === 'templates') {
         return [
             ts({
-                tsconfig: path.resolve(__dirname, '../tsconfig.templates.json'),
+                tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.templates.json'),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
     if (packageName === 'types') {
         return [
-            ts({ tsconfig: path.resolve(__dirname, '../tsconfig.types.json') }),
+            ts({
+                tsconfig: path.resolve(
+                    __dirname,
+                    `../packages/${packageName}/tsconfig.${packageName}.json`,
+                ),
+            }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
-    if (packageName === 'compilers' || packageName === 'linters') {
+    if (
+        [
+            'compilers',
+            'linters',
+            'command-sync',
+            'command-add',
+            'command-build',
+            'command-lint',
+            'command-dev',
+            'command-release',
+            'command-create',
+            'command-lint',
+        ].includes(packageName)
+    ) {
         return [
             json(),
-            ts({ tsconfig: path.resolve(__dirname, `../tsconfig.${packageName}.json`) }),
+            ts({
+                tsconfig: path.resolve(
+                    __dirname,
+                    `../packages/${packageName}/tsconfig.${packageName}.json`,
+                ),
+            }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
@@ -104,5 +134,27 @@ export const resolveExtern = (packageName = 'core') => {
         ...Object.keys(dependencies || {}),
         ...Object.keys(devDependencies || {}),
     ];
-    return ['path', 'fs', 'net', 'fs/promises', ...resolveDependencies];
+    console.log(resolveDependencies, packageName);
+    return [
+        'path',
+        'fs',
+        'net',
+        'fs/promises',
+        ...(packageName === 'command-lint'
+            ? [
+                  '@lania-cli/common',
+                  '@lania-cli/types',
+                  '@lania-cli/linters',
+                  'cosmiconfig',
+                  'eslint',
+                  'prettier',
+                  'prettier-plugin-ejs',
+                  'prettier-plugin-stylus',
+                  'prettier-plugin-svelte',
+                  'stylelint',
+                  'textlint',
+                  '@types/stylelint',
+              ]
+            : resolveDependencies),
+    ];
 };

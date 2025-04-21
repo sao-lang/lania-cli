@@ -48,7 +48,7 @@ const transformPlugin = (fileType: PrettierSupportFileType) => {
     }
 };
 
-export default class Prettier extends Linter<PrettierSupportFileType, PrettierOutput> {
+export class Prettier extends Linter<PrettierSupportFileType, PrettierOutput> {
     private config: LinterConfiguration;
     private options: LinterHandleDirOptions;
     protected fileTypes: PrettierSupportFileType[];
@@ -120,3 +120,5 @@ export default class Prettier extends Linter<PrettierSupportFileType, PrettierOu
         return code;
     }
 }
+
+export default Prettier;

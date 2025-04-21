@@ -35,27 +35,6 @@ const buildCommon = () => {
     });
 };
 
-const buildCompilers = () => {
-    return withTaskName('build compilers', async () => {
-        const configFilePath = path.resolve(__dirname, '../scripts/rollup.compilers.config.js');
-        await run(`rimraf ${dirPath}/compilers/dist && rollup -c=${configFilePath}`);
-    });
-};
-
-const buildLinters = () => {
-    return withTaskName('build linters', async () => {
-        const configFilePath = path.resolve(__dirname, '../scripts/rollup.linters.config.js');
-        await run(`rimraf ${dirPath}/linters/dist && rollup -c=${configFilePath}`);
-    });
-};
-
-const buildCommandSync = () => {
-    return withTaskName('build command-sync', async () => {
-        const configFilePath = path.resolve(__dirname, '../scripts/rollup.command-sync.config.js');
-        await run(`rimraf ${dirPath}/command-sync/dist && rollup -c=${configFilePath}`);
-    });
-};
-
 const buildTypes = () => {
     return withTaskName('build types', async () => {
         const configFilePath = path.resolve(__dirname, '../scripts/rollup.types.config.js');
@@ -72,14 +51,21 @@ const buildCore = (watch) => {
     });
 };
 
+const buildCoreLib = () => {
+    return withTaskName('build core-lib', async () => {
+        const packages = ['compilers', 'linters', 'command-add', 'command-sync', 'command-build'];
+        await Promise.all(packages.map(async (pkg) => await run(`rimraf ${dirPath}/${pkg}/dist`)));
+        const configFilePath = path.resolve(__dirname, '../scripts/rollup.core-lib.config.js');
+        await run(`rollup -c=${configFilePath}`);
+    });
+};
+
 module.exports = {
     buildTypes: series(buildTypes()),
     buildCommon: series(buildCommon()),
     buildTemplate: series(buildTemplate()),
-    buildCompilers: series(buildCompilers()),
-    buildLinters: series(buildLinters()),
-    buildCommandSync: series(buildCommandSync()),
     buildCore: series(buildCore(false)),
     buildCoreWatch: series(buildCore(true)),
-    build: series(buildTypes(), buildCommon(), buildTemplate(), buildCore(false)),
+    buildCoreLib: series(buildCoreLib()),
+    build: series(buildTypes(), buildCommon(), buildTemplate(), buildCoreLib(), buildCore(false)),
 };

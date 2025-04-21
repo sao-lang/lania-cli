@@ -115,6 +115,99 @@ importers:
         specifier: ^0.33.0
         version: 0.33.0
 
+  packages/command-add:
+    dependencies:
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
+      '@lania-cli/types':
+        specifier: workspace:^
+        version: link:../types
+
+  packages/command-build:
+    dependencies:
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
+      '@lania-cli/compilers':
+        specifier: workspace:^
+        version: link:../compilers
+      '@lania-cli/types':
+        specifier: workspace:^
+        version: link:../types
+      webpack:
+        specifier: ^5.89.0
+        version: 5.89.0
+
+  packages/command-create:
+    dependencies:
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
+      '@lania-cli/compilers':
+        specifier: workspace:^
+        version: link:../compilers
+      '@lania-cli/templates':
+        specifier: workspace:^
+        version: link:../templates
+      '@lania-cli/types':
+        specifier: workspace:^
+        version: link:../types
+      get-port:
+        specifier: ^7.0.0
+        version: 7.0.0
+      latest-version:
+        specifier: ^7.0.0
+        version: 7.0.0
+      validate-npm-package-name:
+        specifier: ^5.0.0
+        version: 5.0.0
+
+  packages/command-dev:
+    dependencies:
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
+      '@lania-cli/compilers':
+        specifier: workspace:^
+        version: link:../compilers
+      '@lania-cli/types':
+        specifier: workspace:^
+        version: link:../types
+      get-port:
+        specifier: ^7.0.0
+        version: 7.0.0
+      latest-version:
+        specifier: ^7.0.0
+        version: 7.0.0
+      validate-npm-package-name:
+        specifier: ^5.0.0
+        version: 5.0.0
+      webpack:
+        specifier: ^5.89.0
+        version: 5.89.0
+
+  packages/command-lint:
+    dependencies:
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
+      '@lania-cli/linters':
+        specifier: workspace:^
+        version: link:../linters
+      '@lania-cli/types':
+        specifier: workspace:^
+        version: link:../types
+
+  packages/command-sync:
+    dependencies:
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
+      '@lania-cli/types':
+        specifier: workspace:^
+        version: link:../types
+
   packages/common:
     dependencies:
       '@commitlint/core':
@@ -162,24 +255,6 @@ importers:
       ora:
         specifier: ^5.4.1
         version: 5.4.1
-      prettier:
-        specifier: ^3.0.1
-        version: 3.0.1
-      prettier-plugin-ejs:
-        specifier: ^0.0.18
-        version: 0.0.18(prettier@3.0.1)
-      prettier-plugin-stylus:
-        specifier: 0.0.1-beta.9
-        version: 0.0.1-beta.9(prettier@3.0.1)
-      prettier-plugin-svelte:
-        specifier: ^3.1.2
-        version: 3.1.2(prettier@3.0.1)(svelte@4.2.8)
-      stylelint:
-        specifier: ^16.0.2
-        version: 16.0.2(typescript@5.1.6)
-      textlint:
-        specifier: ^13.4.1
-        version: 13.4.1
     devDependencies:
       '@types/stylelint':
         specifier: ^14.0.0
@@ -226,6 +301,24 @@ importers:
       '@commitlint/core':
         specifier: ^19.6.0
         version: 19.6.0(@types/node@20.5.1)(typescript@5.1.6)
+      '@lania-cli/command-add':
+        specifier: workspace:^
+        version: link:../command-add
+      '@lania-cli/command-build':
+        specifier: workspace:^
+        version: link:../command-build
+      '@lania-cli/command-create':
+        specifier: workspace:^
+        version: link:../command-create
+      '@lania-cli/command-dev':
+        specifier: workspace:^
+        version: link:../command-dev
+      '@lania-cli/command-lint':
+        specifier: workspace:^
+        version: link:../command-lint
+      '@lania-cli/command-sync':
+        specifier: workspace:^
+        version: link:../command-sync
       '@lania-cli/common':
         specifier: workspace:^
         version: link:../common
@@ -323,6 +416,43 @@ importers:
       '@types/eslint':
         specifier: ^8.56.0
         version: 8.56.0
+      '@types/stylelint':
+        specifier: ^14.0.0
+        version: 14.0.0(typescript@5.1.6)
+
+  packages/linters:
+    dependencies:
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
+      '@lania-cli/types':
+        specifier: workspace:^
+        version: link:../types
+      cosmiconfig:
+        specifier: ^9.0.0
+        version: 9.0.0(typescript@5.1.6)
+      eslint:
+        specifier: 8.43.0
+        version: 8.43.0
+      prettier:
+        specifier: ^3.0.1
+        version: 3.0.1
+      prettier-plugin-ejs:
+        specifier: ^0.0.18
+        version: 0.0.18(prettier@3.0.1)
+      prettier-plugin-stylus:
+        specifier: 0.0.1-beta.9
+        version: 0.0.1-beta.9(prettier@3.0.1)
+      prettier-plugin-svelte:
+        specifier: ^3.1.2
+        version: 3.1.2(prettier@3.0.1)(svelte@4.2.8)
+      stylelint:
+        specifier: ^16.0.2
+        version: 16.0.2(typescript@5.1.6)
+      textlint:
+        specifier: ^13.4.1
+        version: 13.4.1
+    devDependencies:
       '@types/stylelint':
         specifier: ^14.0.0
         version: 14.0.0(typescript@5.1.6)

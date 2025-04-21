@@ -1,9 +1,9 @@
 {
-    "name": "@lania-cli/command-sync",
+    "name": "@lania-cli/command-add",
     "version": "1.0.0",
     "description": "",
     "bin": {
-        "lan-sync": "./bin/index.js"
+        "lan-add": "./bin/index.js"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

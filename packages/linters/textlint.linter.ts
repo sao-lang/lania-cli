@@ -8,7 +8,7 @@ import {
     TextLinterSupportFileType,
 } from '@lania-cli/types';
 
-export default class TextLinter extends Linter<TextLinterSupportFileType, TextLinterOutput> {
+export class TextLinter extends Linter<TextLinterSupportFileType, TextLinterOutput> {
     private config: LinterConfiguration;
     private options: LinterHandleDirOptions;
     protected fileTypes: TextLinterSupportFileType[];
@@ -56,3 +56,5 @@ export default class TextLinter extends Linter<TextLinterSupportFileType, TextLi
         return this.innerLinter;
     }
 }
+
+export default TextLinter;

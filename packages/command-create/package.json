@@ -1,9 +1,9 @@
 {
-    "name": "@lania-cli/command-sync",
+    "name": "@lania-cli/command-create",
     "version": "1.0.0",
     "description": "",
     "bin": {
-        "lan-sync": "./bin/index.js"
+        "lan-build": "./bin/index.js"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -16,6 +16,11 @@
     "license": "ISC",
     "dependencies": {
         "@lania-cli/types": "workspace:^",
-        "@lania-cli/common": "workspace:^"
+        "@lania-cli/common": "workspace:^",
+        "@lania-cli/templates": "workspace:^",
+        "@lania-cli/compilers": "workspace:^",
+        "validate-npm-package-name": "^5.0.0",
+        "latest-version": "^7.0.0",
+        "get-port": "^7.0.0"
     }
 }

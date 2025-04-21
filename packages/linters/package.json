@@ -1,5 +1,5 @@
 {
-    "name": "linters",
+    "name": "@lania-cli/linters",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -10,8 +10,8 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@lania-cli/types": "workspace:^",
         "@lania-cli/common": "workspace:^",
+        "@lania-cli/types": "workspace:^",
         "cosmiconfig": "^9.0.0",
         "eslint": "8.43.0",
         "prettier": "^3.0.1",
@@ -20,5 +20,8 @@
         "prettier-plugin-svelte": "^3.1.2",
         "stylelint": "^16.0.2",
         "textlint": "^13.4.1"
+    },
+    "devDependencies": {
+        "@types/stylelint": "^14.0.0"
     }
 }

@@ -1,9 +1,9 @@
 {
-    "name": "@lania-cli/command-sync",
+    "name": "@lania-cli/command-build",
     "version": "1.0.0",
     "description": "",
     "bin": {
-        "lan-sync": "./bin/index.js"
+        "lan-build": "./bin/index.js"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -16,6 +16,8 @@
     "license": "ISC",
     "dependencies": {
         "@lania-cli/types": "workspace:^",
-        "@lania-cli/common": "workspace:^"
+        "@lania-cli/common": "workspace:^",
+        "@lania-cli/compilers": "workspace:^",
+        "webpack": "^5.89.0"
     }
 }

@@ -8,8 +8,8 @@ import path from 'path';
 import fs from 'fs/promises';
 
 export class EjsRenderer {
-    format: (code: string, fileType: string) => string;
-    constructor(format: (code: string, fileType: string) => string) {
+    private format: (code: string, fileType: string) => string;
+    constructor(format?: (code: string, fileType: string) => string) {
         this.format = format;
     }
     async renderFromString(

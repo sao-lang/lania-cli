@@ -7,3 +7,4 @@ export * from './to';
 export * from './file';
 export * from './dir';
 export * from './command';
+export * from './config';

@@ -8,7 +8,7 @@ import {
     StyleLinterSupportFileType,
 } from '@lania-cli/types';
 
-export default class StyleLinter extends Linter<StyleLinterSupportFileType, StyleLinterOutput> {
+export class StyleLinter extends Linter<StyleLinterSupportFileType, StyleLinterOutput> {
     private config: LinterConfiguration;
     private options: LinterHandleDirOptions;
     protected fileTypes: StyleLinterSupportFileType[];
@@ -52,3 +52,5 @@ export default class StyleLinter extends Linter<StyleLinterSupportFileType, Styl
             : [...warnings.map(mapErrors(true)), ...parseErrors.map(mapErrors())];
     }
 }
+
+export default StyleLinter;
