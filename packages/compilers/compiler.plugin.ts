@@ -1,20 +1,20 @@
 import { LogOnBuildRollupPluginOptions, LogOnBuildWebpackPluginOptions } from '@lania-cli/types';
-import logger from '@utils/logger';
-import text from '@utils/text';
+import { styleText, logger } from '@lania-cli/common';
 import path from 'path';
 import type { PluginOption } from 'vite';
 import type { Compiler, StatsError } from 'webpack';
 const logWebpackErrors = (errors: StatsError[], isWarning: boolean = false) => {
     errors.forEach(({ moduleIdentifier, message }, index) => {
         if (moduleIdentifier) {
-            const filenameModifiedText = text(moduleIdentifier.replace(/\\/g, '/'), {
+            const filenameModifiedText = styleText(moduleIdentifier.replace(/\\/g, '/'), {
                 color: '#28b8db',
             });
-            logger.bold(`file: ${filenameModifiedText}`);
-            logger.warning(message);
+            logger.log(`file: ${filenameModifiedText}`, { style: { bold: true } });
+            logger.warn(message)
         }
         if (!isWarning) {
-            logger.error(message, index === errors.length - 1);
+            logger.error(message);
+            process.exit(0);
         }
     });
 };
