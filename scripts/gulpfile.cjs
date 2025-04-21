@@ -35,6 +35,20 @@ const buildCommon = () => {
     });
 };
 
+const buildCompilers = () => {
+    return withTaskName('build compilers', async () => {
+        const configFilePath = path.resolve(__dirname, '../scripts/rollup.compilers.config.js');
+        await run(`rimraf ${dirPath}/compilers/dist && rollup -c=${configFilePath}`);
+    });
+};
+
+const buildLinters = () => {
+    return withTaskName('build linters', async () => {
+        const configFilePath = path.resolve(__dirname, '../scripts/rollup.linters.config.js');
+        await run(`rimraf ${dirPath}/linters/dist && rollup -c=${configFilePath}`);
+    });
+};
+
 const buildTypes = () => {
     return withTaskName('build types', async () => {
         const configFilePath = path.resolve(__dirname, '../scripts/rollup.types.config.js');
@@ -53,8 +67,10 @@ const buildCore = (watch) => {
 
 module.exports = {
     buildTypes: series(buildTypes()),
-    buildTemplate: series(buildTemplate()),
     buildCommon: series(buildCommon()),
+    buildTemplate: series(buildTemplate()),
+    buildCompilers: series(buildCompilers()),
+    buildLinters: series(buildLinters()),
     buildCore: series(buildCore(false)),
     buildCoreWatch: series(buildCore(true)),
     build: series(buildTypes(), buildCommon(), buildTemplate(), buildCore(false)),
