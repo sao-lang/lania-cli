@@ -3,7 +3,7 @@ import NpmPackageManager from './npm.package-manager';
 import PnpmPackageManager from './pnpm.package-manager';
 import YarnPackageManager from './yarn.package-manager';
 import { detect } from 'detect-package-manager';
-export default class PackageManagerFactory {
+export class PackageManagerFactory {
     public static async create(name: PackageManagerName) {
         switch (name) {
             case 'npm':
@@ -20,3 +20,5 @@ export default class PackageManagerFactory {
         return await detect({ cwd });
     }
 }
+
+export default PackageManagerFactory;
