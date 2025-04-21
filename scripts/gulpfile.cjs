@@ -49,6 +49,13 @@ const buildLinters = () => {
     });
 };
 
+const buildCommandSync = () => {
+    return withTaskName('build command-sync', async () => {
+        const configFilePath = path.resolve(__dirname, '../scripts/rollup.command-sync.config.js');
+        await run(`rimraf ${dirPath}/command-sync/dist && rollup -c=${configFilePath}`);
+    });
+};
+
 const buildTypes = () => {
     return withTaskName('build types', async () => {
         const configFilePath = path.resolve(__dirname, '../scripts/rollup.types.config.js');
@@ -71,6 +78,7 @@ module.exports = {
     buildTemplate: series(buildTemplate()),
     buildCompilers: series(buildCompilers()),
     buildLinters: series(buildLinters()),
+    buildCommandSync: series(buildCommandSync()),
     buildCore: series(buildCore(false)),
     buildCoreWatch: series(buildCore(true)),
     build: series(buildTypes(), buildCommon(), buildTemplate(), buildCore(false)),
