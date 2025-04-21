@@ -88,6 +88,13 @@ export const resolvePlugins = (packageName = 'core') => {
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
+    if (packageName === 'compilers' || packageName === 'linters') {
+        return [
+            json(),
+            ts({ tsconfig: path.resolve(__dirname, `../tsconfig.${packageName}.json`) }),
+            globalReplacePlugin(createCommonInjectVars()),
+        ];
+    }
     return [];
 };
 
