@@ -1,4 +1,4 @@
-import ConfigurationLoader from '@lania-cli/common';
+import { ConfigurationLoader } from '@lania-cli/common';
 import path from 'path';
 import { mergeConfig as mergeViteConfig } from 'vite';
 import * as mergeWebpackConfig from 'webpack-merge';
