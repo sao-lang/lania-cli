@@ -2,7 +2,6 @@ export * from './constants/cli/index.constant';
 import * as SPA_REACT_TEMPLATE from './constants/templates/spa-react.constant';
 export * from './utils';
 export * from './constants/templates/base';
-export * from './utils';
 export * from './lib/configuration/configuration.loader';
 export * from './lib/engines/ejs.engine';
 export * from './lib/package-managers/package-manager.factory';
@@ -11,8 +10,4 @@ export * from './lib/plugins/commitizen.plugin';
 export * from './lib/plugins/commitlint.plugin';
 export * from './lib/plugins/i18n.plugin';
 export * from './lib/engines/ejs.engine';
-export * from './lib/linters/eslint.linter'
-export * from './lib/linters/prettier.linter';
-export * from './lib/linters/stylelint.linter';
-export * from './lib/linters/textlint.linter';
 export const TEMPLATES_CONSTANTS = { SPA_REACT_TEMPLATE };
