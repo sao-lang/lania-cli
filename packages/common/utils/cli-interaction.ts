@@ -12,6 +12,10 @@ export interface Question<TCtx extends Context = Context>
     type: QuestionType;
     returnable?: boolean;
     timeout?: number;
+    choices?: {
+        name: string;
+        value: string;
+    }[];
     validate?: (
         input: any,
         answers: Answer,
