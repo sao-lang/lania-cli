@@ -134,27 +134,19 @@ export const resolveExtern = (packageName = 'core') => {
         ...Object.keys(dependencies || {}),
         ...Object.keys(devDependencies || {}),
     ];
-    console.log(resolveDependencies, packageName);
     return [
         'path',
         'fs',
         'net',
         'fs/promises',
-        ...(packageName === 'command-lint'
-            ? [
-                  '@lania-cli/common',
-                  '@lania-cli/types',
-                  '@lania-cli/linters',
-                  'cosmiconfig',
-                  'eslint',
-                  'prettier',
-                  'prettier-plugin-ejs',
-                  'prettier-plugin-stylus',
-                  'prettier-plugin-svelte',
-                  'stylelint',
-                  'textlint',
-                  '@types/stylelint',
-              ]
-            : resolveDependencies),
+        'eslint',
+        'prettier',
+        'prettier-plugin-stylus',
+        'prettier-plugin-ejs',
+        'prettier-plugin-svelte',
+        'stylelint',
+        'textlint',
+        'inquirer',
+        ...resolveDependencies,
     ];
 };
