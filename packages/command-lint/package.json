@@ -6,7 +6,7 @@
         "lan-build": "./bin/index.js"
     },
     "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "types": "dist/command-lint/index.d.ts",
     "type": "module",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
