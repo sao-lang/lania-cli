@@ -1,9 +1,8 @@
-import { ADD_COMMAND_SUPPORT_TEMPLATES } from '@lania-cli/common';
-import { LaniaCommand } from './command.base';
+import { ADD_COMMAND_SUPPORT_TEMPLATES, LaniaCommand } from '@lania-cli/common';
 
-class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
+class ReleaseAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     async handle({ filepath, template }: AddCommandOptions = {}) {
-        filepath = filepath || __cwd;
+        filepath = filepath || process.cwd();
         template =
             template ||
             (ADD_COMMAND_SUPPORT_TEMPLATES.rfc as keyof typeof ADD_COMMAND_SUPPORT_TEMPLATES);
@@ -14,8 +13,8 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
 }
 import { AddCommandOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
-export default class AddCommand extends LaniaCommand<[AddCommandOptions]> {
-    protected actor = new AddAction();
+export class ReleaseCommand extends LaniaCommand<[AddCommandOptions]> {
+    protected actor = new ReleaseAction();
     protected commandNeededArgs = {
         name: 'add',
         description: 'Add files for current application.',
@@ -33,3 +32,5 @@ export default class AddCommand extends LaniaCommand<[AddCommandOptions]> {
         alias: '-a',
     };
 }
+
+export default ReleaseCommand;

@@ -10,7 +10,8 @@ const packages = [
     'command-build',
     'command-create',
     'command-dev',
-    'command-lint'
+    'command-lint',
+    'command-release'
 ];
 
 const createPackageConfig = (pkg) => {

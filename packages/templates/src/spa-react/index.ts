@@ -55,16 +55,19 @@ export class SpaReactTemplate extends BaseTemplate {
                     }
                     return true;
                 },
+                type: 'list',
             },
             {
                 message: 'Please select the lint tools:',
                 name: 'lintTools',
                 choices: LINT_TOOLS,
+                type: 'checkbox',
             },
             {
                 message: 'Please select a unit testing tool',
                 name: 'unitTestTool',
                 choices: [...UNIT_TEST_TOOLS, DEFAULT_NO],
+                type: 'list',
             },
             {
                 name: 'buildTool',
@@ -81,6 +84,7 @@ export class SpaReactTemplate extends BaseTemplate {
                     }
                     return [BuildToolEnum.rollup, BuildToolEnum.gulp, BuildToolEnum.tsc];
                 },
+                type: 'checkbox',
             },
             {
                 name: 'packageTool',
@@ -92,6 +96,7 @@ export class SpaReactTemplate extends BaseTemplate {
                     }
                     return true;
                 },
+                type: 'list',
             },
         ];
     }

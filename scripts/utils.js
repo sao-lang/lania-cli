@@ -147,6 +147,7 @@ export const resolveExtern = (packageName = 'core') => {
         'stylelint',
         'textlint',
         'inquirer',
+        '@lania-cli/linters',
         ...resolveDependencies,
     ];
 };

@@ -51,6 +51,12 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
         this.subcommands?.forEach((subcommand) => {
             program.addCommand(subcommand.load());
         });
+        program.on('command:*', ([command]: string[]) => {
+            logger.error(
+                `Invalid command: ${command}. See --help for a list of available commands.`,
+            );
+            process.exit(0);
+        });
         return program;
     }
 }
