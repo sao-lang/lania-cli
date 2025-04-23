@@ -1,4 +1,15 @@
-import chalk, { type Chalk } from 'chalk';
+import chalk from 'chalk';
+
+type StyleFlags = {
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    overline: boolean;
+    inverse: boolean;
+    strikethrough: boolean;
+    visible: boolean;
+    hidden: boolean;
+};
 
 type StyleOptions = {
     color?: string;
@@ -6,7 +17,7 @@ type StyleOptions = {
     prefix?: string;
     suffix?: string;
     dimLevel?: number;
-} & Partial<Record<keyof typeof STYLE_FLAGS, boolean>>;
+} & Partial<StyleFlags>;
 
 const STYLE_FLAGS = {
     bold: 'bold',
@@ -70,7 +81,7 @@ export class ColorParser {
 }
 
 export class StyledText {
-    private chain: Chalk;
+    private chain: (text: string) => string;
     private _options: StyleOptions;
 
     constructor(
@@ -78,66 +89,94 @@ export class StyledText {
         options: StyleOptions = {},
     ) {
         this._options = { ...options };
-        this.chain = this.initStyleEngine();
+        this.chain = this.createStyleFunction();
     }
 
-    private initStyleEngine(): Chalk {
-        let engine = chalk as Chalk;
+    private createStyleFunction(): (text: string) => string {
+        const styles: ((text: string) => string)[] = [];
 
-        // 优先处理灰度模拟
-        if (
-            typeof this._options.dimLevel === 'number' &&
-            this._options.dimLevel >= 1 &&
-            this._options.dimLevel <= 10
-        ) {
-            const level = this._options.dimLevel;
-            const gray = 255 - Math.floor((level / 10) * 255);
-            const hex = ColorParser.rgbToHex(gray, gray, gray);
-            engine = engine.hex(hex) as Chalk;
-        } else {
-            if (this._options.color) {
-                engine = engine.hex(ColorParser.parse(this._options.color));
-            }
+        // 处理颜色
+        if (this._options.color) {
+            const color = ColorParser.parse(this._options.color);
+            styles.push((text) => chalk.hex(color)(text));
         }
 
+        // 处理背景色
         if (this._options.bgColor) {
-            engine = engine.bgHex(ColorParser.parse(this._options.bgColor));
+            const bgColor = ColorParser.parse(this._options.bgColor);
+            styles.push((text) => chalk.bgHex(bgColor)(text));
         }
 
+        // 处理样式标志
         for (const key in STYLE_FLAGS) {
             if (this._options[key as keyof StyleOptions]) {
                 const method = STYLE_FLAGS[key as keyof typeof STYLE_FLAGS];
-                engine = engine[method]() as Chalk;
+                styles.push((text) => chalk[method](text));
             }
         }
 
-        return engine;
+        // 灰度处理
+        if (typeof this._options.dimLevel === 'number' &&
+            this._options.dimLevel >= 1 &&
+            this._options.dimLevel <= 10) {
+            const level = this._options.dimLevel;
+            const gray = 255 - Math.floor((level / 10) * 255);
+            const hex = ColorParser.rgbToHex(gray, gray, gray);
+            styles.push((text) => chalk.hex(hex)(text));
+        }
+
+        return (text: string) => {
+            try {
+                return styles.reduce((result, style) => style(result), text);
+            } catch {
+                return text;
+            }
+        };
     }
 
-    static createChainMethods(): Record<keyof typeof STYLE_FLAGS, () => StyledText> {
-        const methods = {} as Record<keyof typeof STYLE_FLAGS, () => StyledText>;
-        for (const key in STYLE_FLAGS) {
-            methods[key as keyof typeof STYLE_FLAGS] = function (this: StyledText) {
-                this._options[key] = true;
-                this.chain = this.initStyleEngine();
-                return this;
-            };
+    private static _chainMethods?: Record<keyof StyleFlags, () => StyledText>;
+    
+    static getChainMethods(): Record<keyof StyleFlags, () => StyledText> {
+        if (!this._chainMethods) {
+            this._chainMethods = {} as Record<keyof StyleFlags, () => StyledText>;
+            for (const key of Object.keys(STYLE_FLAGS) as Array<keyof StyleFlags>) {
+                this._chainMethods[key] = function(this: StyledText) {
+                    if (!this._options) this._options = {};
+                    this._options[key] = true;
+                    this.ensureChainInitialized();
+                    return this;
+                };
+            }
         }
-        return methods;
+        return this._chainMethods;
+    }
+
+    private ensureChainInitialized(): void {
+        if (typeof this.chain !== 'function') {
+            this.chain = this.createStyleFunction();
+        }
     }
 
     config(options: Partial<StyleOptions>): StyledText {
         this._options = { ...this._options, ...options };
-        this.chain = this.initStyleEngine();
+        this.chain = this.createStyleFunction();
         return this;
     }
 
     render(): string {
+        this.ensureChainInitialized();
         const { prefix = '', suffix = '' } = this._options;
-        return this.chain(`${prefix}${this.content}${suffix}`);
+        const text = `${prefix}${this.content}${suffix}`;
+        return typeof this.chain === 'function'
+            ? this.chain(text)
+            : text;
     }
 }
 
-Object.assign(StyledText.prototype, StyledText.createChainMethods());
+// Initialize prototype methods
+const methods = StyledText.getChainMethods();
+for (const key in methods) {
+    StyledText.prototype[key] = methods[key];
+}
 
 export const styleText = (content: string, options?: StyleOptions) => new StyledText(content, options);

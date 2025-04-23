@@ -22,8 +22,6 @@ class MergeAction implements LaniaCommandActionInterface<[MergeActionOptions]> {
     private git: GitRunner = new GitRunner();
     async handle(options: MergeActionOptions = {}): Promise<void> {
         const { branch: selectedBranch, ...rest } = options;
-        console.log(options);
-        console.log({ selectedBranch });
         const promptBranch = await this.getPromptBranch(selectedBranch);
         if (!promptBranch) {
             throw new Error('Please select a branch you will push!');
@@ -63,7 +61,7 @@ class MergeAction implements LaniaCommandActionInterface<[MergeActionOptions]> {
     }
 }
 
-class MergeCommand extends LaniaCommand<[MergeActionOptions]> {
+class MergeCommand extends LaniaCommand {
     protected actor = new MergeAction();
     protected commandNeededArgs = {
         name: 'merge',
@@ -233,9 +231,9 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     }
 }
 
-export class SyncCommand extends LaniaCommand<[SyncActionOptions]> {
+export class SyncCommand extends LaniaCommand {
     protected actor = new SyncAction();
-    protected subcommands?: LaniaCommand<any[]>[] = [new MergeCommand()];
+    protected subcommands?: LaniaCommand[] = [new MergeCommand()];
     protected commandNeededArgs = {
         name: 'sync',
         description: 'One-click operation of git push code.',

@@ -11,29 +11,31 @@ type LoggerOptions = {
     useTimestamp?: boolean;
 };
 
-const LEVEL_STYLES: Record<LogLevel, Parameters<typeof styleText>[1]> = {
-    log: {},
-    info: { color: '#3498db' },
-    warn: { color: '#f39c12', bold: true },
-    error: { color: '#e74c3c', bold: true },
-    success: { color: '#2ecc71' },
-    ascii: { color: '#9b59b6', bold: true },
-};
+const LEVEL_STYLES: Record<LogLevel, Parameters<typeof styleText>[1] & { loggerPrefix?: string }> =
+    {
+        log: {},
+        info: { color: '#3498db', loggerPrefix: 'Info: ' },
+        warn: { color: '#f39c12', bold: true, loggerPrefix: 'Warn: ' },
+        error: { color: '#e74c3c', bold: true, loggerPrefix: 'Error: ' },
+        success: { color: '#2ecc71', loggerPrefix: 'Success: ' },
+        ascii: { color: '#9b59b6', bold: true },
+    };
 
 function getTimestamp() {
     return new Date().toISOString().replace('T', ' ').split('.')[0];
 }
 
 function formatMessage(level: LogLevel, message: string, options?: LoggerOptions): string {
+    const { loggerPrefix = '', ...rest } = LEVEL_STYLES[level];
     const merged = {
-        ...LEVEL_STYLES[level],
+        ...rest,
         ...options?.style,
         prefix: options?.prefix ?? '',
         suffix: options?.suffix ?? '',
     };
 
     const time = options?.useTimestamp ? `[${getTimestamp()}] ` : '';
-    return time + styleText(message, merged).render();
+    return time + styleText(`${loggerPrefix}${message}`, merged).render();
 }
 
 export const logger = {
@@ -41,16 +43,16 @@ export const logger = {
         console.log(formatMessage('log', msg, opts));
     },
     info(msg: string, opts?: LoggerOptions) {
-        console.info(`Info: ${formatMessage('info', msg, opts)}`);
+        console.info(`${formatMessage('info', msg, opts)}`);
     },
     warn(msg: string, opts?: LoggerOptions) {
-        console.warn(formatMessage('warn', msg, opts));
+        console.warn(`${formatMessage('warn', msg, opts)}`);
     },
     error(msg: string, opts?: LoggerOptions) {
-        console.error(formatMessage('error', msg, opts));
+        console.error(`${formatMessage('error', msg, opts)}`);
     },
     success(msg: string, opts?: LoggerOptions) {
-        console.log(formatMessage('success', msg, opts));
+        console.log(`${formatMessage('success', msg, opts)}`);
     },
     ascii(msg: string, opts?: LoggerOptions) {
         const banner = figlet.textSync(msg);
