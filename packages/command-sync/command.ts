@@ -21,7 +21,8 @@ function toFlag(name: string): string {
 class MergeAction implements LaniaCommandActionInterface<[MergeActionOptions]> {
     private git: GitRunner = new GitRunner();
     async handle(options: MergeActionOptions = {}): Promise<void> {
-        const { branch: selectedBranch, ...rest } = options;
+        const { mergedBranch: selectedBranch, ...rest } = options;
+        console.log(options, 'options');
         const promptBranch = await this.getPromptBranch(selectedBranch);
         if (!promptBranch) {
             throw new Error('Please select a branch you will push!');
@@ -68,32 +69,37 @@ class MergeCommand extends LaniaCommand {
         description: 'Used for git branch merging.',
         options: [
             {
-                flags: '-b, --branch <branch>',
+                flags: '-m, --merge-branch <branch>',
                 description: 'The name of the branch to merge into the current branch.',
             },
             {
                 flags: '--no-ff',
                 description:
                     'Create a merge commit even when the merge could be resolved as a fast-forward.',
+                defaultValue: false,
             },
             {
                 flags: '--ff-only',
                 description: 'Refuse to merge unless the merge can be resolved as a fast-forward.',
+                defaultValue: false,
             },
             {
                 flags: '--squash',
                 description:
                     'Combine all commits from the branch into a single commit without creating a merge commit.',
+                defaultValue: false,
             },
             {
                 flags: '--no-commit',
                 description:
                     'Perform the merge but do not automatically create a commit, allowing you to inspect or modify changes first.',
+                defaultValue: false,
             },
             {
                 flags: '--abort',
                 description:
                     'Abort the current in-progress merge and revert back to the pre-merge state.',
+                defaultValue: false,
             },
         ],
         helpDescription: 'display help for command.',
@@ -198,7 +204,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     private async getPromptRemote(selectedRemote?: string) {
         const remotes = await this.git.remote.list();
         if (!remotes.length) {
-            throw new Error('You haven\'t added a remote yet');
+            throw new Error("You haven't added a remote yet");
         }
         if (!selectedRemote) {
             const { remote: promptRemote } = await new CLIInteraction()
