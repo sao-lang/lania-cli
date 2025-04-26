@@ -1,8 +1,8 @@
 export interface MergeActionOptions {
-    branch?: string;
-    noFf?: boolean;
+    mergedBranch?: string;
+    ff?: boolean;
     ffOnly?: boolean;
     squash?: boolean;
-    noCommit?: boolean;
-    abort?: boolean
+    commit?: boolean;
+    abort?: boolean;
 }

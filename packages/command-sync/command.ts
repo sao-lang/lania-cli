@@ -22,14 +22,19 @@ class MergeAction implements LaniaCommandActionInterface<[MergeActionOptions]> {
     private git: GitRunner = new GitRunner();
     async handle(options: MergeActionOptions = {}): Promise<void> {
         const { mergedBranch: selectedBranch, ...rest } = options;
-        console.log(options, 'options');
         const promptBranch = await this.getPromptBranch(selectedBranch);
         if (!promptBranch) {
             throw new Error('Please select a branch you will push!');
         }
-        const flags = Object.keys(rest).reduce((acc, key) => {
+        const flags = Object.keys(rest).reduce((acc, key: keyof typeof rest) => {
             if (rest[key]) {
-                acc.push(toFlag(key));
+                if (key === 'commit') {
+                    acc.push(toFlag('--no-commit'));
+                } else if (key === 'ff') {
+                    acc.push(toFlag('--no-ff'));
+                } else {
+                    acc.push(toFlag(key));
+                }
             }
             return acc;
         }, [] as string[]);
@@ -204,7 +209,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     private async getPromptRemote(selectedRemote?: string) {
         const remotes = await this.git.remote.list();
         if (!remotes.length) {
-            throw new Error("You haven't added a remote yet");
+            throw new Error('You haven\'t added a remote yet');
         }
         if (!selectedRemote) {
             const { remote: promptRemote } = await new CLIInteraction()
