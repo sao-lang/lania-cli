@@ -199,6 +199,15 @@ importers:
         specifier: workspace:^
         version: link:../types
 
+  packages/command-release:
+    dependencies:
+      '@lania-cli/common':
+        specifier: workspace:^
+        version: link:../common
+      '@lania-cli/types':
+        specifier: workspace:^
+        version: link:../types
+
   packages/command-sync:
     dependencies:
       '@lania-cli/common':

@@ -49,11 +49,11 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
      * 增强版命令加载
      */
     public load(): Command {
-        const { name, description, options, alias, examples } = this.commandNeededArgs ?? {};
+        const { name, description, options, alias, examples, args } = this.commandNeededArgs ?? {};
         const command = new Command(name);
 
         // 基础配置
-        this.configureCommand(command, { description, alias, examples });
+        this.configureCommand(command, { description, alias, examples, args });
 
         // 选项注册（支持高级校验）
         this.registerOptions(command, options);
@@ -79,12 +79,12 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
     // 私有方法实现
     private configureCommand(
         command: Command,
-        config: Pick<CommandNeededArgsInterface, 'description' | 'alias' | 'examples'>,
+        config: Pick<CommandNeededArgsInterface, 'description' | 'alias' | 'examples' | 'args'>,
     ) {
-        const { description, alias, examples } = config;
+        const { description, alias, examples, args } = config;
         description && command.description(description);
         alias && command.alias(alias);
-
+        args?.length && args.forEach((arg) => command.arguments(arg));
         if (examples) {
             command.on('--help', () => {
                 console.log('\nExamples:');

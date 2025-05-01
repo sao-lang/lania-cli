@@ -108,7 +108,26 @@ class MergeCommand extends LaniaCommand {
             },
         ],
         helpDescription: 'display help for command.',
-        alias: '-m',
+    };
+}
+
+class CheckoutAction implements LaniaCommandActionInterface<[Record<string, any>]> {
+    private git = new GitRunner();
+    async handle(...args) {
+        console.log(...args);
+    }
+}
+
+class CheckoutCommand extends LaniaCommand {
+    protected actor = new CheckoutAction();
+    protected commandNeededArgs = {
+        name: 'checkout',
+        description: 'Switch to a different git branch.',
+        options: [
+            { flags: '-b,--b <branchName>', description: 'Create and switch to a new branch.' },
+        ],
+        helpDescription: 'display help for command.',
+        args: ['[branches...]'],
     };
 }
 
@@ -244,7 +263,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
 
 export class SyncCommand extends LaniaCommand {
     protected actor = new SyncAction();
-    protected subcommands?: LaniaCommand[] = [new MergeCommand()];
+    protected subcommands?: LaniaCommand[] = [new MergeCommand(), new CheckoutCommand()];
     protected commandNeededArgs = {
         name: 'sync',
         description: 'One-click operation of git push code.',

@@ -4,6 +4,7 @@ export interface CommandOption {
     defaultValue?: any;
     required?: boolean;
     choices?: string[];
+    args?: string[];
 }
 
 export interface CommandNeededArgsInterface {
@@ -13,6 +14,7 @@ export interface CommandNeededArgsInterface {
     alias?: string;
     examples?: string[];
     helpDescription?: string;
+    args?: string[];
 }
 
 export type CommandHook = () => Promise<void> | void;
