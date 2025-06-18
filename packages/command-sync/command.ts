@@ -10,17 +10,36 @@ import {
 } from '@lania-cli/common';
 import {
     SyncActionOptions,
-    MergeActionOptions,
+    SubMergeActionOptions,
     LaniaCommandActionInterface,
+    SubAddActionOptions,
+    SubCommitActionOptions,
 } from '@lania-cli/types';
 
-function toFlag(name: string): string {
-    return '--' + name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+class AddAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
+    private git = new GitRunner();
+    async handle(files: SubAddActionOptions = []) {
+        if (files.length === 1 && files[0] === '.') {
+            await this.git.stage.addAllFiles();
+            return;
+        }
+        await this.git.stage.add(files.join(' '));
+    }
 }
 
-class MergeAction implements LaniaCommandActionInterface<[MergeActionOptions]> {
+class AddCommand extends LaniaCommand {
+    protected actor = new AddAction();
+    protected commandNeededArgs = {
+        name: 'add',
+        description: 'Add changes to the staging area.',
+        args: ['[files...]'],
+        helpDescription: 'display help for command.',
+    };
+}
+
+class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]> {
     private git: GitRunner = new GitRunner();
-    async handle(options: MergeActionOptions = {}): Promise<void> {
+    async handle(options: SubMergeActionOptions = {}): Promise<void> {
         const { mergedBranch: selectedBranch, ...rest } = options;
         const promptBranch = await this.getPromptBranch(selectedBranch);
         if (!promptBranch) {
@@ -29,11 +48,11 @@ class MergeAction implements LaniaCommandActionInterface<[MergeActionOptions]> {
         const flags = Object.keys(rest).reduce((acc, key: keyof typeof rest) => {
             if (rest[key]) {
                 if (key === 'commit') {
-                    acc.push(toFlag('--no-commit'));
+                    acc.push(this.toFlag('--no-commit'));
                 } else if (key === 'ff') {
-                    acc.push(toFlag('--no-ff'));
+                    acc.push(this.toFlag('--no-ff'));
                 } else {
-                    acc.push(toFlag(key));
+                    acc.push(this.toFlag(key));
                 }
             }
             return acc;
@@ -64,6 +83,10 @@ class MergeAction implements LaniaCommandActionInterface<[MergeActionOptions]> {
             throw new Error('The branch you entered was not found!');
         }
         return selectedBranch;
+    }
+
+    private toFlag(name: string) {
+        return '--' + name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
     }
 }
 
@@ -111,23 +134,24 @@ class MergeCommand extends LaniaCommand {
     };
 }
 
-class CheckoutAction implements LaniaCommandActionInterface<[Record<string, any>]> {
-    private git = new GitRunner();
-    async handle(...args) {
-        console.log(...args);
+class CommitAction implements LaniaCommandActionInterface<[SubCommitActionOptions]> {
+    async handle(options: SubCommitActionOptions = {}) {
+        console.log(options, 'options')
     }
 }
 
-class CheckoutCommand extends LaniaCommand {
-    protected actor = new CheckoutAction();
+class CommitCommand extends LaniaCommand {
+    protected actor = new CommitAction();
     protected commandNeededArgs = {
-        name: 'checkout',
-        description: 'Switch to a different git branch.',
+        name: 'commit',
+        description: 'Commit changes to the workspace.',
         options: [
-            { flags: '-b,--b <branchName>', description: 'Create and switch to a new branch.' },
+            {
+                flags: '-m, --message <message>',
+                description: 'The message you need to submit.',
+            },
         ],
         helpDescription: 'display help for command.',
-        args: ['[branches...]'],
     };
 }
 
@@ -263,7 +287,11 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
 
 export class SyncCommand extends LaniaCommand {
     protected actor = new SyncAction();
-    protected subcommands?: LaniaCommand[] = [new MergeCommand(), new CheckoutCommand()];
+    protected subcommands?: LaniaCommand[] = [
+        new MergeCommand(),
+        new AddCommand(),
+        new CommitCommand(),
+    ];
     protected commandNeededArgs = {
         name: 'sync',
         description: 'One-click operation of git push code.',
