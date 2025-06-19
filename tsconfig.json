@@ -11,5 +11,6 @@
         "jsx": "preserve", // jsx 不转义
         "lib": ["esnext"], // 支持的类库 esnext及dom
         "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
     }
 }
