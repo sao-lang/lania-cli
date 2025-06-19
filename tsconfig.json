@@ -10,5 +10,6 @@
         "esModuleInterop": true, // 允许通过es6语法引入commonjs模块
         "jsx": "preserve", // jsx 不转义
         "lib": ["esnext"], // 支持的类库 esnext及dom
+        "experimentalDecorators": true,
     }
 }
