@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import {
     LaniaCommand,
     GitRunner,
@@ -7,6 +8,7 @@ import {
     TaskProgressManager,
     to,
     CLIInteraction,
+    LaniaCommandConfig,
 } from '@lania-cli/common';
 import {
     SyncActionOptions,
@@ -136,7 +138,7 @@ class MergeCommand extends LaniaCommand {
 
 class CommitAction implements LaniaCommandActionInterface<[SubCommitActionOptions]> {
     async handle(options: SubCommitActionOptions = {}) {
-        console.log(options, 'options')
+        console.log(options, 'options');
     }
 }
 
@@ -304,3 +306,13 @@ export class SyncCommand extends LaniaCommand {
         alias: '-g',
     };
 }
+
+class CheckoutAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
+    async handle() {}
+}
+
+@LaniaCommandConfig(CheckoutAction, {
+    name: 'checkout',
+    description: 'One-click operation of git push code.',
+})
+class CheckoutCommand extends LaniaCommand {}

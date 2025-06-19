@@ -6,5 +6,5 @@ export * from './style-text';
 export * from './to';
 export * from './file';
 export * from './dir';
-export * from './command';
+export * from './command.new';
 export * from './config';
