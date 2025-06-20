@@ -1,3 +1,5 @@
+import { CommandNeededArgsInterface } from '../commands/command.base';
+
 export type TaskStatus = 'pending' | 'running' | 'success' | 'error' | 'timeout';
 export type TaskEventType = TaskStatus | 'retry' | 'start' | 'cancel';
 
@@ -28,4 +30,11 @@ export interface TaskEvent {
     message?: string;
     attempts?: number;
     error?: Error;
+}
+
+export interface LaniaCommandMetadata {
+    actor: new (...args: any[]) => any;
+    commandNeededArgs: CommandNeededArgsInterface;
+    // subcommands?: (new (...args: any[]) => LaniaCommand)[];
+    subcommands?: any[];
 }

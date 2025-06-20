@@ -148,6 +148,7 @@ export const resolveExtern = (packageName = 'core') => {
         'textlint',
         'inquirer',
         '@lania-cli/linters',
+        'yargs/helpers',
         ...resolveDependencies,
     ];
 };

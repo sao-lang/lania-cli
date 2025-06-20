@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import {
     LaniaCommand,
     GitRunner,
@@ -161,52 +160,53 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     // private git = new GitRunner();
     private git: GitRunner = new GitRunner();
     public async handle(options: SyncActionOptions) {
-        const isInstalled = await this.git.git.isInstalled();
-        if (!isInstalled) {
-            throw new Error('Please install Git first!');
-        }
-        const isInit = await this.git.git.isInit();
-        if (!isInit) {
-            await this.git.git.init();
-        }
-        await this.git.stage.addAllFiles();
-        const isClean = await this.git.workspace.isClean();
-        const noUnpushedCommits = !(await this.git.branch.hasUnpushedCommits());
-        if (isClean && noUnpushedCommits) {
-            logger.error('There are no files to sync!');
-            process.exit(0);
-            return;
-        }
-        const currentBranch = await this.git.branch.getCurrent();
-        const { message, remote, branch = currentBranch, normatively } = options;
-        if (!normatively) {
-            if (!isClean) {
-                const promptMessage = await this.getPromptMessage(message);
-                if (!promptMessage) {
-                    throw new Error('Please input the message you will commit!');
-                }
-                await this.git.workspace.commit(promptMessage);
-            }
-            await this.handlePush(remote, branch);
-            return;
-        }
-        const commitMessage = await new CommitizenPlugin().run();
-        const lintResult = await new CommitlintPlugin({
-            rules: {
-                'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style']], // ✅ 合法
-            },
-        } as Record<string, any>).run(commitMessage);
-        lintResult.errors.forEach((error) => {
-            logger.error(error.message);
-        });
-        lintResult.warnings.forEach((warning) => {
-            logger.warn(warning.message);
-        });
-        if (lintResult.errors.length) {
-            process.exit(0);
-        }
-        await this.git.workspace.commit(commitMessage);
-        await this.handlePush(remote, branch);
+        console.log({ options });
+        // const isInstalled = await this.git.git.isInstalled();
+        // if (!isInstalled) {
+        //     throw new Error('Please install Git first!');
+        // }
+        // const isInit = await this.git.git.isInit();
+        // if (!isInit) {
+        //     await this.git.git.init();
+        // }
+        // await this.git.stage.addAllFiles();
+        // const isClean = await this.git.workspace.isClean();
+        // const noUnpushedCommits = !(await this.git.branch.hasUnpushedCommits());
+        // if (isClean && noUnpushedCommits) {
+        //     logger.error('There are no files to sync!');
+        //     process.exit(0);
+        //     return;
+        // }
+        // const currentBranch = await this.git.branch.getCurrent();
+        // const { message, remote, branch = currentBranch, normatively } = options;
+        // if (!normatively) {
+        //     if (!isClean) {
+        //         const promptMessage = await this.getPromptMessage(message);
+        //         if (!promptMessage) {
+        //             throw new Error('Please input the message you will commit!');
+        //         }
+        //         await this.git.workspace.commit(promptMessage);
+        //     }
+        //     await this.handlePush(remote, branch);
+        //     return;
+        // }
+        // const commitMessage = await new CommitizenPlugin().run();
+        // const lintResult = await new CommitlintPlugin({
+        //     rules: {
+        //         'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style']], // ✅ 合法
+        //     },
+        // } as Record<string, any>).run(commitMessage);
+        // lintResult.errors.forEach((error) => {
+        //     logger.error(error.message);
+        // });
+        // lintResult.warnings.forEach((warning) => {
+        //     logger.warn(warning.message);
+        // });
+        // if (lintResult.errors.length) {
+        //     process.exit(0);
+        // }
+        // await this.git.workspace.commit(commitMessage);
+        // await this.handlePush(remote, branch);
     }
     private async handlePush(remote?: string, branch?: string) {
         const promptRemote = await this.getPromptRemote(remote);
@@ -287,32 +287,43 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     }
 }
 
-export class SyncCommand extends LaniaCommand {
-    protected actor = new SyncAction();
-    protected subcommands?: LaniaCommand[] = [
-        new MergeCommand(),
-        new AddCommand(),
-        new CommitCommand(),
-    ];
-    protected commandNeededArgs = {
-        name: 'sync',
-        description: 'One-click operation of git push code.',
-        options: [
-            { flags: '-m, --message [message]', description: 'Message when code is committed.' },
-            { flags: '-b, --branch [branch]', description: 'Branch when code is pushed.' },
-            { flags: '-n, --normatively', description: 'Whether to normalize submission message.' },
-            { flags: '-r, --remote [remote]', description: 'Remote when code is pushed.' },
-        ],
-        alias: '-g',
-    };
-}
-
-class CheckoutAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
-    async handle() {}
-}
-
-@LaniaCommandConfig(CheckoutAction, {
-    name: 'checkout',
+@LaniaCommandConfig(SyncAction, {
+    name: 'sync',
     description: 'One-click operation of git push code.',
+    options: [
+        { flags: '-m, --message [message]', description: 'Message when code is committed.' },
+        { flags: '-b, --branch [branch]', description: 'Branch when code is pushed.' },
+        { flags: '-n, --normatively', description: 'Whether to normalize submission message.' },
+        { flags: '-r, --remote [remote]', description: 'Remote when code is pushed.' },
+    ],
+    alias: '-g',
 })
-class CheckoutCommand extends LaniaCommand {}
+export class SyncCommand extends LaniaCommand {
+    // protected actor = new SyncAction();
+    // protected subcommands?: LaniaCommand[] = [
+    //     new MergeCommand(),
+    //     new AddCommand(),
+    //     new CommitCommand(),
+    // ];
+    // protected commandNeededArgs = {
+    //     name: 'sync',
+    //     description: 'One-click operation of git push code.',
+    //     options: [
+    //         { flags: '-m, --message [message]', description: 'Message when code is committed.' },
+    //         { flags: '-b, --branch [branch]', description: 'Branch when code is pushed.' },
+    //         { flags: '-n, --normatively', description: 'Whether to normalize submission message.' },
+    //         { flags: '-r, --remote [remote]', description: 'Remote when code is pushed.' },
+    //     ],
+    //     alias: '-g',
+    // };
+}
+
+// class CheckoutAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
+//     async handle() {}
+// }
+
+// @LaniaCommandConfig(CheckoutAction, {
+//     name: 'checkout',
+//     description: 'One-click operation of git push code.',
+// })
+// class CheckoutCommand extends LaniaCommand {}

@@ -2,41 +2,7 @@ import 'reflect-metadata';
 import yargs, { Argv, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { logger } from './logger'; // 你原来的 logger
-import {
-    CommandNeededArgsInterface,
-    CommandOption,
-    CommandHook,
-    LaniaCommandActionInterface,
-} from '@lania-cli/types';
-
-// 定义元数据 key
-const META_COMMAND_CONFIG = Symbol('lania:command_config');
-
-// 装饰器参数类型
-interface LaniaCommandMetadata {
-    actor: new (...args: any[]) => any;
-    commandNeededArgs: CommandNeededArgsInterface;
-    subcommands?: (new (...args: any[]) => LaniaCommand)[];
-}
-export function LaniaCommandConfig(
-    actor: new (...args: any[]) => any,
-    commandNeededArgs: CommandNeededArgsInterface,
-    subcommands: (new (...args: any[]) => LaniaCommand)[] = [],
-  ): ClassDecorator {
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    return function (target: Function) {
-      if (!actor || !commandNeededArgs?.name) {
-        throw new Error('@LaniaCommandConfig requires actor and commandNeededArgs.name');
-      }
-      const metadata: LaniaCommandMetadata = { actor, commandNeededArgs, subcommands };
-      Reflect.defineMetadata(META_COMMAND_CONFIG, metadata, target);
-    }
-  }
-  
-// 取元数据辅助函数
-function getLaniaCommandMetadata(target: any): LaniaCommandMetadata | undefined {
-    return Reflect.getMetadata(META_COMMAND_CONFIG, target.constructor || target);
-}
+import { CommandOption, CommandHook, LaniaCommandActionInterface } from '@lania-cli/types';
 
 // 抽象命令基类
 export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
@@ -54,7 +20,9 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
 
     // 载入命令，返回 yargs 的 CommandModule
     public load(): CommandModule {
-        const meta = getLaniaCommandMetadata(this);
+        // eslint-disable-next-line @typescript-eslint/ban-types
+        const constructor = this.constructor as Function;
+        const meta = Reflect.getMetadata(constructor, constructor);
         if (!meta) throw new Error(`Command metadata not found for ${this.constructor.name}`);
 
         const { actor: ActorCtor, commandNeededArgs, subcommands } = meta;

@@ -10,4 +10,5 @@ export * from './lib/plugins/commitizen.plugin';
 export * from './lib/plugins/commitlint.plugin';
 export * from './lib/plugins/i18n.plugin';
 export * from './lib/engines/ejs.engine';
+export * from './decorators';
 export const TEMPLATES_CONSTANTS = { SPA_REACT_TEMPLATE };
