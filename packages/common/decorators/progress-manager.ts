@@ -1,53 +1,91 @@
-// decorators/ProgressGroup.ts const PROGRESS_GROUP_KEY = '__progressGroup';
+import { ProgressManagerConfig, ScopedManager } from '@lania-cli/types';
+import { TaskProgressManager } from '../utils';
 
-import { TaskProgressManager } from '../utils/task-progress-manager';
+// 全局 Map：配置字符串 -> TaskProgressManager 单例
+const globalManagerMap = new Map<string, TaskProgressManager>();
 
-export function ProgressGroup(groupName: string) {
+const DEFAULT_CONFIG: ProgressManagerConfig = { useSpinner: true, useBar: false };
+
+function getGlobalManager(config: ProgressManagerConfig) {
+    const key = JSON.stringify(config);
+    if (!globalManagerMap.has(key)) {
+        globalManagerMap.set(key, new TaskProgressManager(config.useSpinner, config.useBar));
+    }
+    return globalManagerMap.get(key)!;
+}
+
+export function ProgressGroup(groupName: string, config: ProgressManagerConfig = DEFAULT_CONFIG) {
     // eslint-disable-next-line @typescript-eslint/ban-types
     return function (constructor: Function) {
-        constructor.prototype[PROGRESS_GROUP_KEY] = groupName;
+        constructor.prototype.__progressGroup = groupName;
+        constructor.prototype.__progressManagerInstance = getGlobalManager(config);
     };
 }
 
-// decorators/ProgressStep.ts import { TaskProgressManager } from '../core/TaskProgressManager';
+function createScopedManager(group: string, globalManager: TaskProgressManager): ScopedManager {
+    return {
+        increment: (amount = 1) => globalManager.increment(group, amount),
+        set: (completed) => globalManager.set(group, completed),
+        complete: () => globalManager.complete(group),
+        fail: (msg) => globalManager.fail(group, msg),
+        getProgress: () => globalManager.getProgress(group),
+        updateTotal: (total = 1) => globalManager.updateTotal(group, total),
+    };
+}
 
-const STEP_META_KEY = '__progressSteps';
-const PROGRESS_GROUP_KEY = '__progressGroup';
-
-type ProgressStepOptions = { total?: number; manual?: boolean };
-
-export function ProgressStep(stepName: string, options: number | ProgressStepOptions = {}) {
+export function ProgressStep(
+    stepName: string,
+    options: number | { total?: number; manual?: boolean } = {},
+) {
     const opts = typeof options === 'number' ? { total: options } : options;
 
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
         const original = descriptor.value;
 
         descriptor.value = async function (...args: any[]) {
-            const group = this[PROGRESS_GROUP_KEY] || 'UnnamedGroup';
-            const key = `${group}:${stepName}`;
-            const manager: TaskProgressManager =
-                this.__progressManager ||
-                (this.__progressManager = new TaskProgressManager(true, false));
+            const group = this.__progressGroup || this.constructor.name || 'UnnamedGroup';
+            const stepKey = `${group}:${stepName}`;
 
-            if (!opts.manual) {
-                manager.init(key, opts.total ?? 1);
+            const globalManager: TaskProgressManager = this.__progressManagerInstance;
+            if (!globalManager) {
+                throw new Error(
+                    'ProgressManager instance not found. Did you forget @ProgressGroup?',
+                );
             }
+
+            if (!this.__progressScopedMap)
+                this.__progressScopedMap = new Map<string, ScopedManager>();
+
+            if (!this.__progressScopedMap.has(stepKey)) {
+                this.__progressScopedMap.set(stepKey, createScopedManager(stepKey, globalManager));
+            }
+
+            this.__progressManager = this.__progressScopedMap.get(stepKey);
+
+            // 自动 init，默认 total=1
+            globalManager.init(stepKey, opts.total ?? 1);
+
+            let alreadyCompleted = false;
+            const originalComplete = this.__progressManager.complete;
+            this.__progressManager.complete = () => {
+                alreadyCompleted = true;
+                originalComplete();
+            };
 
             try {
                 const result = await original.apply(this, args);
-                if (!opts.manual) manager.complete(key);
+
+                if (!alreadyCompleted && !opts.manual) {
+                    this.__progressManager.complete();
+                }
+
                 return result;
             } catch (err) {
-                if (!opts.manual) manager.complete(key);
+                if (!alreadyCompleted && !opts.manual) {
+                    this.__progressManager.fail('Step failed');
+                }
                 throw err;
             }
         };
-
-        // 可选：保留 step 元信息（供其他工具使用）
-        if (!target[STEP_META_KEY]) {
-            target[STEP_META_KEY] = [];
-        }
-        target[STEP_META_KEY].push({ name: stepName, method: propertyKey });
     };
 }
-

@@ -6,15 +6,22 @@ export type SyncActionOptions = {
 };
 
 export interface SubMergeActionOptions {
-    mergedBranch?: string;
-    ff?: boolean;
+    branch?: string;
+    noFf?: boolean;
+    'no-ff'?: boolean;
     ffOnly?: boolean;
+    'ff-only'?: boolean;
     squash?: boolean;
-    commit?: boolean;
+    noCommit?: boolean;
+    'no-commit'?: boolean;
     abort?: boolean;
+    strategy?: string;
+    message?: string;
 }
 
-export type SubAddActionOptions = string[];
+export type SubAddActionOptions = {
+    files?: string[];
+};
 
 export interface SubCommitActionOptions {
     m?: string;

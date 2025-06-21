@@ -1,12 +1,14 @@
-import { CommandNeededArgsInterface, LaniaCommandMetadata } from '@lania-cli/types';
+import {
+    CommandNeededArgsInterface,
+    LaniaCommandActionInterface,
+    LaniaCommandMetadata,
+} from '@lania-cli/types';
 import { LaniaCommand } from '../utils';
 
-// 定义元数据 key
-export const META_COMMAND_CONFIG = Symbol('lania:command_config');
 export function LaniaCommandConfig(
-    actor: new (...args: any[]) => any,
+    actor: LaniaCommandActionInterface,
     commandNeededArgs: CommandNeededArgsInterface,
-    subcommands: (new (...args: any[]) => LaniaCommand)[] = [],
+    subcommands: LaniaCommand[] = [],
 ): ClassDecorator {
     // eslint-disable-next-line @typescript-eslint/ban-types
     return function (target: Function) {

@@ -76,8 +76,23 @@ class GitBranch extends Runner<'git'> {
         return [...local, ...remote].includes(branch);
     }
     // 合并一个分支
-    public async merge(branch: string, options: string[] = []) {
-        await this.run('merge', [...options, branch]);
+    public async merge(
+        branch: string,
+        {
+            flags = [],
+            strategy,
+            message,
+        }: { flags?: string[]; strategy?: string; message?: string } = {},
+    ) {
+        await this.run(
+            'merge',
+            [
+                branch,
+                strategy ? `-s ${strategy}` : '',
+                message ? `-m ${message}` : '',
+                ...flags,
+            ].filter(Boolean),
+        );
     }
     // 合并并解决冲突（自动合并）
     public async mergeNoFF(branch: string) {
@@ -89,6 +104,9 @@ class GitBranch extends Runner<'git'> {
     }
     public async cherryPick(commitHash: string) {
         await this.run('cherry-pick', [commitHash]);
+    }
+    public async continueCherryPick() {
+        await this.run('cherry-pick', ['--continue']);
     }
     public async abortCurrentCherryPick() {
         await this.run('cherry-pick', ['--abort']);
@@ -178,8 +196,9 @@ class GitStage extends Runner<'git'> {
         return output.split('\n').filter(Boolean);
     }
     // 添加文件到暂存区
-    public async add(file: string) {
-        await this.run('add', [file]);
+    public async add(files: string | string[]) {
+        const normalizedFiles = typeof files === 'string' ? [files] : files;
+        await this.run('add', [normalizedFiles.join(' ')]);
     }
     public async addAllFiles() {
         await this.add('.');
