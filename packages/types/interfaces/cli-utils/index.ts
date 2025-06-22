@@ -51,7 +51,7 @@ export type ProgressInfo = {
 export type ProgressCallback = (info: ProgressInfo) => void;
 
 
-export type ProgressManagerConfig = { useSpinner: boolean; useBar: boolean };
+export type ProgressManagerConfig = { type: 'spinner' | 'bar' };
 
 // 限制对外只暴露当前分组的方法（TS提示报错），禁止访问 completeAll 等全局方法
 export type ScopedManager = {
@@ -61,4 +61,5 @@ export type ScopedManager = {
     fail(message?: string): void;
     getProgress(): ProgressInfo | null;
     updateTotal: (total: number) => void;
+    init: (total?: number) => void;
 };

@@ -17,9 +17,10 @@ import {
     LaniaCommandActionInterface,
     SubAddActionOptions,
     SubCommitActionOptions,
+    ScopedManager,
 } from '@lania-cli/types';
 
-@ProgressGroup('git:add') // 声明这个类属于哪个进度组
+@ProgressGroup('lania:sync:add', { type: 'spinner' }) // 声明这个类属于哪个进度组
 class AddAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
     private git = new GitRunner();
     @ProgressStep('add-files', { total: 1 }) // 手动进度控制
@@ -31,9 +32,7 @@ class AddAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
             await this.git.stage.addAllFiles();
             return;
         }
-        for (const file of files) {
-            await this.git.stage.add(file);
-        }
+        await this.git.stage.add(files);
     }
 }
 @LaniaCommandConfig(new AddAction(), {
@@ -43,9 +42,10 @@ class AddAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
     helpDescription: 'display help for command.',
 })
 class AddCommand extends LaniaCommand {}
-
+@ProgressGroup('lania:sync:merge', { type: 'spinner' })
 class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]> {
     private git: GitRunner = new GitRunner();
+    @ProgressStep('merge-branch', { total: 1 })
     async handle(options: SubMergeActionOptions = {}): Promise<void> {
         const { branch: selectedBranch, message, strategy, ...rest } = options;
         const promptBranch = await this.getPromptBranch(selectedBranch);
@@ -62,13 +62,10 @@ class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]
             }
             return acc;
         }, [] as string[]);
-        const taskProgressManager = new TaskProgressManager(true, false);
-        taskProgressManager.init(`merge from branch: ${promptBranch}`, 1);
         const [err] = await to(this.git.branch.merge(promptBranch, { flags, strategy, message }));
         if (err) {
             throw err;
         }
-        taskProgressManager.completeAll();
     }
 
     private async getPromptBranch(selectedBranch?: string) {
@@ -156,10 +153,11 @@ class CommitAction implements LaniaCommandActionInterface<[SubCommitActionOption
 })
 class CommitCommand extends LaniaCommand {}
 
+@ProgressGroup('lania:sync', { type: 'spinner' })
 class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     private git = new GitRunner();
+    private __progressManager: ScopedManager;
     public async handle(options: SyncActionOptions) {
-        console.log({ options });
         const isInstalled = await this.git.git.isInstalled();
         if (!isInstalled) {
             throw new Error('Please install Git first!');
@@ -207,6 +205,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         await this.git.workspace.commit(commitMessage);
         await this.handlePush(remote, branch);
     }
+    @ProgressStep('push-code', { total: 1, manual: true })
     private async handlePush(remote?: string, branch?: string) {
         const promptRemote = await this.getPromptRemote(remote);
         if (!promptRemote) {
@@ -216,9 +215,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         if (!promptBranch) {
             throw new Error('Please select a branch you will push!');
         }
-
-        const taskProgressManager = new TaskProgressManager(true, false);
-        taskProgressManager.init(`Push code: ${promptBranch}`, 1);
+        this.__progressManager.init();
         const [err] = await to<void, Error>(
             (async () => {
                 const needsSetUpstream = await this.git.branch.needSetUpstream();
@@ -230,7 +227,8 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         if (!err) {
             throw err;
         }
-        taskProgressManager.completeAll();
+        // this.__progressManager.increment();
+        this.__progressManager.complete();
     }
     private async getPromptBranch(selectedBranch?: string) {
         const branches = await this.git.branch.listLocal();

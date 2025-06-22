@@ -142,14 +142,12 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
                         const isNo = option.flags.startsWith('--no-');
                         const overrideNoPrefixParsing =
                             option.overrideNoPrefixParsing ?? commandOverrideNoPrefixParsing;
-                        const key = isNo ? `no-${rawKey}` : rawKey;
-                        if (overrideNoPrefixParsing) {
+                        if (overrideNoPrefixParsing && isNo) {
+                            const key = isNo ? `no-${rawKey}` : rawKey;
                             const cameKey = camelCase(key);
-                            if (isNo) {
-                                acc[cameKey] = !acc[rawKey];
-                                acc[rawKey] = acc[cameKey];
-                                acc[key] = acc[cameKey];
-                            }
+                            acc[cameKey] = !acc[rawKey];
+                            acc[rawKey] = acc[cameKey];
+                            acc[key] = acc[cameKey];
                         }
                         return acc;
                     }, argv);
@@ -158,8 +156,7 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
                     await this.hooks.afterExecute?.();
                 } catch (err) {
                     await this.hooks.onError?.();
-                    logger.error(err instanceof Error ? err.stack || err.message : String(err));
-                    process.exit(1);
+                    throw err;
                 }
             },
         };
@@ -190,7 +187,7 @@ export const registerCommands = (name: string, version: string, commands?: Lania
         .help('help', '显示帮助信息')
         .alias('h', 'help')
         .alias('v', 'version')
-        .showHelpOnFail(true, '(使用 --help 查看可用选项)');
+        .showHelpOnFail(false);
 
     commands?.forEach((command) => {
         cli = cli.command(command.load());

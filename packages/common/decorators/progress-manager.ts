@@ -4,12 +4,12 @@ import { TaskProgressManager } from '../utils';
 // 全局 Map：配置字符串 -> TaskProgressManager 单例
 const globalManagerMap = new Map<string, TaskProgressManager>();
 
-const DEFAULT_CONFIG: ProgressManagerConfig = { useSpinner: true, useBar: false };
+const DEFAULT_CONFIG: ProgressManagerConfig = { type: 'spinner' };
 
 function getGlobalManager(config: ProgressManagerConfig) {
     const key = JSON.stringify(config);
     if (!globalManagerMap.has(key)) {
-        globalManagerMap.set(key, new TaskProgressManager(config.useSpinner, config.useBar));
+        globalManagerMap.set(key, new TaskProgressManager(config.type));
     }
     return globalManagerMap.get(key)!;
 }
@@ -30,12 +30,13 @@ function createScopedManager(group: string, globalManager: TaskProgressManager):
         fail: (msg) => globalManager.fail(group, msg),
         getProgress: () => globalManager.getProgress(group),
         updateTotal: (total = 1) => globalManager.updateTotal(group, total),
+        init: (total = 1) => globalManager.init(group, total),
     };
 }
 
 export function ProgressStep(
     stepName: string,
-    options: number | { total?: number; manual?: boolean } = {},
+    options: number | { total?: number; manual?: boolean; } = {},
 ) {
     const opts = typeof options === 'number' ? { total: options } : options;
 
@@ -63,7 +64,7 @@ export function ProgressStep(
             this.__progressManager = this.__progressScopedMap.get(stepKey);
 
             // 自动 init，默认 total=1
-            globalManager.init(stepKey, opts.total ?? 1);
+            !opts?.manual && globalManager.init(stepKey, opts.total ?? 1);
 
             let alreadyCompleted = false;
             const originalComplete = this.__progressManager.complete;
