@@ -67,7 +67,7 @@ export function ProgressStep(
             !opts?.manual && globalManager.init(stepKey, opts.total ?? 1);
 
             let alreadyCompleted = false;
-            const originalComplete = this.__progressManager.complete;
+            const originalComplete = this.__progressManager.complete.bind(this.__progressManager)
             this.__progressManager.complete = () => {
                 alreadyCompleted = true;
                 originalComplete();
