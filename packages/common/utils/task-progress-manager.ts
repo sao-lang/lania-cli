@@ -50,7 +50,6 @@ export class TaskProgressManager {
     }
 
     public set(group: string, completed: number) {
-        console.log(2);
         if (this.failedGroups.has(group)) return;
         this.completedMap.set(group, completed);
 
@@ -59,10 +58,8 @@ export class TaskProgressManager {
     }
 
     public complete(group: string) {
-        console.log(0);
         if (this.failedGroups.has(group)) return;
         const total = this.totalMap.get(group);
-        console.log(1);
         if (total !== undefined) {
             this.set(group, total);
         }
@@ -148,7 +145,6 @@ export class TaskProgressManager {
     }
 
     private emit(group: string, info: ProgressInfo) {
-        console.log(3);
         // ✅ Spinner 更新
         if (this.useSpinner) {
             const spinner = this.spinners.get(group);

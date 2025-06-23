@@ -502,6 +502,9 @@ importers:
       '@types/webpack':
         specifier: ^5.28.5
         version: 5.28.5
+      inquirer:
+        specifier: ^8.2.5
+        version: 8.2.5
 
 packages:
 

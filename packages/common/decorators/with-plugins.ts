@@ -1,4 +1,4 @@
-type Plugin = Record<string, (...args: any[]) => any>;
+type Plugin = Record<string, any>;
 type ConflictStrategy = 'error' | 'warn' | 'rename';
 
 interface PluginOptions {
@@ -22,24 +22,40 @@ function isPlainObject(obj: any): obj is Plugin {
     return obj && obj.constructor === Object;
 }
 
-function extractPluginMethods(instance: object): Plugin {
-    const methods: Plugin = {};
+function extractPluginProperties(instance: object): Plugin {
+    const result: Plugin = {};
     const proto = Object.getPrototypeOf(instance);
 
+    // 原型上的方法 & getter/setter
     for (const key of Object.getOwnPropertyNames(proto)) {
         if (key === 'constructor') continue;
-        const value = (proto as any)[key];
-        if (typeof value === 'function') {
-            methods[key] = value.bind(instance);
+
+        const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+        if (!descriptor) continue;
+
+        if (typeof descriptor.value === 'function') {
+            result[key] = descriptor.value.bind(instance);
+        } else {
+            Object.defineProperty(result, key, {
+                get: descriptor.get?.bind(instance),
+                set: descriptor.set?.bind(instance),
+                enumerable: descriptor.enumerable,
+                configurable: descriptor.configurable,
+            });
         }
     }
 
-    return methods;
+    // 实例字段（非函数）
+    for (const key of Object.keys(instance)) {
+        if (!(key in result)) {
+            result[key] = (instance as any)[key];
+        }
+    }
+
+    return result;
 }
 
-export function WithPlugins<T extends object[]>(
-    ...args: [...T] | [T[], PluginOptions?] | [...T, PluginOptions]
-) {
+export function WithPlugins<T extends object[]>(...args: [...T] | [T[], PluginOptions?] | [...T, PluginOptions]) {
     let plugins: object[] = [];
     let options: PluginOptions = { conflict: 'error' };
 
@@ -64,42 +80,28 @@ export function WithPlugins<T extends object[]>(
                 super(...args);
 
                 for (const plugin of plugins) {
-                    const pluginMethods = isPlainObject(plugin)
-                        ? (plugin as Plugin)
-                        : extractPluginMethods(plugin);
+                    const pluginProps = isPlainObject(plugin)
+                        ? plugin
+                        : extractPluginProperties(plugin);
 
-                    for (const key of Object.keys(pluginMethods)) {
-                        if (key in this) {
+                    for (const key of Object.keys(pluginProps)) {
+                        const hasKey = key in this;
+                        if (hasKey) {
                             if (options.conflict === 'error') {
-                                throw new Error(
-                                    `Plugin conflict: "${key}" already exists on ${this.constructor.name}`,
-                                );
+                                throw new Error(`Plugin conflict: "${key}" already exists on ${this.constructor.name}`);
                             } else if (options.conflict === 'warn') {
-                                console.warn(
-                                    `Warning: Plugin method "${key}" overrides existing method`,
-                                );
+                                console.warn(`Warning: Plugin property "${key}" overrides existing value`);
                             } else if (options.conflict === 'rename') {
                                 const newKey = `plugin_${key}`;
-                                (this as any)[newKey] = pluginMethods[key];
+                                (this as any)[newKey] = pluginProps[key];
                                 continue;
                             }
                         }
 
-                        (this as any)[key] = pluginMethods[key];
+                        (this as any)[key] = pluginProps[key];
                     }
                 }
             }
         };
     };
 }
-
-class A {
-    sayHello() {}
-}
-
-@WithPlugins([new A()])
-class B {}
-
-const b = new B() as WithPluginInstance<typeof B, [A]>;;
-b.sayHello();
-

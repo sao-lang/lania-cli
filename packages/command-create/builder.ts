@@ -3,7 +3,7 @@ import {
     EjsRenderer,
     PackageManagerFactory,
     TaskProgressManager,
-    CLIInteraction,
+    CliInteraction,
 } from '@lania-cli/common';
 import { SpaReactTemplate, TemplateFactory } from '@lania-cli/templates';
 import latestVersion from 'latest-version';
@@ -15,7 +15,7 @@ export class Builder {
     private template: SpaReactTemplate;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
-        const { template } = await new CLIInteraction()
+        const { template } = await new CliInteraction()
             .addQuestion({
                 type: 'list',
                 message: 'Please select project template:',
@@ -25,7 +25,7 @@ export class Builder {
             .execute();
         this.template = TemplateFactory.create(template);
         const choices = this.template.createPromptQuestions(options);
-        const answers = await new CLIInteraction().addQuestions(choices as any).execute();
+        const answers = await new CliInteraction().addQuestions(choices as any).execute();
         return answers;
     }
     private async getDependencies(options: TemplateOptions) {

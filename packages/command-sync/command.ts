@@ -4,9 +4,8 @@ import {
     CommitizenPlugin,
     CommitlintPlugin,
     logger,
-    TaskProgressManager,
     to,
-    CLIInteraction,
+    CliInteraction,
     LaniaCommandConfig,
     ProgressGroup,
     ProgressStep,
@@ -18,6 +17,8 @@ import {
     SubAddActionOptions,
     SubCommitActionOptions,
     ScopedManager,
+    Question,
+    Context,
 } from '@lania-cli/types';
 
 @ProgressGroup('lania:sync:add', { type: 'spinner' }) // 声明这个类属于哪个进度组
@@ -71,7 +72,7 @@ class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]
     private async getPromptBranch(selectedBranch?: string) {
         const branches = await this.git.branch.listLocal();
         if (!selectedBranch) {
-            const { branch: promptBranch } = await new CLIInteraction()
+            const { branch: promptBranch } = await new CliInteraction()
                 .addQuestion({
                     name: 'branch',
                     message: 'Please select the branch you will merge:',
@@ -135,9 +136,14 @@ class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]
 })
 class MergeCommand extends LaniaCommand {}
 
+@ProgressGroup('lania:commit', { type: 'spinner' })
 class CommitAction implements LaniaCommandActionInterface<[SubCommitActionOptions]> {
+    private git: GitRunner = new GitRunner();
+    @ProgressStep('commit-msg', { total: 1, manual: true })
     async handle(options: SubCommitActionOptions = {}) {
-        console.log(options, 'options');
+        if (!options.message) {
+            throw new Error('Please enter the message you want to commit.');
+        }
     }
 }
 @LaniaCommandConfig(new CommitAction(), {
@@ -224,23 +230,20 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
                     : await this.git.remote.push(promptRemote, promptBranch);
             })(),
         );
-        if (!err) {
+        if (err) {
             throw err;
         }
-        // this.__progressManager.increment();
         this.__progressManager.complete();
     }
     private async getPromptBranch(selectedBranch?: string) {
         const branches = await this.git.branch.listLocal();
         if (!selectedBranch) {
-            const { branch: promptBranch } = await new CLIInteraction()
-                .addQuestion({
-                    name: 'branch',
-                    message: 'Please select the branch you will push:',
-                    choices: branches.map((branch) => ({ name: branch, value: branch })),
-                    type: 'list',
-                })
-                .execute();
+            const { branch: promptBranch } = await this.promptInteraction({
+                name: 'branch',
+                message: 'Please select the branch you will push:',
+                choices: branches.map((branch) => ({ name: branch, value: branch })),
+                type: 'list',
+            });
             return promptBranch as string;
         }
         if (!branches.find((branch) => branch === selectedBranch)) {
@@ -254,14 +257,12 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             throw new Error('You haven\'t added a remote yet');
         }
         if (!selectedRemote) {
-            const { remote: promptRemote } = await new CLIInteraction()
-                .addQuestion({
-                    name: 'remote',
-                    message: 'Please select the remote you will push:',
-                    choices: remotes.map(({ name }) => ({ name, value: name })),
-                    type: 'list',
-                })
-                .execute();
+            const { remote: promptRemote } = await this.promptInteraction({
+                name: 'remote',
+                message: 'Please select the remote you will push:',
+                choices: remotes.map(({ name }) => ({ name, value: name })),
+                type: 'list',
+            });
             return promptRemote as string;
         }
         if (!remotes.find(({ name }) => name === selectedRemote)) {
@@ -271,16 +272,17 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     }
     private async getPromptMessage(inputMessage?: string) {
         if (!inputMessage) {
-            const { message } = await await new CLIInteraction()
-                .addQuestion({
-                    name: 'message',
-                    message: 'Please input the message you will commit:',
-                    type: 'input',
-                })
-                .execute();
+            const { message } = await this.promptInteraction({
+                name: 'message',
+                message: 'Please input the message you will commit:',
+                type: 'input',
+            });
             return message;
         }
         return inputMessage;
+    }
+    private async promptInteraction(question: Question<Context>) {
+        return await new CliInteraction().addQuestion(question).execute();
     }
 }
 
@@ -300,13 +302,3 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     [new MergeCommand(), new AddCommand(), new CommitCommand()],
 )
 export class SyncCommand extends LaniaCommand {}
-
-// class CheckoutAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
-//     async handle() {}
-// }
-
-// @LaniaCommandConfig(CheckoutAction, {
-//     name: 'checkout',
-//     description: 'One-click operation of git push code.',
-// })
-// class CheckoutCommand extends LaniaCommand {}

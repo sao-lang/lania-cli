@@ -1,50 +1,7 @@
+import { CliOptions, Question } from '@lania-cli/types';
+import { Answer, Context } from '@lania-cli/types';
 import inquirer from 'inquirer';
-import { Question as InquirerQuestion } from 'inquirer';
-
-// ---------- 类型定义 ----------
-
-export type QuestionType = 'input' | 'confirm' | 'list' | 'expand' | 'password' | 'editor';
-export type Answer = Record<string, any>;
-export type Context = Record<string, any>;
-
-export interface Question<TCtx extends Context = Context>
-    extends Omit<InquirerQuestion, 'type' | 'validate' | 'default' | 'when' | 'message'> {
-    type: QuestionType;
-    returnable?: boolean;
-    timeout?: number;
-    choices?: (
-        | {
-              name: string;
-              value: string;
-          }
-        | string
-    )[];
-    validate?: (
-        input: any,
-        answers: Answer,
-        context: TCtx,
-    ) => Promise<boolean | string> | boolean | string;
-    goto?: string | ((answers: Answer, ctx: TCtx) => string | undefined);
-    when?: boolean | ((answers: Answer, ctx: TCtx) => boolean);
-    default?: any | ((answers: Answer, ctx: TCtx) => any);
-    message?: string | ((answers: Answer, ctx: TCtx) => string);
-}
-
-export interface CLIOptions<TCtx extends Context = Context> {
-    context?: TCtx;
-    debug?: boolean;
-    i18n?: Record<string, string>;
-    mapFunction?: (data: Answer, ctx: TCtx) => any;
-    onAnswered?: (
-        question: Question<TCtx>,
-        value: any,
-        answers: Answer,
-        context: TCtx,
-        cli: CLIInteraction<TCtx>,
-    ) => void;
-}
-
-// ---------- 工具函数 ----------
+import { logger } from './logger';
 
 function resolve<T, C extends Context>(
     value: T | ((answers: Answer, ctx: C) => T),
@@ -56,32 +13,30 @@ function resolve<T, C extends Context>(
         : value;
 }
 
-export const BACK_SIGNAL = '__BACK__';
-export const EXIT_SIGNAL = '__EXIT__';
+const BACK_SIGNAL = '__BACK__';
+const EXIT_SIGNAL = '__EXIT__';
 
-// ---------- 主类实现 ----------
-
-export class CLIInteraction<TCtx extends Context = Context> {
+export class CliInteraction<TCtx extends Context = Context> {
     private questions: Question<TCtx>[] = [];
-    private options: CLIOptions<TCtx>;
+    private options: CliOptions<TCtx>;
     private context: TCtx;
 
-    constructor(options?: CLIOptions<TCtx>) {
+    constructor(options?: CliOptions<TCtx>) {
         this.options = options || {};
         this.context = this.options.context || ({} as TCtx);
     }
 
-    addQuestion(q: Question<TCtx>): this {
+    public addQuestion(q: Question<TCtx>): this {
         this.questions.push(q);
         return this;
     }
 
-    addQuestions(qs: Question<TCtx>[]): this {
+    public addQuestions(qs: Question<TCtx>[]): this {
         this.questions.push(...qs);
         return this;
     }
 
-    insertQuestions(
+    public insertQuestions(
         questions: Question<TCtx>[],
         options: { after?: string; before?: string },
     ): void {
@@ -99,11 +54,11 @@ export class CLIInteraction<TCtx extends Context = Context> {
         this.questions.splice(index, 0, ...questions);
     }
 
-    updateContext(ctx: Partial<TCtx>): void {
+    public updateContext(ctx: Partial<TCtx>): void {
         this.context = { ...this.context, ...ctx };
     }
 
-    async execute(): Promise<Answer> {
+    public async execute(): Promise<Answer> {
         const answers: Answer = {};
         let step = 0;
 
@@ -129,7 +84,7 @@ export class CLIInteraction<TCtx extends Context = Context> {
             const value = result[q.name];
 
             if (value === EXIT_SIGNAL) {
-                console.log('用户中止流程');
+                logger.log('用户中止流程');
                 return answers;
             }
 
@@ -153,7 +108,7 @@ export class CLIInteraction<TCtx extends Context = Context> {
                     step = targetIdx;
                     continue;
                 } else if (this.options.debug) {
-                    console.warn(`无法跳转，未找到问题: ${goto}`);
+                    logger.warn(`无法跳转，未找到问题: ${goto}`);
                 }
             }
 
@@ -192,7 +147,7 @@ export class CLIInteraction<TCtx extends Context = Context> {
 
         const timeout = new Promise<Answer>((resolve) => {
             setTimeout(() => {
-                console.warn(`\n超时跳过，使用默认值: ${question.default}`);
+                logger.warn(`\n超时跳过，使用默认值: ${question.default}`);
                 resolve({ [question.name]: resolve(question.default) });
             }, timeoutSec * 1000);
         });

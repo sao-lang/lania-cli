@@ -8,12 +8,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/rollup": "^0.54.0",
-    "@types/webpack": "^5.28.5"
+    "@types/webpack": "^5.28.5",
+    "inquirer": "^8.2.5"
   }
 }

@@ -24,5 +24,5 @@ export type SubAddActionOptions = {
 };
 
 export interface SubCommitActionOptions {
-    m?: string;
+    message?: string;
 }
