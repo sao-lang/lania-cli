@@ -145,24 +145,84 @@ export const DEFAULT_GSYNC_NORMATIVELY_RULES = [
 ];
 
 export const ADD_COMMAND_SUPPORT_TEMPLATES = {
-    v2: AddCommandSupportTemplate.v2,
-    vue: AddCommandSupportTemplate.vue,
-    v3: AddCommandSupportTemplate.v3,
-    rcc: AddCommandSupportTemplate.rcc,
-    rfc: AddCommandSupportTemplate.rfc,
-    svelte: AddCommandSupportTemplate.svelte,
-    jsx: AddCommandSupportTemplate.jsx,
-    tsx: AddCommandSupportTemplate.tsx,
-    astro: AddCommandSupportTemplate.astro,
-    axios: AddCommandSupportTemplate.axios,
-    router: AddCommandSupportTemplate.router,
-    store: AddCommandSupportTemplate.store,
-    prettier: AddCommandSupportTemplate.prettier,
-    eslint: AddCommandSupportTemplate.eslint,
-    stylelint: AddCommandSupportTemplate.stylelint,
-    editorconfig: AddCommandSupportTemplate.editorconfig,
-    gitignore: AddCommandSupportTemplate.gitignore,
-    tsconfig: AddCommandSupportTemplate.tsconfig,
-    commitlint: AddCommandSupportTemplate.commitlint,
-    commitizen: AddCommandSupportTemplate.commitizen,
+    v2: {
+        value: AddCommandSupportTemplate.v2,
+        label: 'vue2模板组件',
+    },
+    v3: {
+        value: AddCommandSupportTemplate.v3,
+        label: 'vue3模板组件',
+    },
+    rcc: {
+        value: AddCommandSupportTemplate.rcc,
+        label: 'react类组件',
+    },
+    rfc: {
+        value: AddCommandSupportTemplate.rfc,
+        label: 'react函数式组件',
+    },
+    svelte: {
+        value: AddCommandSupportTemplate.svelte,
+        label: 'svelte模板组件',
+    },
+    jsx: {
+        value: AddCommandSupportTemplate.jsx,
+        label: 'jsx文件',
+    },
+    tsx: {
+        value: AddCommandSupportTemplate.tsx,
+        label: 'tsx文件',
+    },
+    astro: {
+        value: AddCommandSupportTemplate.astro,
+        label: 'astro组件',
+    },
+    axios: {
+        value: AddCommandSupportTemplate.axios,
+        label: 'axios封装',
+    },
+    router: {
+        value: AddCommandSupportTemplate.router,
+        label: '项目路由封装',
+    },
+    store: {
+        value: AddCommandSupportTemplate.store,
+        label: '项目状态管理工具封装',
+    },
+    prettier: {
+        value: AddCommandSupportTemplate.prettier,
+        label: 'prettier配置文件',
+    },
+    eslint: {
+        value: AddCommandSupportTemplate.eslint,
+        label: 'eslint配置文件',
+    },
+    stylelint: {
+        value: AddCommandSupportTemplate.stylelint,
+        label: 'stylelint配置文件',
+    },
+    editorconfig: {
+        value: AddCommandSupportTemplate.editorconfig,
+        label: 'editorconfig配置文件',
+    },
+    gitignore: {
+        value: AddCommandSupportTemplate.gitignore,
+        label: '.gitignore文件'
+    },
+    tsconfig: {
+        value: AddCommandSupportTemplate.tsconfig,
+        label: 'tsconfig配置文件'
+    },
+    commitlint: {
+        value: AddCommandSupportTemplate.commitlint,
+        label: 'commitlint配置文件'
+    },
+    commitizen: {
+        value: AddCommandSupportTemplate.commitizen,
+        label: 'commitizen配置文件'
+    },
+    packageJson: {
+        value: AddCommandSupportTemplate.packageJson,
+        label: 'package.json文件'
+    }
 };

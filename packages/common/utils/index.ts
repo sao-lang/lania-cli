@@ -8,3 +8,4 @@ export * from './file';
 export * from './dir';
 export * from './command.new';
 export * from './config';
+export * from './define-enum-map';

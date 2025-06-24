@@ -52,7 +52,7 @@ export class Builder {
         this.options.port = await getPort();
         const tasks = await this.template.createOutputTasks(options);
         const engine = new EjsRenderer();
-        const taskProgressManager = new TaskProgressManager(true, false);
+        const taskProgressManager = new TaskProgressManager('spinner');
         taskProgressManager.init('OutputFiles', tasks.length);
         for (const task of tasks) {
             // eslint-disable-next-line prefer-const
@@ -75,7 +75,7 @@ export class Builder {
         }
     }
     private async downloadDependencies() {
-        const taskProgressManager = new TaskProgressManager(true, false);
+        const taskProgressManager = new TaskProgressManager('spinner');
         taskProgressManager.init('DownloadDependencies', 1);
         const packageManager = await PackageManagerFactory.create(this.options.packageTool as any);
         const [installErr] = await to(packageManager.install({ silent: true }));
@@ -85,7 +85,7 @@ export class Builder {
         taskProgressManager.increment('DownloadDependencies', 1);
     }
     public async build(options: CreateCommandOptions) {
-        const taskProgressManager = new TaskProgressManager(true, false);
+        const taskProgressManager = new TaskProgressManager('spinner');
         taskProgressManager.init('Build', 1);
         const answers = (await this.prompt(options)) as any;
         this.options = {

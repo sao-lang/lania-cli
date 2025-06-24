@@ -79,7 +79,6 @@ export enum StoreManagementToolEnum {
 
 export enum AddCommandSupportTemplate {
     v2 = 'v2',
-    vue = 'vue',
     v3 = 'v3',
     rcc = 'rcc',
     rfc = 'rfc',
@@ -98,6 +97,7 @@ export enum AddCommandSupportTemplate {
     tsconfig = 'tsconfig',
     commitlint = 'commitlint',
     commitizen = 'commitizen',
+    packageJson = 'packageJson'
 }
 
 export enum HttpToolEnum {

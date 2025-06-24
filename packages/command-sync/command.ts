@@ -9,6 +9,7 @@ import {
     LaniaCommandConfig,
     ProgressGroup,
     ProgressStep,
+    simplePromptInteraction,
 } from '@lania-cli/common';
 import {
     SyncActionOptions,
@@ -238,7 +239,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     private async getPromptBranch(selectedBranch?: string) {
         const branches = await this.git.branch.listLocal();
         if (!selectedBranch) {
-            const { branch: promptBranch } = await this.promptInteraction({
+            const { branch: promptBranch } = await simplePromptInteraction({
                 name: 'branch',
                 message: 'Please select the branch you will push:',
                 choices: branches.map((branch) => ({ name: branch, value: branch })),
@@ -257,7 +258,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             throw new Error('You haven\'t added a remote yet');
         }
         if (!selectedRemote) {
-            const { remote: promptRemote } = await this.promptInteraction({
+            const { remote: promptRemote } = await simplePromptInteraction({
                 name: 'remote',
                 message: 'Please select the remote you will push:',
                 choices: remotes.map(({ name }) => ({ name, value: name })),
@@ -272,7 +273,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     }
     private async getPromptMessage(inputMessage?: string) {
         if (!inputMessage) {
-            const { message } = await this.promptInteraction({
+            const { message } = await simplePromptInteraction({
                 name: 'message',
                 message: 'Please input the message you will commit:',
                 type: 'input',
@@ -280,9 +281,6 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             return message;
         }
         return inputMessage;
-    }
-    private async promptInteraction(question: Question<Context>) {
-        return await new CliInteraction().addQuestion(question).execute();
     }
 }
 
