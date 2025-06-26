@@ -147,15 +147,15 @@ export const DEFAULT_GSYNC_NORMATIVELY_RULES = [
 export const ADD_COMMAND_SUPPORT_TEMPLATES = {
     v2: {
         value: AddCommandSupportTemplate.v2,
-        label: 'vue2模板组件',
+        label: 'vue2模板组件'
     },
     v3: {
         value: AddCommandSupportTemplate.v3,
-        label: 'vue3模板组件',
+        label: 'vue3模板组件'
     },
     rcc: {
         value: AddCommandSupportTemplate.rcc,
-        label: 'react类组件',
+        label: 'react类组件'
     },
     rfc: {
         value: AddCommandSupportTemplate.rfc,
@@ -207,22 +207,22 @@ export const ADD_COMMAND_SUPPORT_TEMPLATES = {
     },
     gitignore: {
         value: AddCommandSupportTemplate.gitignore,
-        label: '.gitignore文件'
+        label: '.gitignore文件',
     },
     tsconfig: {
         value: AddCommandSupportTemplate.tsconfig,
-        label: 'tsconfig配置文件'
+        label: 'tsconfig配置文件',
     },
     commitlint: {
         value: AddCommandSupportTemplate.commitlint,
-        label: 'commitlint配置文件'
+        label: 'commitlint配置文件',
     },
     commitizen: {
         value: AddCommandSupportTemplate.commitizen,
-        label: 'commitizen配置文件'
+        label: 'commitizen配置文件',
     },
     packageJson: {
         value: AddCommandSupportTemplate.packageJson,
-        label: 'package.json文件'
-    }
+        label: 'package.json文件',
+    },
 };

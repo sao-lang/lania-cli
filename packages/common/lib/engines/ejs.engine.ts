@@ -1,8 +1,7 @@
 import { writeFile } from 'fs/promises';
 import { dirname } from 'path';
 import ejs from 'ejs';
-import { mkDirs } from '../../utils/dir';
-import { getFileExt } from '../../utils/file';
+import { mkDirs, getFileExt } from '../../utils';
 import { PrettierSupportFileType } from '@lania-cli/types';
 import path from 'path';
 import fs from 'fs/promises';

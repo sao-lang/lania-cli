@@ -2,22 +2,24 @@ import {
     ADD_COMMAND_SUPPORT_TEMPLATES,
     LaniaCommand,
     LaniaCommandConfig,
+    getLanConfig,
+    mkDirs,
     simplePromptInteraction,
 } from '@lania-cli/common';
+import {
+    splitDirectoryAndFileName,
+    isUnixAbsoluteDirPath,
+    isUnixAbsoluteFilePath,
+} from '@lania-cli/common';
 import { defineEnumMap } from '@lania-cli/common';
-
+import { AddCommandOptions, LangEnum, LaniaCommandActionInterface } from '@lania-cli/types';
+import { writeFile } from 'fs/promises';
 class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     private templatesSet = defineEnumMap(ADD_COMMAND_SUPPORT_TEMPLATES);
-    async handle({ template, filepath }: AddCommandOptions = {}) {
-        // filepath = filepath || process.cwd();
-        // template =
-        //     template ||
-        //     (ADD_COMMAND_SUPPORT_TEMPLATES.rfc as keyof typeof ADD_COMMAND_SUPPORT_TEMPLATES);
-        // if (!ADD_COMMAND_SUPPORT_TEMPLATES[template]) {
-        //     throw new Error('Invalid template!');
-        // }
-        // console.log({ options });
-        const finalTemp = await this.getPromptTemplate(template);
+    async handle({ template, filepath = process.cwd() }: AddCommandOptions = {}) {
+        const tmp = await this.getPromptTemplate(template);
+        const path = await this.getPromptFilepath(filepath);
+        await this.generateFiles(path, tmp);
     }
     private async getPromptTemplate(template?: string) {
         if (template) {
@@ -39,8 +41,33 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
             throw new Error('Please select a template!');
         }
     }
+    private async getPromptFilepath(filepath: string) {
+        filepath =
+            filepath ||
+            (
+                await simplePromptInteraction({
+                    type: 'input',
+                    name: 'filepath',
+                    message:
+                        'Please enter the filepath(example: /src/pages or /src/pages/test/index.tsx):',
+                })
+            )?.filepath;
+        if (!isUnixAbsoluteFilePath(filepath) || !isUnixAbsoluteDirPath(filepath)) {
+            throw new Error(
+                'Please enter a valid directory or file path, such as: /src/pages or /src/pages/test/index.tsx',
+            );
+        }
+        return filepath;
+    }
+    private async generateFiles(filepath: string, template: string) {
+        const { baseName, directoryPath } = splitDirectoryAndFileName(filepath);
+        const { language = LangEnum.TypeScript } = await getLanConfig();
+        const content = '112';
+        await mkDirs(directoryPath);
+        await writeFile(`${directoryPath}/${baseName}`, content, 'utf-8');
+    }
+    private getFileBasename() {}
 }
-import { AddCommandOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
 @LaniaCommandConfig(new AddAction(), {
     name: 'add',
