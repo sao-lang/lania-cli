@@ -24,11 +24,14 @@ export const isUnixAbsoluteDirPath = (p: string) => {
     if (!p.startsWith('/') || p.includes('\\')) return false;
     // eslint-disable-next-line no-control-regex
     if (/\x00/.test(p)) return false;
+
+    // 特殊处理根目录
+    if (p === '/') return true;
+
     const segments = p.split('/');
-    if (segments.some((seg) => seg === '')) return false; // 不允许连续斜杠或末尾斜杠导致空段
-    const lastSegment = segments[segments.length - 1];
-    // 目录不能有扩展名（简单判断有无 . ）
-    if (lastSegment.includes('.')) return false;
+    // 忽略第一个空段（由起始斜杠产生），只检查后续段
+    if (segments.slice(1).some((seg) => seg === '')) return false;
+
     return true;
 };
 
@@ -39,13 +42,14 @@ export const isUnixAbsoluteFilePath = (p: string) => {
     if (/\x00/.test(p)) return false;
 
     const segments = p.split('/');
-    if (segments.some((seg) => seg === '')) return false;
+    // 忽略第一个空段（由起始斜杠产生），只检查后续段
+    if (segments.slice(1).some((seg) => seg === '')) return false;
 
     const lastSegment = segments[segments.length - 1];
-    // 文件必须有扩展名，且不能以 . 开头（排除隐藏文件）
-    const dotIndex = lastSegment.lastIndexOf('.');
-    if (dotIndex <= 0 || dotIndex === lastSegment.length - 1) return false;
-
+    // 允许隐藏文件，只需确保有点号且不以点号结尾
+    if (!lastSegment.includes('.') || lastSegment.endsWith('.')) {
+        return false;
+    }
     return true;
 };
 

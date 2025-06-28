@@ -75,8 +75,8 @@ export function defineEnumMap<T extends EnumMap>(enumMap: T): EnumHelper<T> {
             function build(items: EnumItem[]): BuildOption<LK, VK>[] {
                 return items.map((item) => {
                     const option = {
-                        [labelKey]: item[labelKey],
-                        [valueKey]: item[valueKey],
+                        [labelKey]: item?.label,
+                        [valueKey]: item?.value,
                     } as BuildOption<LK, VK>;
 
                     if (item.children?.length) {

@@ -16,7 +16,7 @@ import { AddCommandOptions, LangEnum, LaniaCommandActionInterface } from '@lania
 import { writeFile } from 'fs/promises';
 class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     private templatesSet = defineEnumMap(ADD_COMMAND_SUPPORT_TEMPLATES);
-    async handle({ template, filepath = process.cwd() }: AddCommandOptions = {}) {
+    async handle({ template, filepath }: AddCommandOptions = {}) {
         const tmp = await this.getPromptTemplate(template);
         const path = await this.getPromptFilepath(filepath);
         await this.generateFiles(path, tmp);
@@ -40,6 +40,7 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
         if (!promptTemplate) {
             throw new Error('Please select a template!');
         }
+        return promptTemplate;
     }
     private async getPromptFilepath(filepath: string) {
         filepath =
@@ -52,7 +53,7 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
                         'Please enter the filepath(example: /src/pages or /src/pages/test/index.tsx):',
                 })
             )?.filepath;
-        if (!isUnixAbsoluteFilePath(filepath) || !isUnixAbsoluteDirPath(filepath)) {
+        if (!isUnixAbsoluteFilePath(filepath) && !isUnixAbsoluteDirPath(filepath)) {
             throw new Error(
                 'Please enter a valid directory or file path, such as: /src/pages or /src/pages/test/index.tsx',
             );
@@ -60,13 +61,23 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
         return filepath;
     }
     private async generateFiles(filepath: string, template: string) {
-        const { baseName, directoryPath } = splitDirectoryAndFileName(filepath);
+        const { baseName = 'index', directoryPath } = splitDirectoryAndFileName(filepath);
         const { language = LangEnum.TypeScript } = await getLanConfig();
         const content = '112';
+        const extname = this.getFileExtname(template, language);
+        console.log({baseName, directoryPath})
         await mkDirs(directoryPath);
-        await writeFile(`${directoryPath}/${baseName}`, content, 'utf-8');
+        await writeFile(`${process.cwd()}${directoryPath}/${baseName}${extname}`, content, 'utf-8');
     }
-    private getFileBasename() {}
+    private getFileExtname(template: string = this.templatesSet.rcc.value, language: LangEnum) {
+        const { extname } = (this.templatesSet[template] ?? {}) as {
+            extname?: string | Record<LangEnum, string>;
+        };
+        if (typeof extname === 'object') {
+            return `.${extname[language]}`;
+        }
+        return `${extname ? `.${extname}` : ''}`;
+    }
 }
 
 @LaniaCommandConfig(new AddAction(), {
