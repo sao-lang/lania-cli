@@ -1,5 +1,5 @@
 import { existsSync } from 'fs';
-import { mkdir } from 'fs/promises';
+import { access, mkdir } from 'fs/promises';
 import { dirname } from 'path';
 import { extname } from 'path';
 
@@ -55,14 +55,38 @@ export const isUnixAbsoluteFilePath = (p: string) => {
 
 export const splitDirectoryAndFileName = (path: string) => {
     if (!path) return { directoryPath: '', baseName: null };
-    // 去除末尾多余的斜杠（根目录除外）
-    const normalizedPath = path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
+
+    const hasTrailingSlash = path.endsWith('/');
+    const normalizedPath = hasTrailingSlash && path.length > 1 ? path.slice(0, -1) : path;
     const lastSlashIndex = normalizedPath.lastIndexOf('/');
-    if (lastSlashIndex === -1) {
-        // 没有斜杠，全部是文件名，没有目录
-        return { directoryPath: '', baseName: normalizedPath };
+
+    if (hasTrailingSlash) {
+        // 是目录：末尾是 `/`
+        return {
+            directoryPath: normalizedPath,
+            baseName: null,
+        };
     }
-    const directoryPath = normalizedPath.slice(0, lastSlashIndex + 1); // 保留末尾斜杠
-    const baseName = normalizedPath.slice(lastSlashIndex + 1) || null;
-    return { directoryPath, baseName };
+
+    if (lastSlashIndex === -1) {
+        // 没有 `/`，只有文件名
+        return {
+            directoryPath: '',
+            baseName: normalizedPath,
+        };
+    }
+
+    return {
+        directoryPath: normalizedPath.slice(0, lastSlashIndex),
+        baseName: normalizedPath.slice(lastSlashIndex + 1),
+    };
+};
+
+export const fileExists = async (filePath: string) => {
+    try {
+        await access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
 };

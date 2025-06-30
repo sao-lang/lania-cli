@@ -4,7 +4,6 @@ export interface AddCommandOptions {
     filepath?: string;
     template?: keyof {
         v2: AddCommandSupportTemplate.v2;
-        vue: AddCommandSupportTemplate.vue;
         v3: AddCommandSupportTemplate.v3;
         rcc: AddCommandSupportTemplate.rcc;
         rfc: AddCommandSupportTemplate.rfc;
@@ -24,4 +23,5 @@ export interface AddCommandOptions {
         commitlint: AddCommandSupportTemplate.commitlint;
         commitizen: AddCommandSupportTemplate.commitizen;
     };
+    name?: string
 }

@@ -2,24 +2,21 @@ import {
     ADD_COMMAND_SUPPORT_TEMPLATES,
     LaniaCommand,
     LaniaCommandConfig,
+    fileExists,
     getLanConfig,
     mkDirs,
     simplePromptInteraction,
 } from '@lania-cli/common';
-import {
-    splitDirectoryAndFileName,
-    isUnixAbsoluteDirPath,
-    isUnixAbsoluteFilePath,
-} from '@lania-cli/common';
+import { isUnixAbsoluteDirPath, isUnixAbsoluteFilePath } from '@lania-cli/common';
 import { defineEnumMap } from '@lania-cli/common';
 import { AddCommandOptions, LangEnum, LaniaCommandActionInterface } from '@lania-cli/types';
 import { writeFile } from 'fs/promises';
 class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     private templatesSet = defineEnumMap(ADD_COMMAND_SUPPORT_TEMPLATES);
-    async handle({ template, filepath }: AddCommandOptions = {}) {
+    async handle({ template, filepath, name }: AddCommandOptions = {}) {
         const tmp = await this.getPromptTemplate(template);
         const path = await this.getPromptFilepath(filepath);
-        await this.generateFiles(path, tmp);
+        await this.generateFiles(path, tmp, name);
     }
     private async getPromptTemplate(template?: string) {
         if (template) {
@@ -60,14 +57,16 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
         }
         return filepath;
     }
-    private async generateFiles(filepath: string, template: string) {
-        const { baseName = 'index', directoryPath } = splitDirectoryAndFileName(filepath);
+    private async generateFiles(filepath: string, template: string, name: string = 'index') {
         const { language = LangEnum.TypeScript } = await getLanConfig();
         const content = '112';
         const extname = this.getFileExtname(template, language);
-        console.log({baseName, directoryPath})
-        await mkDirs(directoryPath);
-        await writeFile(`${process.cwd()}${directoryPath}/${baseName}${extname}`, content, 'utf-8');
+        const fullPath = `${process.cwd()}${filepath}/${name}${extname}`;
+        if (await fileExists(fullPath)) {
+            throw new Error('File already exists!');
+        }
+        await mkDirs(`${process.cwd()}${filepath}`);
+        await writeFile(fullPath, content, 'utf-8');
     }
     private getFileExtname(template: string = this.templatesSet.rcc.value, language: LangEnum) {
         const { extname } = (this.templatesSet[template] ?? {}) as {
@@ -91,6 +90,10 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
         {
             flags: '-t, --template [template]',
             description: 'The template of the file you will add.',
+        },
+        {
+            flags: '-n, --name [name]',
+            description: 'The name of the file you will add.',
         },
     ],
     alias: '-a',

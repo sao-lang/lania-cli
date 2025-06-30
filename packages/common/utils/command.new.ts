@@ -156,7 +156,8 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
                     await this.hooks.afterExecute?.();
                 } catch (err) {
                     await this.hooks.onError?.();
-                    throw err;
+                    logger.error(err instanceof Error ? err.stack : String(err));
+                    process.exit(1);
                 }
             },
         };
@@ -179,7 +180,11 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
 }
 
 // 注册入口函数，注册所有命令
-export const registerCommands = (name: string, version: string, commands?: LaniaCommand[]) => {
+export const registerCommands = async (
+    name: string,
+    version: string,
+    commands?: LaniaCommand[],
+) => {
     try {
         let cli = yargs(hideBin(process.argv))
             .scriptName(name)
@@ -194,13 +199,8 @@ export const registerCommands = (name: string, version: string, commands?: Lania
             cli = cli.command(command.load());
         });
 
-        cli.parseAsync().catch((e) => {
-            console.log('catch');
-            logger.error(e instanceof Error ? e.message : String(e));
-            process.exit(1);
-        });
+        await cli.parseAsync();
     } catch (e) {
-        console.log('catch 123');
         logger.error(e instanceof Error ? e.message : String(e));
         process.exit(1);
     }
