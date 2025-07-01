@@ -1,7 +1,7 @@
 import { defineConfig } from 'rollup';
-import { resolvePath, resolvePlugins, resolveExtern } from './utils.js';
+import { resolvePath, resolvePlugins, resolveExtern, BUILD_CONFIG_MAP } from './utils.js';
 
-const resolveSubPath = (subPath) => resolvePath('types', subPath);
+const resolveSubPath = (subPath) => resolvePath(BUILD_CONFIG_MAP.types.value, subPath);
 
 const createConfig = () => {
     return [
@@ -13,8 +13,8 @@ const createConfig = () => {
                 preserveModules: true,
                 entryFileNames: '[name].js',
             },
-            external: resolveExtern('types'),
-            plugins: resolvePlugins('types'),
+            external: resolveExtern(BUILD_CONFIG_MAP.types.value),
+            plugins: resolvePlugins(BUILD_CONFIG_MAP.types.value),
             onwarn(warning, warn) {
                 if (warning.code === 'MIXED_EXPORTS') return;
                 warn(warning);

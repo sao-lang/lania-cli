@@ -1,8 +1,8 @@
 // rollup.core.config.js
 import { defineConfig } from 'rollup';
-import { resolvePath, resolvePlugins, resolveExtern } from './utils.js';
+import { resolvePath, resolvePlugins, resolveExtern, BUILD_CONFIG_MAP } from './utils.js';
 
-const resolveSubPath = (subPath) => resolvePath('core', subPath);
+const resolveSubPath = (subPath) => resolvePath(BUILD_CONFIG_MAP.core.value, subPath);
 
 const createConfig = () => {
     const input = resolveSubPath('commands/index.ts');
@@ -15,8 +15,8 @@ const createConfig = () => {
                 preserveModules: true, // 保留模块路径结构
                 entryFileNames: '[name].js',
             },
-            external: resolveExtern('core'),
-            plugins: resolvePlugins('core'),
+            external: resolveExtern(BUILD_CONFIG_MAP.core.value),
+            plugins: resolvePlugins(BUILD_CONFIG_MAP.core.value),
             onwarn(warning, warn) {
                 if (warning.code === 'MIXED_EXPORTS') return;
                 warn(warning);

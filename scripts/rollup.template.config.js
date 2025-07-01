@@ -1,10 +1,10 @@
 import path from 'path';
 import { defineConfig } from 'rollup';
-import { resolvePath, resolvePlugins, resolveExtern } from './utils.js';
+import { resolvePath, resolvePlugins, resolveExtern, BUILD_CONFIG_MAP } from './utils.js';
 import * as glob from 'glob';
 
 const resolveSubPath = (subPath) => {
-    return resolvePath('templates', subPath);
+    return resolvePath(BUILD_CONFIG_MAP.templates.value, subPath);
 };
 
 const createConfig = () => {
@@ -16,8 +16,8 @@ const createConfig = () => {
                 format: 'es',
                 preserveModules: true,
             },
-            external: resolveExtern('templates'),
-            plugins: resolvePlugins('template'),
+            external: resolveExtern(BUILD_CONFIG_MAP.templates.value),
+            plugins: resolvePlugins(BUILD_CONFIG_MAP.templates.value),
             onwarn(warning, warn) {
                 if (warning.code === 'MIXED_EXPORTS') return;
                 warn(warning);
@@ -45,8 +45,8 @@ const createTemplateFileConfig = () => {
                     format: 'esm',
                 },
             ],
-            external: resolveExtern('templates'),
-            plugins: resolvePlugins('templates'),
+            external: resolveExtern(BUILD_CONFIG_MAP.templates.value),
+            plugins: resolvePlugins(BUILD_CONFIG_MAP.templatesTmps.value),
         };
     });
 };

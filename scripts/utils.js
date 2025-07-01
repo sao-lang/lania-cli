@@ -11,11 +11,70 @@ export const __filename = fileURLToPath(import.meta.url);
 // 获取当前模块的目录路径
 export const __dirname = dirname(__filename);
 
+export const BUILD_CONFIG_MAP = {
+    common: {
+        value: BUILD_CONFIG_MAP.common.value,
+        label: '公共包',
+    },
+    core: {
+        value: 'core',
+        label: '核心包',
+    },
+    templates: {
+        value: 'templates',
+        label: '模板库',
+    },
+    commandAddTmps: {
+        value: 'command-add-templates',
+        label: 'Add命令模板文件',
+    },
+    templatesTmps: {
+        value: 'templates-tmps',
+        label: '模板库模板文件',
+    },
+    compilers: {
+        value: 'compilers',
+        label: '编译器',
+    },
+    linters: {
+        value: 'linters',
+        label: 'linters',
+    },
+    commandSync: {
+        value: 'command-sync',
+        label: 'Sync命令',
+    },
+    commandCreate: {
+        value: 'command-create',
+        label: 'Create命令',
+    },
+    commandBuild: {
+        value: 'command-build',
+        label: 'Build命令',
+    },
+    commandDev: {
+        value: 'command-dev',
+        label: 'Dev命令',
+    },
+    commandAdd: {
+        value: 'command-add',
+        label: 'Add命令',
+    },
+    commandRelease: {
+        value: 'command-release',
+        label: 'Release命令',
+    },
+    commandLint: {
+        value: 'command-lint',
+        label: 'Lint命令',
+    },
+};
+
 export const resolvePath = (dir, subPath) => {
     return resolve(resolve(__dirname, `../packages/${dir}`), subPath);
 };
 
-export const getPackageJson = (packageName = 'core') => {
+export const getPackageJson = (packageName = BUILD_CONFIG_MAP.core.value) => {
     const json = JSON.parse(
         readFileSync(resolve(__dirname, `../packages/${packageName}/package.json`), 'utf-8'),
     );
@@ -39,8 +98,8 @@ export const createCommonInjectVars = () => {
     };
 };
 
-export const resolvePlugins = (packageName = 'core') => {
-    if (packageName === 'common') {
+export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
+    if (packageName === BUILD_CONFIG_MAP.common.value) {
         return [
             ts({
                 tsconfig: path.resolve(
@@ -51,10 +110,10 @@ export const resolvePlugins = (packageName = 'core') => {
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
-    if (packageName === 'core') {
+    if (packageName === BUILD_CONFIG_MAP.core.value) {
         return [
             json(),
-            ts({ tsconfig: resolvePath('core', 'tsconfig.json') }),
+            ts({ tsconfig: resolvePath(BUILD_CONFIG_MAP.core.value, 'tsconfig.json') }),
             alias({
                 entries: [
                     { find: '@commands', replacement: '../core/commands' },
@@ -72,24 +131,35 @@ export const resolvePlugins = (packageName = 'core') => {
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
-    if (packageName === 'template') {
+    if (packageName === BUILD_CONFIG_MAP.templates.value) {
         return [
             json(),
-            ts({
-                tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.template.json'),
-            }),
-            globalReplacePlugin(createCommonInjectVars()),
-        ];
-    }
-    if (packageName === 'templates') {
-        return [
             ts({
                 tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.templates.json'),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
-    if (packageName === 'types') {
+    if (packageName === BUILD_CONFIG_MAP.commandAddTmps.value) {
+        return [
+            ts({
+                tsconfig: path.resolve(
+                    __dirname,
+                    '../packages/command-add/tsconfig.command-add-tmps.json',
+                ),
+            }),
+            globalReplacePlugin(createCommonInjectVars()),
+        ];
+    }
+    if (packageName === BUILD_CONFIG_MAP.templatesTmps.value) {
+        return [
+            ts({
+                tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.templates-tmps.json'),
+            }),
+            globalReplacePlugin(createCommonInjectVars()),
+        ];
+    }
+    if (packageName === BUILD_CONFIG_MAP.types.value) {
         return [
             ts({
                 tsconfig: path.resolve(
@@ -102,16 +172,15 @@ export const resolvePlugins = (packageName = 'core') => {
     }
     if (
         [
-            'compilers',
-            'linters',
-            'command-sync',
-            'command-add',
-            'command-build',
-            'command-lint',
-            'command-dev',
-            'command-release',
-            'command-create',
-            'command-lint',
+            BUILD_CONFIG_MAP.compilers.value,
+            BUILD_CONFIG_MAP.linters.value,
+            BUILD_CONFIG_MAP.commandSync.value,
+            BUILD_CONFIG_MAP.commandAdd.value,
+            BUILD_CONFIG_MAP.commandBuild.value,
+            BUILD_CONFIG_MAP.commandLint.value,
+            BUILD_CONFIG_MAP.commandDev.value,
+            BUILD_CONFIG_MAP.commandRelease.value,
+            BUILD_CONFIG_MAP.commandCreate.value,
         ].includes(packageName)
     ) {
         return [
@@ -128,7 +197,7 @@ export const resolvePlugins = (packageName = 'core') => {
     return [];
 };
 
-export const resolveExtern = (packageName = 'core') => {
+export const resolveExtern = (packageName = BUILD_CONFIG_MAP.core.value) => {
     const { dependencies, devDependencies } = getPackageJson(packageName);
     const resolveDependencies = [
         ...Object.keys(dependencies || {}),
