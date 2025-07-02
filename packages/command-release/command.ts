@@ -1,15 +1,7 @@
-import { ADD_COMMAND_SUPPORT_TEMPLATES, LaniaCommand } from '@lania-cli/common';
+import { LaniaCommand } from '@lania-cli/common';
 
 class ReleaseAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
-    async handle({ filepath, template }: AddCommandOptions = {}) {
-        filepath = filepath || process.cwd();
-        template =
-            template ||
-            (ADD_COMMAND_SUPPORT_TEMPLATES.rfc as keyof typeof ADD_COMMAND_SUPPORT_TEMPLATES);
-        if (!ADD_COMMAND_SUPPORT_TEMPLATES[template]) {
-            throw new Error('Invalid template!');
-        }
-    }
+    async handle({ filepath, template }: AddCommandOptions = {}) {}
 }
 import { AddCommandOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 

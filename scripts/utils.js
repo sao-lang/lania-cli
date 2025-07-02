@@ -13,7 +13,7 @@ export const __dirname = dirname(__filename);
 
 export const BUILD_CONFIG_MAP = {
     common: {
-        value: BUILD_CONFIG_MAP.common.value,
+        value: 'common',
         label: '公共包',
     },
     core: {
@@ -68,6 +68,10 @@ export const BUILD_CONFIG_MAP = {
         value: 'command-lint',
         label: 'Lint命令',
     },
+    types: {
+        value: 'types',
+        label: '类型定义',
+    },
 };
 
 export const resolvePath = (dir, subPath) => {
@@ -86,10 +90,10 @@ const { version } = getPackageJson();
 export const createCommonInjectVars = () => {
     return {
         __dirname: {
-            raw: '(() => { const path = new URL(import.meta.url).pathname;return path.substring(0, path.lastIndexOf(\'/\')); })()\n',
+            raw: '(() => { const { pathname } = new URL(import.meta.url);const isWin = process.platform === \'win32\';const filePath = isWin && pathname.startsWith(\'/\') ? pathname.slice(1) : pathname;return filePath.slice(0, filePath.lastIndexOf(\'/\'));})()\n',
         },
         __filename: {
-            raw: '(() => new URL(import.meta.url).pathname)();',
+            raw: '(() => {const { pathname } = new URL(import.meta.url);return process.platform === \'win32\' && pathname.startsWith(\'/\') ? pathname.slice(1) : pathname; })()\n',
         },
         __version: JSON.stringify(version),
         __cwd: {
@@ -154,7 +158,10 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
     if (packageName === BUILD_CONFIG_MAP.templatesTmps.value) {
         return [
             ts({
-                tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.templates-tmps.json'),
+                tsconfig: path.resolve(
+                    __dirname,
+                    '../packages/templates/tsconfig.templates-tmps.json',
+                ),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];

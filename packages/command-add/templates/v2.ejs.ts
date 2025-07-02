@@ -1,6 +1,5 @@
 export default `
 <%
-    const name = 'MyComponent';
     function toLang(processor) {
         const map = {
         css: '',

@@ -1,7 +1,10 @@
 import {
     ADD_COMMAND_SUPPORT_TEMPLATES,
+    EjsRenderer,
     LaniaCommand,
     LaniaCommandConfig,
+    ProgressGroup,
+    ProgressStep,
     fileExists,
     getLanConfig,
     mkDirs,
@@ -9,14 +12,18 @@ import {
 } from '@lania-cli/common';
 import { isUnixAbsoluteDirPath, isUnixAbsoluteFilePath } from '@lania-cli/common';
 import { defineEnumMap } from '@lania-cli/common';
-import { AddCommandOptions, LangEnum, LaniaCommandActionInterface } from '@lania-cli/types';
-import { writeFile } from 'fs/promises';
+import { AddCommandOptions, LangEnum, LaniaCommandActionInterface, ScopedManager } from '@lania-cli/types';
+import path from 'path';
+import fs from 'fs';
+import { pathToFileURL } from 'url';
+@ProgressGroup('lania:add', { type: 'spinner' })
 class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
+    private __progressManager: ScopedManager;
     private templatesSet = defineEnumMap(ADD_COMMAND_SUPPORT_TEMPLATES);
     async handle({ template, filepath, name }: AddCommandOptions = {}) {
-        const tmp = await this.getPromptTemplate(template);
-        const path = await this.getPromptFilepath(filepath);
-        await this.generateFiles(path, tmp, name);
+        const promptTemplate = await this.getPromptTemplate(template);
+        const promptPath = await this.getPromptFilepath(filepath);
+        await this.generateFiles(promptPath, promptTemplate, name);
     }
     private async getPromptTemplate(template?: string) {
         if (template) {
@@ -57,16 +64,28 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
         }
         return filepath;
     }
+    @ProgressStep('generate-file', { total: 1, manual: true })
     private async generateFiles(filepath: string, template: string, name: string = 'index') {
         const { language = LangEnum.TypeScript } = await getLanConfig();
-        const content = '112';
         const extname = this.getFileExtname(template, language);
         const fullPath = `${process.cwd()}${filepath}/${name}${extname}`;
         if (await fileExists(fullPath)) {
             throw new Error('File already exists!');
         }
+        this.__progressManager.init();
         await mkDirs(`${process.cwd()}${filepath}`);
-        await writeFile(fullPath, content, 'utf-8');
+        const files = fs
+            .readdirSync(path.resolve(__dirname, './templates'))
+            .filter((file) => file === `${template}.ejs.js`)
+            .map((file) => path.resolve(__dirname, `./templates/${file}`));
+        const templateContent = (await import(pathToFileURL(files[0]).href)).default;
+        await new EjsRenderer().renderFromString(
+            templateContent?.trim(),
+            { cssProcessor: 'css' },
+            fullPath,
+        );
+        this.__progressManager.complete();
+        // await writeFile(fullPath, content, 'utf-8');
     }
     private getFileExtname(template: string = this.templatesSet.rcc.value, language: LangEnum) {
         const { extname } = (this.templatesSet[template] ?? {}) as {
