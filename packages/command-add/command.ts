@@ -12,7 +12,12 @@ import {
 } from '@lania-cli/common';
 import { isUnixAbsoluteDirPath, isUnixAbsoluteFilePath } from '@lania-cli/common';
 import { defineEnumMap } from '@lania-cli/common';
-import { AddCommandOptions, LangEnum, LaniaCommandActionInterface, ScopedManager } from '@lania-cli/types';
+import {
+    AddCommandOptions,
+    LangEnum,
+    LaniaCommandActionInterface,
+    ScopedManager,
+} from '@lania-cli/types';
 import path from 'path';
 import fs from 'fs';
 import { pathToFileURL } from 'url';
@@ -76,16 +81,10 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
         await mkDirs(`${process.cwd()}${filepath}`);
         const files = fs
             .readdirSync(path.resolve(__dirname, './templates'))
-            .filter((file) => file === `${template}.ejs.js`)
+            .filter((file) => file === `${template}.ejs`)
             .map((file) => path.resolve(__dirname, `./templates/${file}`));
-        const templateContent = (await import(pathToFileURL(files[0]).href)).default;
-        await new EjsRenderer().renderFromString(
-            templateContent?.trim(),
-            { cssProcessor: 'css' },
-            fullPath,
-        );
+        await new EjsRenderer().renderFromFile(files[0], { cssProcessor: 'css' }, fullPath);
         this.__progressManager.complete();
-        // await writeFile(fullPath, content, 'utf-8');
     }
     private getFileExtname(template: string = this.templatesSet.rcc.value, language: LangEnum) {
         const { extname } = (this.templatesSet[template] ?? {}) as {

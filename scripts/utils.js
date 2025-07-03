@@ -5,6 +5,7 @@ import ts from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import { globalReplacePlugin } from './inject-vars-plugin.js';
+import copy from 'rollup-plugin-copy';
 // 获取当前模块的文件路径
 export const __filename = fileURLToPath(import.meta.url);
 
@@ -23,10 +24,6 @@ export const BUILD_CONFIG_MAP = {
     templates: {
         value: 'templates',
         label: '模板库',
-    },
-    commandAddTmps: {
-        value: 'command-add-templates',
-        label: 'Add命令模板文件',
     },
     templatesTmps: {
         value: 'templates-tmps',
@@ -144,17 +141,6 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
             globalReplacePlugin(createCommonInjectVars()),
         ];
     }
-    if (packageName === BUILD_CONFIG_MAP.commandAddTmps.value) {
-        return [
-            ts({
-                tsconfig: path.resolve(
-                    __dirname,
-                    '../packages/command-add/tsconfig.command-add-tmps.json',
-                ),
-            }),
-            globalReplacePlugin(createCommonInjectVars()),
-        ];
-    }
     if (packageName === BUILD_CONFIG_MAP.templatesTmps.value) {
         return [
             ts({
@@ -175,6 +161,27 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
                 ),
             }),
             globalReplacePlugin(createCommonInjectVars()),
+        ];
+    }
+    if (packageName === BUILD_CONFIG_MAP.commandAdd.value) {
+        console.log('copy');
+        return [
+            json(),
+            ts({
+                tsconfig: path.resolve(
+                    __dirname,
+                    `../packages/${packageName}/tsconfig.${packageName}.json`,
+                ),
+            }),
+            globalReplacePlugin(createCommonInjectVars()),
+            copy({
+                targets: [
+                    {
+                        src: `../packages/${packageName}/templates/*.ejs`,
+                        dest: `../packages/${packageName}/dist/templates`,
+                    },
+                ],
+            }),
         ];
     }
     if (
@@ -225,6 +232,7 @@ export const resolveExtern = (packageName = BUILD_CONFIG_MAP.core.value) => {
         'inquirer',
         '@lania-cli/linters',
         'yargs/helpers',
+        'url',
         ...resolveDependencies,
     ];
 };
