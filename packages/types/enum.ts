@@ -36,7 +36,11 @@ export enum CssProcessorEnum {
     sass = 'sass',
     less = 'less',
     stylus = 'stylus',
+}
+
+export enum CssToolEnum {
     tailwindcss = 'tailwindcss',
+    windicss = 'windicss',
 }
 
 export enum LintToolEnum {
@@ -97,7 +101,7 @@ export enum AddCommandSupportTemplate {
     tsconfig = 'tsconfig',
     commitlint = 'commitlint',
     commitizen = 'commitizen',
-    packageJson = 'packageJson'
+    packageJson = 'packageJson',
 }
 
 export enum HttpToolEnum {

@@ -20,7 +20,6 @@ import {
 } from '@lania-cli/types';
 import path from 'path';
 import fs from 'fs';
-import { pathToFileURL } from 'url';
 @ProgressGroup('lania:add', { type: 'spinner' })
 class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     private __progressManager: ScopedManager;
@@ -71,7 +70,7 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     }
     @ProgressStep('generate-file', { total: 1, manual: true })
     private async generateFiles(filepath: string, template: string, name: string = 'index') {
-        const { language = LangEnum.TypeScript } = await getLanConfig();
+        const { language = LangEnum.TypeScript, cssProcessor = 'css' } = await getLanConfig();
         const extname = this.getFileExtname(template, language);
         const fullPath = `${process.cwd()}${filepath}/${name}${extname}`;
         if (await fileExists(fullPath)) {
@@ -83,7 +82,11 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
             .readdirSync(path.resolve(__dirname, './templates'))
             .filter((file) => file === `${template}.ejs`)
             .map((file) => path.resolve(__dirname, `./templates/${file}`));
-        await new EjsRenderer().renderFromFile(files[0], { cssProcessor: 'css' }, fullPath);
+        await new EjsRenderer().renderFromFile(
+            files[0],
+            { cssProcessor, language: language === LangEnum.JavaScript ? 'js' : 'ts' },
+            fullPath,
+        );
         this.__progressManager.complete();
     }
     private getFileExtname(template: string = this.templatesSet.rcc.value, language: LangEnum) {

@@ -1,4 +1,4 @@
-import { LanConfig } from '@lania-cli/types';
+import { LaniaConfig } from '@lania-cli/types';
 import { ConfigurationLoader } from '../lib/configuration/configuration.loader';
 import path from 'path';
 
@@ -7,7 +7,7 @@ export const getLanConfig = async (lanConfigPath?: string) => {
         return (await ConfigurationLoader.load({
             module: 'lan',
             searchPlaces: ['lan.config.json'],
-        })) as LanConfig;
+        })) as LaniaConfig;
     }
     const lanBasename = path.basename(lanConfigPath);
     const lanDirname = path.dirname(lanConfigPath);
@@ -17,5 +17,5 @@ export const getLanConfig = async (lanConfigPath?: string) => {
             searchPlaces: [lanBasename || 'lan.config.json'],
         },
         lanDirname,
-    )) as LanConfig;
+    )) as LaniaConfig;
 };

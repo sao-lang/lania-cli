@@ -83,7 +83,6 @@ export const CSS_PROCESSORS = [
     CssProcessorEnum.sass,
     CssProcessorEnum.less,
     CssProcessorEnum.stylus,
-    CssProcessorEnum.tailwindcss,
     CssProcessorEnum.css,
 ];
 
