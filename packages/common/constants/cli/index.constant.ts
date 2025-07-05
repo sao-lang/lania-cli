@@ -160,7 +160,7 @@ export const ADD_COMMAND_SUPPORT_TEMPLATES = {
         label: 'react类组件',
         extname: {
             [LangEnum.JavaScript]: 'jsx',
-            [LangEnum.TypeScript]: 'tsx'
+            [LangEnum.TypeScript]: 'tsx',
         },
     },
     rfc: {
@@ -168,7 +168,7 @@ export const ADD_COMMAND_SUPPORT_TEMPLATES = {
         label: 'react函数式组件',
         extname: {
             [LangEnum.JavaScript]: 'jsx',
-            [LangEnum.TypeScript]: 'tsx'
+            [LangEnum.TypeScript]: 'tsx',
         },
     },
     svelte: {
@@ -176,86 +176,85 @@ export const ADD_COMMAND_SUPPORT_TEMPLATES = {
         label: 'svelte模板组件',
         extname: 'svelte',
     },
-    jsx: {
-        value: AddCommandSupportTemplate.jsx,
-        label: 'jsx文件',
-        extname: 'jsx',
-    },
-    tsx: {
-        value: AddCommandSupportTemplate.tsx,
-        label: 'tsx文件',
-        extname: 'tsx',
-    },
     astro: {
         value: AddCommandSupportTemplate.astro,
         label: 'astro组件',
         extname: 'astro',
     },
-    axios: {
-        value: AddCommandSupportTemplate.axios,
-        label: 'axios封装',
-        extname: {
-            [LangEnum.JavaScript]: 'js',
-            [LangEnum.TypeScript]: 'ts'
-        },
-    },
-    router: {
-        value: AddCommandSupportTemplate.router,
-        label: '项目路由封装',
-        extname: {
-            [LangEnum.JavaScript]: 'js',
-            [LangEnum.TypeScript]: 'ts'
-        },
-    },
-    store: {
-        value: AddCommandSupportTemplate.store,
-        label: '项目状态管理工具封装',
-        extname: {
-            [LangEnum.JavaScript]: 'js',
-            [LangEnum.TypeScript]: 'ts'
-        },
-    },
     prettier: {
         value: AddCommandSupportTemplate.prettier,
         label: 'prettier配置文件',
-        extname: 'jsx'
+        extname: 'jsx',
+        filename: 'prettier.config.js',
     },
     eslint: {
         value: AddCommandSupportTemplate.eslint,
         label: 'eslint配置文件',
-        extname: 'js'
+        extname: 'js',
+        filename: 'eslint.config',
     },
     stylelint: {
         value: AddCommandSupportTemplate.stylelint,
         label: 'stylelint配置文件',
-        extname: 'js'
+        extname: 'js',
+        filename: 'stylelint.config',
     },
     editorconfig: {
         value: AddCommandSupportTemplate.editorconfig,
         label: 'editorconfig配置文件',
+        filename: '.editorconfig',
     },
     gitignore: {
         value: AddCommandSupportTemplate.gitignore,
         label: '.gitignore文件',
+        filename: '.gitignore',
     },
     tsconfig: {
         value: AddCommandSupportTemplate.tsconfig,
         label: 'tsconfig配置文件',
-        extname: 'json'
+        extname: 'json',
+        filename: 'tsconfig',
     },
     commitlint: {
         value: AddCommandSupportTemplate.commitlint,
         label: 'commitlint配置文件',
-        extname: 'js'
+        extname: 'js',
+        filename: 'commitlint.config.js',
     },
     commitizen: {
         value: AddCommandSupportTemplate.commitizen,
         label: 'commitizen配置文件',
-        extname: 'js'
+        extname: 'js',
+        filename: 'cz.config',
     },
     packageJson: {
         value: AddCommandSupportTemplate.packageJson,
         label: 'package.json文件',
-        extname: 'json'
+        extname: 'json',
+        filename: 'package',
     },
+    // axios: {
+    //     value: AddCommandSupportTemplate.axios,
+    //     label: 'axios封装',
+    //     extname: {
+    //         [LangEnum.JavaScript]: 'js',
+    //         [LangEnum.TypeScript]: 'ts',
+    //     },
+    // },
+    // router: {
+    //     value: AddCommandSupportTemplate.router,
+    //     label: '项目路由封装',
+    //     extname: {
+    //         [LangEnum.JavaScript]: 'js',
+    //         [LangEnum.TypeScript]: 'ts',
+    //     },
+    // },
+    // store: {
+    //     value: AddCommandSupportTemplate.store,
+    //     label: '项目状态管理工具封装',
+    //     extname: {
+    //         [LangEnum.JavaScript]: 'js',
+    //         [LangEnum.TypeScript]: 'ts',
+    //     },
+    // },
 };

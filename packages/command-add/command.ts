@@ -70,9 +70,14 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     }
     @ProgressStep('generate-file', { total: 1, manual: true })
     private async generateFiles(filepath: string, template: string, name: string = 'index') {
-        const { language = LangEnum.TypeScript, cssProcessor = 'css' } = await getLanConfig();
+        const {
+            language = LangEnum.TypeScript,
+            cssProcessor = 'css',
+            name: projectName,
+        } = await getLanConfig();
         const extname = this.getFileExtname(template, language);
-        const fullPath = `${process.cwd()}${filepath}/${name}${extname}`;
+        const filename = this.getFilename(template, name);
+        const fullPath = `${process.cwd()}${filepath}/${filename}${extname}`;
         if (await fileExists(fullPath)) {
             throw new Error('File already exists!');
         }
@@ -84,7 +89,11 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
             .map((file) => path.resolve(__dirname, `./templates/${file}`));
         await new EjsRenderer().renderFromFile(
             files[0],
-            { cssProcessor, language: language === LangEnum.JavaScript ? 'js' : 'ts' },
+            {
+                cssProcessor,
+                language: language === LangEnum.JavaScript ? 'js' : 'ts',
+                name: projectName,
+            },
             fullPath,
         );
         this.__progressManager.complete();
@@ -97,6 +106,12 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
             return `.${extname[language]}`;
         }
         return `${extname ? `.${extname}` : ''}`;
+    }
+    private getFilename(template: string = this.templatesSet.rcc.value, promptName = 'index') {
+        const { filename } = (this.templatesSet[template] ?? {}) as {
+            filename?: string;
+        };
+        return filename ?? promptName;
     }
 }
 
