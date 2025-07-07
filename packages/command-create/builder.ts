@@ -8,10 +8,10 @@ import {
 import { SpaReactTemplate, TemplateFactory } from '@lania-cli/templates';
 import latestVersion from 'latest-version';
 import getPort from 'get-port';
-import { CreateCommandOptions, TemplateOptions } from '@lania-cli/types';
+import { CreateCommandOptions, InteractionConfig } from '@lania-cli/types';
 
 export class Builder {
-    private options: TemplateOptions = {} as any;
+    private options: InteractionConfig = {} as any;
     private template: SpaReactTemplate;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
@@ -28,9 +28,9 @@ export class Builder {
         const answers = await new CliInteraction().addQuestions(choices as any).execute();
         return answers;
     }
-    private async getDependencies(options: TemplateOptions) {
+    private async getDependencies(options: InteractionConfig) {
         const { dependencies, devDependencies } = this.template.getDependenciesArray(
-            options as TemplateOptions,
+            options as InteractionConfig,
         );
         const dependenciesMap: Record<string, string> = {};
         const devDependenciesMap: Record<string, string> = {};
@@ -48,7 +48,7 @@ export class Builder {
         }
         return { dependencies: dependenciesMap, devDependencies: devDependenciesMap };
     }
-    private async outputFiles(options: TemplateOptions) {
+    private async outputFiles(options: InteractionConfig) {
         this.options.port = await getPort();
         const tasks = await this.template.createOutputTasks(options);
         const engine = new EjsRenderer();
@@ -62,7 +62,7 @@ export class Builder {
             }
             outputPath = options.directory ? `${options.directory}${outputPath}` : outputPath;
             const [compileErr] = await to(
-                engine.renderFromString(
+                engine.renderFromFile(
                     content,
                     options as Record<string, any>,
                     `${process.cwd()}${outputPath}`,

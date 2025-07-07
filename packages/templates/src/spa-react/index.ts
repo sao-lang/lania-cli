@@ -1,15 +1,13 @@
 import {
-    AddCommandOptions,
     BuildToolEnum,
     CreateCommandOptions,
     CssProcessorEnum,
-    FrameEnum,
     LangEnum,
     LintToolEnum,
     ProjectTypeEnum,
-    TemplateOptions,
+    InteractionConfig,
+    CssToolEnum,
 } from '@lania-cli/types';
-import { BaseTemplate } from '../template.base';
 import {
     CSS_PROCESSORS,
     DEFAULT_NO,
@@ -18,6 +16,8 @@ import {
     TEMPLATES_CONSTANTS,
     UNIT_TEST_TOOLS,
 } from '@lania-cli/common';
+import config from './config';
+import { BaseTemplate } from '..';
 const {
     ESLINT_DEV_DEPENDENCIES,
     ESLINT_PRETTIER_DEV_DEPENDENCIES,
@@ -33,8 +33,9 @@ const {
 } = TEMPLATES_CONSTANTS.SPA_REACT_TEMPLATE;
 
 export class SpaReactTemplate extends BaseTemplate {
-    static templateName = 'spa-react-template';
-    protected templateFilesDirName = __dirname;
+    protected config = config;
+    static __name = 'spa-react-template';
+    protected tmpDirName = __dirname;
     constructor() {
         super();
     }
@@ -110,7 +111,7 @@ export class SpaReactTemplate extends BaseTemplate {
         }
         return answers;
     }
-    public getDependenciesArray(options: TemplateOptions) {
+    public getDependenciesArray(options: InteractionConfig) {
         const dependenciesArray = REACT_DEPENDENCIES;
         const devDependenciesArray: string[] = this.getDevDependencies(options);
         return {
@@ -118,7 +119,7 @@ export class SpaReactTemplate extends BaseTemplate {
             devDependencies: devDependenciesArray,
         };
     }
-    private getDevDependencies(options: TemplateOptions) {
+    private getDevDependencies(options: InteractionConfig) {
         const devDependencies: string[] = [options.buildTool];
         const buildToolDevDependencies = this.getBuildToolDevDependencies(options);
         const lintToolDevDependencies = this.getLintToolDevDependencies(options);
@@ -129,14 +130,14 @@ export class SpaReactTemplate extends BaseTemplate {
         if (options.cssProcessor) {
             devDependencies.push(options.cssProcessor);
         }
-        if (options.cssProcessor === CssProcessorEnum.tailwindcss) {
+        if (options.cssTools?.includes(CssToolEnum.tailwindcss)) {
             devDependencies.push(...TAILWIND_DEV_DEPENDENCIES);
         }
         return devDependencies;
     }
-    private getBuildToolDevDependencies(options: TemplateOptions) {
+    private getBuildToolDevDependencies(options: InteractionConfig) {
         if (options.buildTool === BuildToolEnum.webpack) {
-            const isNotTailwindcss = options.cssProcessor !== CssProcessorEnum.tailwindcss;
+            const isNotTailwindcss = options.cssTools?.includes(CssToolEnum.tailwindcss);
             return [
                 '@babel/plugin-transform-runtime',
                 '@babel/runtime',
@@ -174,7 +175,7 @@ export class SpaReactTemplate extends BaseTemplate {
         }
         return [];
     }
-    private getLintToolDevDependencies(options: TemplateOptions) {
+    private getLintToolDevDependencies(options: InteractionConfig) {
         const useEslint = options.lintTools.includes(LintToolEnum.eslint);
         const usePrettier = options.lintTools.includes(LintToolEnum.prettier);
         const useStylelint = options.lintTools.includes(LintToolEnum.stylelint);

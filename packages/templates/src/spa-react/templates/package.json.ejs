@@ -1,4 +1,3 @@
-const content = `
 {
     "name": "<%= name %>",
     "version": "1.0.0",
@@ -22,6 +21,4 @@ const content = `
             "<%= key %>": "<%= value %>"<% if(devDependenciesArray.length - 1 !== index) { %>,<% } -%>
         <% }) -%>
     }
-}`;
-
-export default () => ({ content, outputPath: '/package.json' });
+}

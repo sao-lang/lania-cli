@@ -50,7 +50,7 @@ export interface FileOutputRes {
     filePath: string;
 }
 
-export interface TemplateOptions {
+export interface InteractionConfig {
     name: string;
     type: ProjectType;
     frame: Frame;
@@ -113,7 +113,7 @@ export interface OutputTask {
     filePath: string;
 }
 
-export interface Config extends TemplateOptions {
+export interface Config extends InteractionConfig {
     type: ProjectType;
     name: string;
     commit: {

@@ -1,6 +1,4 @@
-import { BuildToolEnum, TemplateOptions } from '@lania-cli/types';
 
-const content = `
 const path = require('path');
 const { Configuration } = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -200,10 +198,4 @@ module.exports = {
         maxEntrypointSize: 512000,
         maxAssetSize: 512000
     }
-};`;
-
-export default (options: TemplateOptions) => ({
-    content,
-    outputPath: '/webpack.config.cjs',
-    hide: options.buildTool !== BuildToolEnum.webpack,
-});
+};

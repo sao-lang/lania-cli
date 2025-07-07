@@ -2,14 +2,15 @@ import { readdir } from 'fs/promises';
 import { SpaReactTemplate } from './spa-react';
 import { statSync } from 'fs';
 import { resolve } from 'path';
-import { BaseTemplate } from './template.base';
+import { CreateCommandOptions, OutputFileTask, InteractionConfig } from '@lania-cli/types';
+import { PromptModule } from 'inquirer';
 export class TemplateFactory {
     public static create(name: string) {
         const templateMap = {
-            [SpaReactTemplate.templateName]: SpaReactTemplate,
+            [SpaReactTemplate.__name]: SpaReactTemplate,
         };
         for (const key in templateMap) {
-            if (name && name === key && key !== BaseTemplate.templateName) {
+            if (name && name === key) {
                 return new templateMap[key]();
             }
         }
@@ -31,6 +32,28 @@ export class TemplateFactory {
     }
 }
 
-export * from './spa-react';
-export * from './template.base';
+export abstract class BaseTemplate {
+    protected abstract tmpDirName: string;
+    protected abstract config: ((options: InteractionConfig) => OutputFileTask)[];
+    protected abstract createPromptQuestions(
+        options: CreateCommandOptions,
+    ): Parameters<PromptModule>[0];
+    protected abstract getDependenciesArray(options: InteractionConfig): {
+        dependencies: string[];
+        devDependencies: string[];
+    };
+    public createOutputTasks(options: InteractionConfig) {
+        return this.config.map((taskFn) => {
+            const { outputPath = '', hide } = taskFn(options);
+            const pathSplitted = outputPath.split('/');
+            const basename = pathSplitted?.[pathSplitted.length] ?? '' + '.ejs';
+            return {
+                hide,
+                outputPath,
+                filepath: `${__dirname}/templates/${basename}`,
+            };
+        });
+    }
+}
 
+export * from './spa-react';

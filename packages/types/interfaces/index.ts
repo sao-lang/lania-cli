@@ -23,7 +23,7 @@ export * from './runners/runner.base';
 
 export * from './package-managers/package-manager.base';
 
-export * from './templates/template.base';
+export * from './shared';
 
 export * from './cli-utils';
-export * from './config';
+export * from './templates'
