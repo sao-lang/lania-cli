@@ -25,29 +25,4 @@ const createConfig = () => {
         },
     ];
 };
-const createTemplateFileConfig = () => {
-    const templateDirs = glob.sync('**/templates', {
-        cwd: resolveSubPath('src'),
-        absolute: true,
-    });
-    return templateDirs.map((templateDir) => {
-        const tsFiles = glob.sync('**/*.ts', {
-            cwd: templateDir,
-            absolute: true,
-        });
-        const currentDirName = path.basename(templateDir);
-        const parentDirName = path.basename(path.dirname(templateDir));
-        return {
-            input: tsFiles,
-            output: [
-                {
-                    dir: resolveSubPath(`dist/${parentDirName}/${currentDirName}`),
-                    format: 'esm',
-                },
-            ],
-            external: resolveExtern(BUILD_CONFIG_MAP.templates.value),
-            plugins: resolvePlugins(BUILD_CONFIG_MAP.templatesTmps.value),
-        };
-    });
-};
-export default defineConfig([...createConfig(), ...createTemplateFileConfig()]);
+export default defineConfig(createConfig());

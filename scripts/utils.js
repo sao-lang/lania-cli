@@ -6,6 +6,7 @@ import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import { globalReplacePlugin } from './inject-vars-plugin.js';
 import copy from 'rollup-plugin-copy';
+import * as glob from 'glob';
 // 获取当前模块的文件路径
 export const __filename = fileURLToPath(import.meta.url);
 
@@ -133,21 +134,25 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
         ];
     }
     if (packageName === BUILD_CONFIG_MAP.templates.value) {
+        const templatesBase = path.resolve(__dirname, '../packages/templates');
+        const srcDirs = glob.sync('**/templates', {
+            cwd: templatesBase,
+            absolute: true,
+        });
         return [
             json(),
             ts({
                 tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.templates.json'),
             }),
-            globalReplacePlugin(createCommonInjectVars()),
-        ];
-    }
-    if (packageName === BUILD_CONFIG_MAP.templatesTmps.value) {
-        return [
-            ts({
-                tsconfig: path.resolve(
-                    __dirname,
-                    '../packages/templates/tsconfig.templates-tmps.json',
-                ),
+            copy({
+                targets: srcDirs.map((srcTemplateDir) => {
+                    const relative = path.relative(templatesBase, srcTemplateDir);
+                    const [pkgName] = relative.split(path.sep);
+                    return {
+                        src: `../packages/templates/${pkgName}/templates/*.ejs`,
+                        dest: `../packages/templates/dist/${pkgName}/templates`,
+                    };
+                }),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
@@ -164,7 +169,6 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
         ];
     }
     if (packageName === BUILD_CONFIG_MAP.commandAdd.value) {
-        console.log('copy');
         return [
             json(),
             ts({

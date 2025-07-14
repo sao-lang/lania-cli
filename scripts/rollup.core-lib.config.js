@@ -1,8 +1,6 @@
 // rollup.config.js
 import { defineConfig } from 'rollup';
 import { resolvePath, resolvePlugins, resolveExtern, BUILD_CONFIG_MAP } from './utils.js';
-import * as glob from 'glob';
-import path from 'path';
 
 const packages = [
     BUILD_CONFIG_MAP.compilers.value,

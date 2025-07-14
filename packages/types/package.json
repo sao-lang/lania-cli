@@ -1,22 +1,22 @@
 {
-  "name": "@lania-cli/types",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "files": [
-    "dist"
-  ],
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/rollup": "^0.54.0",
-    "@types/webpack": "^5.28.5",
-    "inquirer": "^8.2.5"
-  }
+    "name": "@lania-cli/types",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "files": [
+        "dist"
+    ],
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "inquirer": "^8.2.5",
+        "rollup": "^4.0.2",
+        "webpack": "^5.89.0"
+    }
 }

@@ -17,7 +17,7 @@ import {
     UNIT_TEST_TOOLS,
 } from '@lania-cli/common';
 import config from './config';
-import { BaseTemplate } from '..';
+import { BaseTemplate } from '../base-template';
 const {
     ESLINT_DEV_DEPENDENCIES,
     ESLINT_PRETTIER_DEV_DEPENDENCIES,
