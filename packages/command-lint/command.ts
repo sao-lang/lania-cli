@@ -25,9 +25,9 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         transformedLinters.forEach((linter) => {
             taskExecutor.addTask({
                 task: async () => {
-                    const target = typeof linter === 'string' ? linter : linter.linter;
+                    // const target = typeof linter === 'string' ? linter : linter.linter;
                     const checkLinter = this.switchLinter(
-                        target as keyof LinterMap,
+                        linter as keyof LinterMap,
                         (linter as LinterConfigItem)?.config,
                         fix,
                     );
@@ -44,7 +44,8 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         }
         return finalLinterConfigs.filter((linter) =>
             LINTERS.includes(
-                (typeof linter === 'string' ? linter : linter?.linter) as LintToolEnum,
+                // (typeof linter === 'string' ? linter : linter?.linter) as LintToolEnum,
+                linter as LintToolEnum,
             ),
         );
     }

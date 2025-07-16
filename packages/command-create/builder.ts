@@ -56,14 +56,14 @@ export class Builder {
         taskProgressManager.init('OutputFiles', tasks.length);
         for (const task of tasks) {
             // eslint-disable-next-line prefer-const
-            let { outputPath, hide, content } = await task;
-            if (hide || !content) {
+            let { outputPath, hide, filepath } = await task;
+            if (hide) {
                 continue;
             }
             outputPath = options.directory ? `${options.directory}${outputPath}` : outputPath;
             const [compileErr] = await to(
                 engine.renderFromFile(
-                    content,
+                    filepath,
                     options as Record<string, any>,
                     `${process.cwd()}${outputPath}`,
                 ),

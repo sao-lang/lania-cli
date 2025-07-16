@@ -2,8 +2,8 @@
     "name": "@lania-cli/core",
     "version": "0.0.3",
     "description": "",
-    "main": "dist/src/esm/commands/index.js",
-    "types": "dist/src/esm/commands/index.d.ts",
+    "main": "dist/commands/index.js",
+    "types": "dist/commands/index.d.ts",
     "keywords": [
         "cli"
     ],

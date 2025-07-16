@@ -15,7 +15,7 @@ import {
     UnitTestFrameEnum,
 } from '../../enum';
 
-import { CommandNeededArgsInterface, LaniaCommandActionInterface } from '../commands/command.base';
+import { CommandNeededArgsInterface, LaniaCommandActionInterface } from '../commands';
 
 import { Question as InquirerQuestion } from 'inquirer';
 export type ConfigurationLoadType =
@@ -171,6 +171,7 @@ export interface InteractionConfig {
     language?: LangEnum;
     buildTool: BuildToolEnum;
     cssTools?: CssToolEnum[];
+    linters?: LintToolEnum[];
 }
 
 export interface LaniaConfig {
@@ -181,7 +182,7 @@ export interface LaniaConfig {
     linterTools?: LintToolEnum;
     cssProcessor: CssProcessorEnum; // 主样式方案
     cssTools?: CssToolEnum[]; // 额外的 CSS 工具（如 autoprefixer、postcss-preset-env）
-    buildTool?: BuildToolEnum[]; // 构建工具
+    buildTool?: BuildToolEnum; // 构建工具
     packageManager?: PackageToolEnum; // 包管理器
     commands?: Record<string, string>; // 用户自定义命令，key 是别名，value 是实际命令
     docFrame?: DocFrameEnum;
@@ -193,6 +194,7 @@ export interface LaniaConfig {
         [hookName: string]: string | string[] | undefined; // 支持自定义 hook
     };
     custom?: Record<string, any>; // 用户扩展字段（为了未来兼容）
+    linters?: LintToolEnum[];
 }
 
 export interface RunnerRunOptions {

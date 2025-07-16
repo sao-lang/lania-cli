@@ -10,7 +10,7 @@ const resolveSubPath = (subPath) => {
 const createConfig = () => {
     return [
         {
-            input: resolveSubPath('src/index.ts'),
+            input: resolveSubPath('index.ts'),
             output: {
                 dir: resolveSubPath('dist'),
                 format: 'es',

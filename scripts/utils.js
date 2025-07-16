@@ -26,10 +26,6 @@ export const BUILD_CONFIG_MAP = {
         value: 'templates',
         label: '模板库',
     },
-    templatesTmps: {
-        value: 'templates-tmps',
-        label: '模板库模板文件',
-    },
     compilers: {
         value: 'compilers',
         label: '编译器',
@@ -140,10 +136,6 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
             absolute: true,
         });
         return [
-            json(),
-            ts({
-                tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.templates.json'),
-            }),
             copy({
                 targets: srcDirs.map((srcTemplateDir) => {
                     const relative = path.relative(templatesBase, srcTemplateDir);
@@ -153,6 +145,10 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
                         dest: `../packages/templates/dist/${pkgName}/templates`,
                     };
                 }),
+            }),
+            json(),
+            ts({
+                tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.templates.json'),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
@@ -170,14 +166,6 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
     }
     if (packageName === BUILD_CONFIG_MAP.commandAdd.value) {
         return [
-            json(),
-            ts({
-                tsconfig: path.resolve(
-                    __dirname,
-                    `../packages/${packageName}/tsconfig.${packageName}.json`,
-                ),
-            }),
-            globalReplacePlugin(createCommonInjectVars()),
             copy({
                 targets: [
                     {
@@ -186,6 +174,14 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
                     },
                 ],
             }),
+            json(),
+            ts({
+                tsconfig: path.resolve(
+                    __dirname,
+                    `../packages/${packageName}/tsconfig.${packageName}.json`,
+                ),
+            }),
+            globalReplacePlugin(createCommonInjectVars()),
         ];
     }
     if (
@@ -193,7 +189,6 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
             BUILD_CONFIG_MAP.compilers.value,
             BUILD_CONFIG_MAP.linters.value,
             BUILD_CONFIG_MAP.commandSync.value,
-            BUILD_CONFIG_MAP.commandAdd.value,
             BUILD_CONFIG_MAP.commandBuild.value,
             BUILD_CONFIG_MAP.commandLint.value,
             BUILD_CONFIG_MAP.commandDev.value,

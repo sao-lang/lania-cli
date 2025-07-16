@@ -53,7 +53,17 @@ const buildCore = (watch) => {
 
 const buildCoreLib = () => {
     return withTaskName('build core-lib', async () => {
-        const packages = ['compilers', 'linters', 'command-add', 'command-sync', 'command-build'];
+        const packages = [
+            'compilers',
+            'linters',
+            'command-add',
+            'command-sync',
+            'command-create',
+            'command-build',
+            'command-release',
+            'command-lint',
+            'command-dev'
+        ];
         await Promise.all(packages.map(async (pkg) => await run(`rimraf ${dirPath}/${pkg}/dist`)));
         const configFilePath = path.resolve(__dirname, '../scripts/rollup.core-lib.config.js');
         await run(`rollup -c=${configFilePath}`);
