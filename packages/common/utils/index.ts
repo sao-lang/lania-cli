@@ -3,8 +3,8 @@ export * from './logger';
 export * from './task-executor';
 export * from './task-progress-manager';
 export * from './style-text';
-export * from './to';
-export * from './command.new';
+export * from './command';
 export * from './config';
 export * from './define-enum-map';
 export * from './fs';
+export * from './to'

@@ -2,13 +2,14 @@ import {
     AddCommandSupportTemplate,
     BuildToolEnum,
     CssProcessorEnum,
+    CssToolEnum,
     DocFrameEnum,
     FrameEnum,
     HttpToolEnum,
     LangEnum,
     LintToolEnum,
     OrmToolEnum,
-    PackageToolEnum,
+    PackageManagerEnum,
     ProjectTypeEnum,
     RouterManagementToolEnum,
     StoreManagementToolEnum,
@@ -95,6 +96,8 @@ export const LINT_TOOLS = [
     LintToolEnum.editorconfig,
 ];
 
+export const CSS_TOOLS = [CssToolEnum.tailwindcss, CssToolEnum.windicss];
+
 export const LINTERS = [LintToolEnum.eslint, LintToolEnum.prettier, LintToolEnum.stylelint];
 
 export const DOC_FRAMES = [DocFrameEnum.vitepress];
@@ -109,7 +112,7 @@ export const BUILD_TOOLS = [
     BuildToolEnum.tsc,
 ];
 
-export const PACKAGE_TOOLS = [PackageToolEnum.yarn, PackageToolEnum.npm, PackageToolEnum.pnpm];
+export const PACKAGES_MANAGERS = [PackageManagerEnum.yarn, PackageManagerEnum.npm, PackageManagerEnum.pnpm];
 
 export const ROUTER_MANAGEMENT_TOOLS = [
     RouterManagementToolEnum['vue-router'],
@@ -128,8 +131,6 @@ export const STORE_MANAGEMENT_TOOLS = [
 export const HTTP_TOOLS = [HttpToolEnum.axios];
 
 export const ORM_TOOLS = [OrmToolEnum.typeorm];
-
-export const ADD_NEW_REMOTE_CHOICE = 'add new remote';
 
 export const DEFAULT_GSYNC_NORMATIVELY_RULES = [
     { value: 'feat', name: 'feat:     新功能' },

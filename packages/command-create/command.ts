@@ -1,4 +1,4 @@
-import { PACKAGE_TOOLS, GitRunner, LaniaCommand } from '@lania-cli/common';
+import { PACKAGES_MANAGERS, GitRunner, LaniaCommand } from '@lania-cli/common';
 import { mkdir, readdir } from 'fs/promises';
 import path from 'path';
 import { Builder } from './builder';
@@ -7,7 +7,7 @@ import {
     CreateActionOptions,
     CreateCommandOptions,
     LaniaCommandActionInterface,
-    PackageToolEnum,
+    PackageManagerEnum,
 } from '@lania-cli/types';
 
 class CreateAction implements LaniaCommandActionInterface<[string, CreateCommandOptions]> {
@@ -17,7 +17,7 @@ class CreateAction implements LaniaCommandActionInterface<[string, CreateCommand
     }
     private async check(name: string, directory: string, packageManager: string) {
         const cwd = process.cwd();
-        if (packageManager && !PACKAGE_TOOLS.includes(packageManager as PackageToolEnum)) {
+        if (packageManager && !PACKAGES_MANAGERS.includes(packageManager as PackageManagerEnum)) {
             return {
                 status: false,
                 message: 'Invalid package manager!',

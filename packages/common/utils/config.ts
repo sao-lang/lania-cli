@@ -1,5 +1,5 @@
 import { LaniaConfig } from '@lania-cli/types';
-import { ConfigurationLoader } from '../lib/configuration/configuration.loader';
+import { ConfigurationLoader } from '../lib/configuration-loader';
 import path from 'path';
 
 export const getLanConfig = async (lanConfigPath?: string) => {

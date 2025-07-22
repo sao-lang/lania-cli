@@ -1,5 +1,5 @@
-import to from '../../utils/to';
-import Runner from './runner.base';
+import { to } from '../../utils/to';
+import { Runner } from './runner.base';
 import path from 'path';
 import fs from 'fs';
 import { RunnerRunOptions } from '@lania-cli/types';

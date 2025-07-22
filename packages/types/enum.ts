@@ -61,7 +61,7 @@ export enum UnitTestFrameEnum {
     jest = 'jest',
 }
 
-export enum PackageToolEnum {
+export enum PackageManagerEnum {
     yarn = 'yarn',
     npm = 'npm',
     pnpm = 'pnpm',

@@ -77,7 +77,7 @@ export class Builder {
     private async downloadDependencies() {
         const taskProgressManager = new TaskProgressManager('spinner');
         taskProgressManager.init('DownloadDependencies', 1);
-        const packageManager = await PackageManagerFactory.create(this.options.packageTool as any);
+        const packageManager = await PackageManagerFactory.create(this.options.packageManager as any);
         const [installErr] = await to(packageManager.install({ silent: true }));
         if (installErr) {
             throw installErr;
@@ -91,7 +91,7 @@ export class Builder {
         this.options = {
             ...answers,
             ...options,
-            packageTool: options.packageManager || answers.packageTool,
+            packageManager: options.packageManager || answers.packageManager,
         };
         const [getErr, result] = await to(this.getDependencies(this.options));
         if (getErr) {

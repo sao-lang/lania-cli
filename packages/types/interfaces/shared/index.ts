@@ -8,7 +8,7 @@ import {
     LangEnum,
     LintToolEnum,
     OrmToolEnum,
-    PackageToolEnum,
+    PackageManagerEnum,
     ProjectTypeEnum,
     RouterManagementToolEnum,
     StoreManagementToolEnum,
@@ -147,7 +147,7 @@ export interface InteractionConfig {
     frame: FrameEnum;
     cssProcessor?: CssProcessorEnum;
     lintTools?: LintToolEnum[];
-    packageTool: PackageToolEnum;
+    packageManager: PackageManagerEnum;
     buildTools: BuildToolEnum[] | BuildToolEnum;
     docFrame?: DocFrameEnum;
     useUnitTest: boolean;
@@ -183,7 +183,7 @@ export interface LaniaConfig {
     cssProcessor: CssProcessorEnum; // 主样式方案
     cssTools?: CssToolEnum[]; // 额外的 CSS 工具（如 autoprefixer、postcss-preset-env）
     buildTool?: BuildToolEnum; // 构建工具
-    packageManager?: PackageToolEnum; // 包管理器
+    packageManager?: PackageManagerEnum; // 包管理器
     commands?: Record<string, string>; // 用户自定义命令，key 是别名，value 是实际命令
     docFrame?: DocFrameEnum;
     unitTestFrame?: UnitTestFrameEnum[];

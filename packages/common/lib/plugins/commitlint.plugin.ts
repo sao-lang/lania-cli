@@ -1,5 +1,5 @@
 import { lint, load } from '@commitlint/core';
-import ConfigurationLoader from '../configuration/configuration.loader';
+import { ConfigurationLoader } from '../../lib/configuration-loader';
 
 type CommitlintConfigSource = string | Record<string, any>;
 

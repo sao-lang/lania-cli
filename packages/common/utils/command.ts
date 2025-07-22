@@ -1,38 +1,72 @@
+import 'reflect-metadata';
+import yargs, { Argv, CommandModule } from 'yargs';
+import { logger } from './logger'; // 替换为你的 logger 实现
 import {
+    CommandHook,
+    CommandOption,
     CommandNeededArgsInterface,
     LaniaCommandActionInterface,
-    CommandOption,
-    CommandHook,
+    LaniaCommandMetadata,
+    YargsOption,
 } from '@lania-cli/types';
-import { logger } from './logger';
-import { Command, Option } from 'commander';
+import { hideBin } from 'yargs/helpers';
 
-export const registerCommands = (name: string, version: string, commands?: LaniaCommand[]) => {
-    const program = new Command();
+const camelCase = (input: string) => {
+    return input.toLowerCase().replace(/[-_]+(\w)/g, (_, c) => c.toUpperCase());
+};
+const commanderToYargsOption = (option: CommandOption) => {
+    const { flags, description, defaultValue, parser, choices } = option;
 
-    program
-        .name(name)
-        .version(version, '-v, --version', '显示版本')
-        .helpOption('-h, --help', '显示帮助信息')
-        .usage('<command> [options]');
+    const parts = flags.split(',').map((s: any) => s.trim());
+    let short: string | undefined;
+    let long: string | undefined;
+    let valueRequired = false;
+    let isNegated = false;
 
-    commands?.forEach((command) => {
-        program.addCommand(command.load());
-    });
+    for (const part of parts) {
+        if (part.startsWith('--no-')) {
+            long = part.slice(5); // 去掉 "--no-"
+            isNegated = true;
+        } else if (part.startsWith('--')) {
+            long = part
+                .slice(2)
+                .replace(/(<.+?>|\[.+?\])/g, '')
+                .trim(); // 去掉参数标记
+            valueRequired = /<.+>/.test(part);
+        } else if (part.startsWith('-') && part.length === 2) {
+            short = part[1];
+        }
+    }
 
-    program.parseAsync(process.argv).catch((e) => {
-        logger.error(e instanceof Error ? e.message : String(e));
-        process.exit(1);
-    });
+    if (!long) {
+        throw new Error(`Invalid flags format: "${flags}", no long flag found.`);
+    }
+
+    const key = long;
+
+    const config: YargsOption = {
+        describe: description,
+        alias: short,
+        default: isNegated ? true : defaultValue,
+        type: inferTypeFromFlags(flags, defaultValue),
+        choices,
+    };
+
+    if (parser) config.coerce = parser;
+    if (valueRequired) config.demandOption = true;
+    if (isNegated) config.type = 'boolean';
+
+    return { key, config } as { key: string; config: YargsOption };
+};
+const inferTypeFromFlags = (flags: string, defaultValue: any) => {
+    if (flags.includes('<number>')) return 'number';
+    if (typeof defaultValue === 'number') return 'number';
+    if (flags.includes('<')) return 'string';
+    if (typeof defaultValue === 'boolean') return 'boolean';
+    return 'string';
 };
 
 export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
-    // 基础定义
-    protected abstract actor: LaniaCommandActionInterface<ActionArgs>;
-    protected abstract commandNeededArgs: CommandNeededArgsInterface;
-    protected subcommands?: LaniaCommand[];
-
-    // 新增功能
     protected hooks: {
         beforeExecute?: CommandHook;
         afterExecute?: CommandHook;
@@ -41,115 +75,101 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
 
     private parentCommand?: LaniaCommand;
 
+    // ✅ 子类可赋值
+    protected actor?: LaniaCommandActionInterface<ActionArgs>;
+    protected commandNeededArgs?: CommandNeededArgsInterface;
+    protected subcommands?: LaniaCommand[];
+
     constructor(parent?: LaniaCommand) {
         this.parentCommand = parent;
     }
 
-    /**
-     * 增强版命令加载
-     */
-    public load(): Command {
-        const { name, description, options, alias, examples, args } = this.commandNeededArgs ?? {};
-        const command = new Command(name);
+    public load(): CommandModule {
+        const actor = this.actor;
+        const commandNeededArgs = this.commandNeededArgs;
+        const subcommands = this.subcommands;
 
-        // 基础配置
-        this.configureCommand(command, { description, alias, examples, args });
-
-        // 选项注册（支持高级校验）
-        this.registerOptions(command, options);
-
-        // 动作处理（带生命周期钩子）
-        command.action(async (...args: ActionArgs) => {
-            try {
-                await this.executeWithHooks(...args);
-            } catch (error) {
-                await this.handleError(error);
+        if (!actor || !commandNeededArgs) {
+            const constructor = this.constructor as any;
+            const meta: LaniaCommandMetadata | undefined = Reflect.getMetadata(
+                constructor,
+                constructor,
+            );
+            if (!meta) {
+                throw new Error(`Command metadata not found for ${this.constructor.name}`);
             }
-        });
 
-        // 子命令注册
-        this.registerSubcommands(command);
-
-        // 增强帮助信息
-        this.enhanceHelp(command);
-
-        return command;
-    }
-
-    // 私有方法实现
-    private configureCommand(
-        command: Command,
-        config: Pick<CommandNeededArgsInterface, 'description' | 'alias' | 'examples' | 'args'>,
-    ) {
-        const { description, alias, examples, args } = config;
-        description && command.description(description);
-        alias && command.alias(alias);
-        args?.length && args.forEach((arg) => command.arguments(arg));
-        if (examples) {
-            command.on('--help', () => {
-                console.log('\nExamples:');
-                examples.forEach((ex) => console.log(`  ${ex}`));
-            });
+            return this._buildCommandModule(meta.actor, meta.commandNeededArgs, meta.subcommands);
         }
+
+        return this._buildCommandModule(actor, commandNeededArgs, subcommands);
     }
 
-    private registerOptions(command: Command, options?: CommandOption[]) {
-        options?.forEach((opt) => {
-            if (opt.required && !opt.flags.includes('<')) {
-                throw new Error(`Required option "${opt.flags}" must use <> syntax`);
-            }
-
-            const option = new Option(opt.flags, opt.description);
-            if (opt.defaultValue !== undefined) {
-                option.default(opt.defaultValue);
-            }
-            if (opt.choices) {
-                option.choices(opt.choices);
-            }
-            command.addOption(option);
-        });
-    }
-
-    private async executeWithHooks(...args: ActionArgs) {
-        await this.hooks.beforeExecute?.();
-        const result = await this.actor.handle(...args);
-        await this.hooks.afterExecute?.();
-        return result;
-    }
-
-    private async handleError(error: unknown) {
-        await this.hooks.onError?.();
-        logger.error(error instanceof Error ? error.stack || error.message : String(error));
-        process.exit(1);
-    }
-
-    private registerSubcommands(command: Command) {
-        this.subcommands?.forEach((sub) => {
-            const subcommand = sub.load();
-            // 继承父命令的全局选项
-            this.parentCommand?.commandNeededArgs.options?.forEach((opt) => {
-                if (!subcommand.options.some((o) => o.flags === opt.flags)) {
-                    subcommand.addOption(new Option(opt.flags, opt.description));
+    private _buildCommandModule(
+        actor: LaniaCommandActionInterface<ActionArgs>,
+        commandNeededArgs: CommandNeededArgsInterface,
+        subcommands?: LaniaCommand[],
+    ): CommandModule {
+        const {
+            name,
+            description,
+            options = [],
+            alias,
+            examples,
+            args,
+            overrideNoPrefixParsing: commandOverrideNoPrefixParsing,
+        } = commandNeededArgs;
+        return {
+            command: args?.length ? `${name} ${args.join(' ')}` : name,
+            describe: description,
+            aliases: alias ? [alias] : [],
+            builder: (yargs: Argv) => {
+                this.registerOptions(yargs, options);
+                subcommands?.forEach((subInstance) => {
+                    yargs.command(subInstance.load());
+                });
+                examples?.forEach((ex) => {
+                    yargs.example(ex, '');
+                });
+                return yargs;
+            },
+            handler: async (argv: any) => {
+                try {
+                    const reducedArgv = options?.reduce((acc, option) => {
+                        const match = option.flags.match(/--(?:no-)?([a-zA-Z][\w-]*)/);
+                        const rawKey = match?.[1];
+                        if (!rawKey) return acc;
+                        const isNo = option.flags.startsWith('--no-');
+                        const overrideNoPrefixParsing =
+                            option.overrideNoPrefixParsing ?? commandOverrideNoPrefixParsing;
+                        if (overrideNoPrefixParsing && isNo) {
+                            const key = isNo ? `no-${rawKey}` : rawKey;
+                            const cameKey = camelCase(key);
+                            acc[cameKey] = !acc[rawKey];
+                            acc[rawKey] = acc[cameKey];
+                            acc[key] = acc[cameKey];
+                        }
+                        return acc;
+                    }, argv);
+                    await this.hooks.beforeExecute?.();
+                    await actor.handle(...([reducedArgv] as ActionArgs));
+                    await this.hooks.afterExecute?.();
+                } catch (err) {
+                    await this.hooks.onError?.();
+                    logger.error(err instanceof Error ? err.stack : String(err));
+                    process.exit(1);
                 }
-            });
-            command.addCommand(subcommand);
+            },
+        };
+    }
+
+    private registerOptions(yargs: Argv, options?: CommandOption[]) {
+        options?.forEach((option) => {
+            const { key, config } = commanderToYargsOption(option);
+            yargs.option(option.name ?? key, config);
         });
     }
 
-    private enhanceHelp(command: Command) {
-        command.showHelpAfterError('(使用 --help 查看可用选项)').showSuggestionAfterError();
-
-        command.on('--help', () => {
-            if (this.subcommands?.length) {
-                console.log('\n子命令可通过 --help 查看详情，例如:');
-                console.log(
-                    `  ${command.name()} ${this.subcommands[0].commandNeededArgs.name} --help`,
-                );
-            }
-        });
-    }
-
-    // 新增公共方法
     public addHook(type: keyof typeof this.hooks, fn: CommandHook) {
         this.hooks[type] = fn;
     }
@@ -158,3 +178,30 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
         return this.parentCommand;
     }
 }
+
+// 注册入口函数，注册所有命令
+export const registerCommands = async (
+    name: string,
+    version: string,
+    commands?: LaniaCommand[],
+) => {
+    try {
+        let cli = yargs(hideBin(process.argv))
+            .scriptName(name)
+            .version('version', version, '显示版本')
+            .usage('<command> [options]')
+            .help('help', '显示帮助信息')
+            .alias('h', 'help')
+            .alias('v', 'version')
+            .showHelpOnFail(false);
+
+        commands?.forEach((command) => {
+            cli = cli.command(command.load());
+        });
+
+        await cli.parseAsync();
+    } catch (e) {
+        logger.error(e instanceof Error ? e.message : String(e));
+        process.exit(1);
+    }
+};

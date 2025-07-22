@@ -1,4 +1,4 @@
-import PackageManager from './package-manager.base';
+import { PackageManager } from './runner.base';
 
 export default class PnpmPackageManager extends PackageManager<'pnpm'> {
     constructor() {
