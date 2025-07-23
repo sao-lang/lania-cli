@@ -12,7 +12,7 @@ import {
     CreateCommandOptions,
 } from '@lania-cli/types';
 
-export const createQuestions = (options: CreateCommandOptions & { projectType: string }) => [
+export const createQuestions = (options: CreateCommandOptions & { template: string }) => [
     {
         message: 'Please select a css processor:',
         name: 'cssProcessor',
@@ -21,7 +21,7 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
         when: () => {
             if (
                 [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some(
-                    (item) => options.projectType?.includes(item),
+                    (item) => options.template?.includes(item),
                 )
             ) {
                 return false;
@@ -38,7 +38,7 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
         when: () => {
             if (
                 [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some(
-                    (item) => options.projectType?.includes(item),
+                    (item) => options.template?.includes(item),
                 )
             ) {
                 return false;
@@ -70,7 +70,7 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
                 ProjectTypeEnum.ssr,
                 ProjectTypeEnum.nodejs,
                 ProjectTypeEnum.vanilla,
-            ].some((item) => options.projectType?.includes(item));
+            ].some((item) => options.template?.includes(item));
             if (flag) {
                 return [BuildToolEnum.webpack, BuildToolEnum.vite];
             }
