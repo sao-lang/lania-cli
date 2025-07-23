@@ -15,16 +15,18 @@ export class Builder {
     private template: SpaReactTemplate;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
-        const { projectType } = await new CliInteraction()
+        const { template } = await new CliInteraction()
             .addQuestion({
                 type: 'list',
                 message: 'Please select project template:',
-                name: 'projectType',
+                name: 'template',
                 choices: templateList,
             })
             .execute();
         this.template = TemplateFactory.create(projectType);
-        const choices = this.template.createPromptQuestions({ ...options, projectType } as any);
+        const choices = this.template.createPromptQuestions({ ...options, template } as InteractionConfig & {
+            template: string
+        });
         const answers = await new CliInteraction().addQuestions(choices as any).execute();
         return answers;
     }
