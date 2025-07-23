@@ -41,7 +41,7 @@ export class SpaReactTemplate extends BaseTemplate {
     constructor() {
         super();
     }
-    public createPromptQuestions(options: CreateCommandOptions & { projectType: string }) {
+    public createPromptQuestions(options: CreateCommandOptions & { template: string }) {
         return createQuestions(options);
     }
     public combineAnswersWithOptions(answers: Record<string, string | boolean | number>) {
