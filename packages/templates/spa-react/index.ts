@@ -36,12 +36,12 @@ import { createQuestions } from './helper';
 
 export class SpaReactTemplate extends BaseTemplate {
     protected config = config;
-    static __name = 'spa-react-template';
+    static __name = 'spa-react';
     protected tmpDirName = __dirname;
     constructor() {
         super();
     }
-    public createPromptQuestions(options: CreateCommandOptions) {
+    public createPromptQuestions(options: CreateCommandOptions & { projectType: string }) {
         return createQuestions(options);
     }
     public combineAnswersWithOptions(answers: Record<string, string | boolean | number>) {

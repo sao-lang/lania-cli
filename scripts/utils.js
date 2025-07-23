@@ -142,7 +142,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
                     const [pkgName] = relative.split(path.sep);
                     return {
                         src: `../packages/templates/${pkgName}/templates/*.ejs`,
-                        dest: `../packages/templates/dist/${pkgName}/templates`,
+                        dest: `../packages/templates/dist/__lania-${pkgName}/templates`,
                     };
                 }),
             }),

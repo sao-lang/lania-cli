@@ -15,16 +15,16 @@ export class Builder {
     private template: SpaReactTemplate;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
-        const { template } = await new CliInteraction()
+        const { projectType } = await new CliInteraction()
             .addQuestion({
                 type: 'list',
                 message: 'Please select project template:',
-                name: 'template',
+                name: 'projectType',
                 choices: templateList,
             })
             .execute();
-        this.template = TemplateFactory.create(template);
-        const choices = this.template.createPromptQuestions(options);
+        this.template = TemplateFactory.create(projectType);
+        const choices = this.template.createPromptQuestions({ ...options, projectType } as any);
         const answers = await new CliInteraction().addQuestions(choices as any).execute();
         return answers;
     }
@@ -77,7 +77,9 @@ export class Builder {
     private async downloadDependencies() {
         const taskProgressManager = new TaskProgressManager('spinner');
         taskProgressManager.init('DownloadDependencies', 1);
-        const packageManager = await PackageManagerFactory.create(this.options.packageManager as any);
+        const packageManager = await PackageManagerFactory.create(
+            this.options.packageManager as any,
+        );
         const [installErr] = await to(packageManager.install({ silent: true }));
         if (installErr) {
             throw installErr;
@@ -86,13 +88,13 @@ export class Builder {
     }
     public async build(options: CreateCommandOptions) {
         const taskProgressManager = new TaskProgressManager('spinner');
-        taskProgressManager.init('Build', 1);
         const answers = (await this.prompt(options)) as any;
         this.options = {
             ...answers,
             ...options,
             packageManager: options.packageManager || answers.packageManager,
         };
+        taskProgressManager.init('Build', 1);
         const [getErr, result] = await to(this.getDependencies(this.options));
         if (getErr) {
             throw getErr;

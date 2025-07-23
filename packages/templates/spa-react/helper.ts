@@ -12,16 +12,16 @@ import {
     CreateCommandOptions,
 } from '@lania-cli/types';
 
-export const createQuestions = (options: CreateCommandOptions) => [
+export const createQuestions = (options: CreateCommandOptions & { projectType: string }) => [
     {
         message: 'Please select a css processor:',
         name: 'cssProcessor',
         choices: CSS_PROCESSORS,
-        default: CssProcessorEnum.sass,
-        when: ({ template }: { template: string }) => {
+        default: CssProcessorEnum.css,
+        when: () => {
             if (
-                [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some((item) =>
-                    template.includes(item),
+                [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some(
+                    (item) => options.projectType?.includes(item),
                 )
             ) {
                 return false;
@@ -35,10 +35,10 @@ export const createQuestions = (options: CreateCommandOptions) => [
         name: 'cssTools',
         choices: [...CSS_TOOLS, { name: 'skip', value: null }],
         default: 'skip',
-        when: ({ template }: { template: string }) => {
+        when: () => {
             if (
-                [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some((item) =>
-                    template.includes(item),
+                [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some(
+                    (item) => options.projectType?.includes(item),
                 )
             ) {
                 return false;
@@ -64,13 +64,13 @@ export const createQuestions = (options: CreateCommandOptions) => [
     {
         name: 'buildTool',
         message: 'Please select a build tool:',
-        choices: ({ template }: { template: string }) => {
+        choices: () => {
             const flag = [
                 ProjectTypeEnum.spa,
                 ProjectTypeEnum.ssr,
                 ProjectTypeEnum.nodejs,
                 ProjectTypeEnum.vanilla,
-            ].some((item) => template.includes(item));
+            ].some((item) => options.projectType?.includes(item));
             if (flag) {
                 return [BuildToolEnum.webpack, BuildToolEnum.vite];
             }

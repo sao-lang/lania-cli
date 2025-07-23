@@ -10,7 +10,7 @@ import {
     PackageManagerEnum,
 } from '@lania-cli/types';
 
-class CreateAction implements LaniaCommandActionInterface<[string, CreateCommandOptions]> {
+class CreateAction implements LaniaCommandActionInterface<[CreateCommandOptions]> {
     private options: CreateCommandOptions = {} as any;
     private validateProjectName(name: string) {
         return !validatePkgName(name).errors;
@@ -65,24 +65,21 @@ class CreateAction implements LaniaCommandActionInterface<[string, CreateCommand
             message: '',
         };
     }
-    public async handle(name: string, command: CreateActionOptions) {
-        this.options = { name, ...command };
-        const { status, message } = await this.check(
-            name,
-            command.directory,
-            command.packageManager,
-        );
+    public async handle(options: CreateActionOptions) {
+        this.options = options;
+        const { name, directory, packageManager, skipGit } = options;
+        const { status, message } = await this.check(name, directory, packageManager);
         if (!status) {
             throw new Error(message);
         }
         await new Builder().build({ name, ...this.options });
-        if (!command.skipGit) {
+        if (!skipGit) {
             await new GitRunner().git.init({ silent: true });
         }
     }
 }
 
-export class CreateCommand extends LaniaCommand<[string, CreateCommandOptions]> {
+export class CreateCommand extends LaniaCommand<[CreateCommandOptions]> {
     protected actor = new CreateAction();
     protected commandNeededArgs = {
         name: 'create [name]',

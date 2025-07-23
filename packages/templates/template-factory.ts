@@ -1,7 +1,6 @@
 import { readdir } from 'fs/promises';
 import { SpaReactTemplate } from './spa-react';
 import { statSync } from 'fs';
-import { resolve } from 'path';
 export class TemplateFactory {
     public static create(name: string) {
         const templateMap = {
@@ -16,14 +15,15 @@ export class TemplateFactory {
     }
     public static async list() {
         try {
-            const dirPath = resolve(__dirname, '../src');
-            const targets = await readdir(dirPath);
-            return targets.filter((f) => {
-                if (!statSync(`${dirPath}/${f}`).isDirectory()) {
-                    return false;
-                }
-                return true;
-            });
+            const targets = await readdir(__dirname);
+            return targets
+                .filter((f) => {
+                    if (!statSync(`${__dirname}/${f}`).isDirectory() || !f.includes('__lania')) {
+                        return false;
+                    }
+                    return true;
+                })
+                .map((f) => f.replace('__lania-', ''));
         } catch (e) {
             throw e as Error;
         }
