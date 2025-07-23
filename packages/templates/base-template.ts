@@ -10,7 +10,7 @@ export abstract class BaseTemplate {
         dependencies: string[];
         devDependencies: string[];
     };
-    public createOutputTasks(options: InteractionConfig) {
+    public createOutputTasks(options: InteractionConfig & { template: string }) {
         return this.config.map((taskFn) => {
             const { outputPath = '', hide } = taskFn(options);
             const pathSplitted = outputPath.split('/');
@@ -19,7 +19,7 @@ export abstract class BaseTemplate {
             return {
                 hide,
                 outputPath,
-                filepath: `${__dirname}/templates/${basename}`,
+                filepath: `${__dirname}/__lania-${options.template}/${basename}`,
             };
         });
     }
