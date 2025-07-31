@@ -172,6 +172,7 @@ export interface InteractionConfig {
     buildTool: BuildToolEnum;
     cssTools?: CssToolEnum[];
     linters?: LintToolEnum[];
+    projectType?: string;
 }
 
 export interface LaniaConfig {

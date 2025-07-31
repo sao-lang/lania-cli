@@ -34,7 +34,7 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
         message: 'Please select a css tool:',
         name: 'cssTools',
         choices: [...CSS_TOOLS, { name: 'skip', value: null }],
-        default: 'skip',
+        default: null,
         when: () => {
             if (
                 [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some(
@@ -52,14 +52,14 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
         name: 'lintTools',
         choices: [...LINT_TOOLS, { name: 'skip', value: null }],
         type: 'checkbox',
-        default: 'skip',
+        default: null,
     },
     {
         message: 'Please select a unit testing tool',
         name: 'unitTestTool',
         choices: [...UNIT_TEST_TOOLS, { name: 'skip', value: null }],
         type: 'list',
-        default: 'skip',
+        default: null,
     },
     {
         name: 'buildTool',

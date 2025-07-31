@@ -14,7 +14,7 @@ export abstract class BaseTemplate {
         return this.config.map((taskFn) => {
             const { outputPath = '', hide } = taskFn(options);
             const pathSplitted = outputPath.split('/');
-            const basename = pathSplitted?.[pathSplitted.length] ?? '' + '.ejs';
+            const basename = (pathSplitted?.[pathSplitted.length - 1] ?? '') + '.ejs';
             console.log({ filepath: `${__dirname}/templates/${basename}`, outputPath, __dirname });
             return {
                 hide,
