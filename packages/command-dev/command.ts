@@ -71,7 +71,7 @@ export class DevCommand extends LaniaCommand<[DevActionOptions]> {
             },
             { flags: '-c, --config [config]', description: 'Path to configuration file.' },
             {
-                flags: '-h, --hmr',
+                flags: '--hmr',
                 description: 'Whether to turn on HMR or not.',
                 defaultValue: true,
             },
@@ -80,7 +80,7 @@ export class DevCommand extends LaniaCommand<[DevActionOptions]> {
                 description: 'Host to the development server',
                 defaultValue: '127.0.0.1',
             },
-            { flags: '-p, --path [path]', description: 'Path to lan configuration file.' },
+            { flags: '--path [path]', description: 'Path to lan configuration file.' },
             { flags: '--mode', description: 'Mode of initiating the project.' },
             {
                 flags: '-o, --open',

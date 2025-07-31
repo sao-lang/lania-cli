@@ -5,9 +5,9 @@ import { mkDirs, getFileExt } from '../utils';
 import { PrettierSupportFileType } from '@lania-cli/types';
 
 export class EjsRenderer {
-    private format: (code: string, fileType: string) => string;
+    private format: (code: string, fileType: string) => string | Promise<string>;
 
-    constructor(format?: (code: string, fileType: string) => string) {
+    constructor(format?: (code: string, fileType: string) => string | Promise<string>) {
         this.format = format ?? ((code) => code); // 默认不格式化
     }
 
@@ -19,7 +19,7 @@ export class EjsRenderer {
             options.fileType ??
             (options.outputPath ? getFileExt<PrettierSupportFileType>(options.outputPath) : '');
 
-        const formattedCode = this.format(code, ext) ?? code;
+        const formattedCode = (await this.format(code, ext)) ?? code;
 
         if (options.outputPath) {
             await mkDirs(dirname(options.outputPath));

@@ -1,4 +1,4 @@
-import { PACKAGES_MANAGERS, GitRunner, LaniaCommand } from '@lania-cli/common';
+import { PACKAGES_MANAGERS, GitRunner, LaniaCommand, styleText, logger } from '@lania-cli/common';
 import { mkdir, readdir } from 'fs/promises';
 import path from 'path';
 import { Builder } from './builder';
@@ -76,6 +76,7 @@ class CreateAction implements LaniaCommandActionInterface<[CreateCommandOptions]
         if (!skipGit) {
             await new GitRunner().git.init({ silent: true });
         }
+        logger.ascii('LANIAKEA');
     }
 }
 

@@ -6,8 +6,8 @@
     "private": true,
     "scripts": {
         <% if (buildTool === 'webpack') { %>"analyzer": "npx webpack-bundle-analyzer ./dist/stats.json",<% } %>
-        "dev": "lania dev",
-        "build": "lania build"
+        "dev": "lan dev",
+        "build": "lan build"
     },
     "dependencies": {
         <% const dependenciesArray = Object.entries(dependencies); %>

@@ -29,45 +29,45 @@ export default [
     }),
     (options: InteractionConfig) => ({
         outputPath: '/tailwind.css',
-        hide: options.cssTools?.includes(CssToolEnum.tailwindcss),
+        hide: !options.cssTools?.includes(CssToolEnum.tailwindcss),
     }),
     (options: InteractionConfig) => ({
         outputPath: '/tailwind.config.cjs',
-        hide: options.cssTools?.includes(CssToolEnum.tailwindcss),
+        hide: !options.cssTools?.includes(CssToolEnum.tailwindcss),
     }),
     (options: InteractionConfig) => ({
         outputPath: '/postcss.config.cjs',
-        hide: options.cssTools?.includes(CssToolEnum.tailwindcss),
+        hide: !options.cssTools?.includes(CssToolEnum.tailwindcss),
     }),
     () => ({ outputPath: '/package.json' }),
     (options: InteractionConfig) => ({
-        outputPath: '/main.tsx',
+        outputPath: '/src/main.tsx',
         hide: options.language !== LangEnum.TypeScript,
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/main.jsx',
+        outputPath: '/src/main.jsx',
         hide: options.language !== LangEnum.JavaScript,
     }),
     () => ({
         outputPath: '/lan.config.json',
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/index.styl',
+        outputPath: '/src/index.styl',
         hide: options.cssProcessor !== CssProcessorEnum.stylus,
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/index.scss',
+        outputPath: '/src/index.scss',
         hide: options.cssProcessor !== CssProcessorEnum.sass,
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/index.less',
+        outputPath: '/src/index.less',
         hide: options.cssProcessor !== CssProcessorEnum.less,
     }),
     () => ({
         outputPath: '/index.html',
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/index.css',
+        outputPath: '/src/index.css',
         hide: options.cssProcessor !== CssProcessorEnum.css,
     }),
     (options: InteractionConfig) => ({
@@ -84,7 +84,7 @@ export default [
     }),
     (options: InteractionConfig) => ({
         outputPath: '/src/App.less',
-        hide: options.cssProcessor === CssProcessorEnum.less,
+        hide: options.cssProcessor !== CssProcessorEnum.less,
     }),
     (options: InteractionConfig) => ({
         outputPath: '/src/App.jsx',

@@ -113,6 +113,9 @@ export class Prettier extends Linter<PrettierSupportFileType, PrettierOutput> {
         config: LinterConfiguration,
         fileType: PrettierSupportFileType,
     ) {
+        if (!Prettier.listFileTypes().includes(fileType)) {
+            return content;
+        }
         const configObject = await getModuleConfig(config);
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);

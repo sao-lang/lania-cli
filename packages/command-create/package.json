@@ -15,12 +15,13 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@lania-cli/types": "workspace:^",
         "@lania-cli/common": "workspace:^",
-        "@lania-cli/templates": "workspace:^",
         "@lania-cli/compilers": "workspace:^",
-        "validate-npm-package-name": "^5.0.0",
+        "@lania-cli/linters": "workspace:^",
+        "@lania-cli/templates": "workspace:^",
+        "@lania-cli/types": "workspace:^",
+        "get-port": "^7.0.0",
         "latest-version": "^7.0.0",
-        "get-port": "^7.0.0"
+        "validate-npm-package-name": "^5.0.0"
     }
 }
