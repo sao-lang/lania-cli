@@ -1,11 +1,6 @@
 import { lint, load } from '@commitlint/core';
 import { ConfigurationLoader } from '../../lib/configuration-loader';
-
-type CommitlintConfigSource = string | Record<string, any>;
-
-export interface CommitlintPluginConfig {
-    config?: CommitlintConfigSource;
-}
+import { CommitlintConfigSource, CommitlintPluginConfig } from "@lania-cli/types";
 
 export class CommitlintPlugin {
     private config: CommitlintConfigSource;
