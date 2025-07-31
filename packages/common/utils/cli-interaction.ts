@@ -16,13 +16,28 @@ function resolve<T, C extends Context>(
 const BACK_SIGNAL = '__BACK__';
 const EXIT_SIGNAL = '__EXIT__';
 
+export interface InteractionAccumulationOptions {
+    /** 是否开启多次 execute 结果累积（默认 true） */
+    accumulate?: boolean;
+    /** 如果开启累积，用于合并上一次与本次答案的策略（默认浅合并：current 覆盖 previous） */
+    mergeStrategy?: (previous: Answer, current: Answer) => Answer;
+    /** 每次 execute 之前是否先清空历史（如果为 true，等于每次都是干净的一轮） */
+    resetOnExecute?: boolean;
+}
+
+export interface ExtendedCliOptions<TCtx extends Context = Context> extends CliOptions<TCtx> {
+    accumulation?: InteractionAccumulationOptions;
+}
+
 export class CliInteraction<TCtx extends Context = Context> {
     private questions: Question<TCtx>[] = [];
-    private options: CliOptions<TCtx>;
+    private options: ExtendedCliOptions<TCtx>;
     private context: TCtx;
+    // 原始历史答案（不受 mapFunction 变形影响）
+    private previousAnswers: Answer = {};
 
-    constructor(options?: CliOptions<TCtx>) {
-        this.options = options || {};
+    constructor(options?: ExtendedCliOptions<TCtx>) {
+        this.options = options || ({} as ExtendedCliOptions<TCtx>);
         this.context = this.options.context || ({} as TCtx);
     }
 
@@ -58,8 +73,36 @@ export class CliInteraction<TCtx extends Context = Context> {
         this.context = { ...this.context, ...ctx };
     }
 
+    /**
+     * 显式重置累积的历史答案（下一次 execute 将从干净状态开始，除非 resetOnExecute 是 false 且 accumulate 是 false）
+     */
+    public resetAccumulated(): void {
+        this.previousAnswers = {};
+    }
+
+    private shouldAccumulate(): boolean {
+        return this.options.accumulation?.accumulate !== false;
+    }
+
+    private getMergeStrategy(): (previous: Answer, current: Answer) => Answer {
+        return (
+            this.options.accumulation?.mergeStrategy ||
+            ((previous: Answer, current: Answer) => ({ ...previous, ...current }))
+        );
+    }
+
     public async execute(): Promise<Answer> {
-        const answers: Answer = {};
+        // 如果配置了每次 execute 先 reset，就清空历史
+        if (this.options.accumulation?.resetOnExecute) {
+            this.previousAnswers = {};
+        }
+
+        // 依据 accumulate 决定起点
+        const baseAnswers: Answer = this.shouldAccumulate()
+            ? { ...this.previousAnswers }
+            : {};
+        const answers: Answer = { ...baseAnswers };
+
         let step = 0;
 
         while (step < this.questions.length) {
@@ -85,7 +128,13 @@ export class CliInteraction<TCtx extends Context = Context> {
 
             if (value === EXIT_SIGNAL) {
                 logger.log('用户中止流程');
-                return answers;
+                // 保存历史（如果开启 accumulate 且没有 resetOnExecute）
+                if (this.shouldAccumulate()) {
+                    this.previousAnswers = this.getMergeStrategy()(this.previousAnswers, answers);
+                }
+                return this.options.mapFunction
+                    ? this.options.mapFunction(answers, this.context)
+                    : answers;
             }
 
             if (value === BACK_SIGNAL && q.returnable && step > 0) {
@@ -115,7 +164,17 @@ export class CliInteraction<TCtx extends Context = Context> {
             step++;
         }
 
-        return this.options.mapFunction ? this.options.mapFunction(answers, this.context) : answers;
+        // 计算最终返回（可能被 mapFunction 改变）
+        const finalAns = this.options.mapFunction
+            ? this.options.mapFunction(answers, this.context)
+            : answers;
+
+        // 更新历史答案（只在 accumulate 开启时）
+        if (this.shouldAccumulate()) {
+            this.previousAnswers = this.getMergeStrategy()(this.previousAnswers, answers);
+        }
+
+        return finalAns;
     }
 
     private translate(text: string): string {
@@ -148,7 +207,51 @@ export class CliInteraction<TCtx extends Context = Context> {
         const timeout = new Promise<Answer>((resolve) => {
             setTimeout(() => {
                 logger.warn(`\n超时跳过，使用默认值: ${question.default}`);
-                resolve({ [question.name]: resolve(question.default) });
+                // 动态解析 default
+                let defVal: any;
+                try {
+                    defVal =
+                        question.default !== undefined
+                            ? typeof question.default === 'function'
+                                ? (question.default as any)(answers, this.context)
+                                : question.default
+                            : undefined;
+                } catch {
+                    defVal = undefined;
+                }
+                resolve({ [question.name]: defVal });
+            }, timeoutSec * 1000);
+        });
+
+        return Promise.race([prompt, timeout]);
+    }
+}
+
+export const simplePromptInteraction = async (questions: Question[] | Question) => {
+    return await new CliInteraction()
+        .addQuestions(Array.isArray(questions) ? questions : [questions])
+        .execute();
+};            },
+        ] as any);
+
+        if (!timeoutSec) return prompt;
+
+        const timeout = new Promise<Answer>((resolve) => {
+            setTimeout(() => {
+                logger.warn(`\n超时跳过，使用默认值: ${question.default}`);
+                // 运行时动态解析 default（支持函数）
+                let defVal: any;
+                try {
+                    defVal =
+                        question.default !== undefined
+                            ? typeof question.default === 'function'
+                                ? (question.default as any)(answers, this.context)
+                                : question.default
+                            : undefined;
+                } catch {
+                    defVal = undefined;
+                }
+                resolve({ [question.name]: defVal });
             }, timeoutSec * 1000);
         });
 
