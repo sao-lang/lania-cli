@@ -8,27 +8,25 @@ import {
 import { SpaReactTemplate, TemplateFactory } from '@lania-cli/templates';
 import latestVersion from 'latest-version';
 import getPort from 'get-port';
-import { CreateCommandOptions, InteractionConfig } from '@lania-cli/types';
+import { CreateCommandOptions, InteractionConfig, Question } from '@lania-cli/types';
 
 export class Builder {
     private options: InteractionConfig = {} as any;
     private template: SpaReactTemplate;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
-        const { template } = await new CliInteraction()
+        const { projectType } = await new CliInteraction()
             .addQuestion({
                 type: 'list',
                 message: 'Please select project template:',
-                name: 'template',
+                name: 'projectType',
                 choices: templateList,
             })
             .execute();
         this.template = TemplateFactory.create(projectType);
-        const choices = this.template.createPromptQuestions({ ...options, template } as InteractionConfig & {
-            template: string
-        });
-        const answers = await new CliInteraction().addQuestions(choices as any).execute();
-        return answers;
+        const choices = this.template.createPromptQuestions({ ...options, projectType });
+        const answers = await new CliInteraction().addQuestions(choices as Question[]).execute();
+        return { ...answers, projectType };
     }
     private async getDependencies(options: InteractionConfig) {
         const { dependencies, devDependencies } = this.template.getDependenciesArray(

@@ -141,8 +141,11 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
                     const relative = path.relative(templatesBase, srcTemplateDir);
                     const [pkgName] = relative.split(path.sep);
                     return {
-                        src: `../packages/templates/${pkgName}/templates/*.ejs`,
-                        dest: `../packages/templates/dist/__lania-${pkgName}/templates`,
+                        src: [
+                            `../packages/templates/${pkgName}/templates/*.ejs`,
+                            `../packages/templates/${pkgName}/templates/.*.ejs`,
+                        ],
+                        dest: `../packages/templates/dist/__lania-${pkgName}`,
                     };
                 }),
             }),

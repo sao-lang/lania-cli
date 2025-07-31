@@ -12,7 +12,7 @@ import {
     CreateCommandOptions,
 } from '@lania-cli/types';
 
-export const createQuestions = (options: CreateCommandOptions & { template: string }) => [
+export const createQuestions = (options: CreateCommandOptions & { projectType: string }) => [
     {
         message: 'Please select a css processor:',
         name: 'cssProcessor',
@@ -21,7 +21,7 @@ export const createQuestions = (options: CreateCommandOptions & { template: stri
         when: () => {
             if (
                 [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some(
-                    (item) => options.template?.includes(item),
+                    (item) => options.projectType?.includes(item),
                 )
             ) {
                 return false;
@@ -34,11 +34,11 @@ export const createQuestions = (options: CreateCommandOptions & { template: stri
         message: 'Please select a css tool:',
         name: 'cssTools',
         choices: [...CSS_TOOLS, { name: 'skip', value: null }],
-        default: 'skip',
+        default: null,
         when: () => {
             if (
                 [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some(
-                    (item) => options.template?.includes(item),
+                    (item) => options.projectType?.includes(item),
                 )
             ) {
                 return false;
@@ -52,14 +52,14 @@ export const createQuestions = (options: CreateCommandOptions & { template: stri
         name: 'lintTools',
         choices: [...LINT_TOOLS, { name: 'skip', value: null }],
         type: 'checkbox',
-        default: 'skip',
+        default: null,
     },
     {
         message: 'Please select a unit testing tool',
         name: 'unitTestTool',
         choices: [...UNIT_TEST_TOOLS, { name: 'skip', value: null }],
         type: 'list',
-        default: 'skip',
+        default: null,
     },
     {
         name: 'buildTool',
@@ -70,7 +70,7 @@ export const createQuestions = (options: CreateCommandOptions & { template: stri
                 ProjectTypeEnum.ssr,
                 ProjectTypeEnum.nodejs,
                 ProjectTypeEnum.vanilla,
-            ].some((item) => options.template?.includes(item));
+            ].some((item) => options.projectType?.includes(item));
             if (flag) {
                 return [BuildToolEnum.webpack, BuildToolEnum.vite];
             }
