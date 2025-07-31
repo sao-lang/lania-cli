@@ -202,3 +202,10 @@ export interface RunnerRunOptions {
     silent?: boolean;
     cwd?: string;
 }
+
+
+export type CommitlintConfigSource = string | Record<string, any>;
+
+export interface CommitlintPluginConfig {
+    config?: CommitlintConfigSource;
+}
