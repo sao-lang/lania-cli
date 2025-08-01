@@ -84,10 +84,10 @@ const { version } = getPackageJson();
 export const createCommonInjectVars = () => {
     return {
         __dirname: {
-            raw: '(() => { const { pathname } = new URL(import.meta.url);const isWin = process.platform === \'win32\';const filePath = isWin && pathname.startsWith(\'/\') ? pathname.slice(1) : pathname;return filePath.slice(0, filePath.lastIndexOf(\'/\'));})()\n',
+            raw: "(() => { const { pathname } = new URL(import.meta.url);const isWin = process.platform === 'win32';const filePath = isWin && pathname.startsWith('/') ? pathname.slice(1) : pathname;return filePath.slice(0, filePath.lastIndexOf('/'));})()\n",
         },
         __filename: {
-            raw: '(() => {const { pathname } = new URL(import.meta.url);return process.platform === \'win32\' && pathname.startsWith(\'/\') ? pathname.slice(1) : pathname; })()\n',
+            raw: "(() => {const { pathname } = new URL(import.meta.url);return process.platform === 'win32' && pathname.startsWith('/') ? pathname.slice(1) : pathname; })()\n",
         },
         __version: JSON.stringify(version),
         __cwd: {
@@ -219,6 +219,7 @@ export const resolveExtern = (packageName = BUILD_CONFIG_MAP.core.value) => {
         ...Object.keys(dependencies || {}),
         ...Object.keys(devDependencies || {}),
     ];
+    console.log(packageName, resolveDependencies);
     return [
         'path',
         'fs',
@@ -238,3 +239,35 @@ export const resolveExtern = (packageName = BUILD_CONFIG_MAP.core.value) => {
         ...resolveDependencies,
     ];
 };
+
+export const resolvedExterns = (() => {
+    return [
+        ...new Set([
+            'path',
+            'fs',
+            'net',
+            'fs/promises',
+            'eslint',
+            'prettier',
+            'prettier-plugin-stylus',
+            'prettier-plugin-ejs',
+            'prettier-plugin-svelte',
+            'stylelint',
+            'textlint',
+            'inquirer',
+            '@lania-cli/linters',
+            'yargs/helpers',
+            'url',
+            ...Object.values(BUILD_CONFIG_MAP)
+                .map((item) => {
+                    const { dependencies, devDependencies } = getPackageJson(item.value);
+                    const resolveDependencies = [
+                        ...Object.keys(dependencies || {}),
+                        ...Object.keys(devDependencies || {}),
+                    ];
+                    return resolveDependencies;
+                })
+                .flat(),
+        ]),
+    ];
+})();
