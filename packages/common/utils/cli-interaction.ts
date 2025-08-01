@@ -1,5 +1,4 @@
-import { CliOptions, Question } from '@lania-cli/types';
-import { Answer, Context } from '@lania-cli/types';
+import { CliOptions, Question, Answer, Context } from '@lania-cli/types';
 import inquirer from 'inquirer';
 import { logger } from './logger';
 
@@ -128,7 +127,6 @@ export class CliInteraction<TCtx extends Context = Context> {
 
             if (value === EXIT_SIGNAL) {
                 logger.log('用户中止流程');
-                // 保存历史（如果开启 accumulate 且没有 resetOnExecute）
                 if (this.shouldAccumulate()) {
                     this.previousAnswers = this.getMergeStrategy()(this.previousAnswers, answers);
                 }
@@ -164,12 +162,10 @@ export class CliInteraction<TCtx extends Context = Context> {
             step++;
         }
 
-        // 计算最终返回（可能被 mapFunction 改变）
         const finalAns = this.options.mapFunction
             ? this.options.mapFunction(answers, this.context)
             : answers;
 
-        // 更新历史答案（只在 accumulate 开启时）
         if (this.shouldAccumulate()) {
             this.previousAnswers = this.getMergeStrategy()(this.previousAnswers, answers);
         }
@@ -208,38 +204,6 @@ export class CliInteraction<TCtx extends Context = Context> {
             setTimeout(() => {
                 logger.warn(`\n超时跳过，使用默认值: ${question.default}`);
                 // 动态解析 default
-                let defVal: any;
-                try {
-                    defVal =
-                        question.default !== undefined
-                            ? typeof question.default === 'function'
-                                ? (question.default as any)(answers, this.context)
-                                : question.default
-                            : undefined;
-                } catch {
-                    defVal = undefined;
-                }
-                resolve({ [question.name]: defVal });
-            }, timeoutSec * 1000);
-        });
-
-        return Promise.race([prompt, timeout]);
-    }
-}
-
-export const simplePromptInteraction = async (questions: Question[] | Question) => {
-    return await new CliInteraction()
-        .addQuestions(Array.isArray(questions) ? questions : [questions])
-        .execute();
-};            },
-        ] as any);
-
-        if (!timeoutSec) return prompt;
-
-        const timeout = new Promise<Answer>((resolve) => {
-            setTimeout(() => {
-                logger.warn(`\n超时跳过，使用默认值: ${question.default}`);
-                // 运行时动态解析 default（支持函数）
                 let defVal: any;
                 try {
                     defVal =
