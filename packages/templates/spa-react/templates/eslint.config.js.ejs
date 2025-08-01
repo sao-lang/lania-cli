@@ -1,3 +1,6 @@
+<%
+    const hasPrettier = options.lintTools.includes('prettier');
+%>
 module.exports = {
     root: true,
     <% if (useTs) { %>
