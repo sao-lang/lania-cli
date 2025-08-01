@@ -1,5 +1,4 @@
 module.exports = {
-    <% /* 基础扩展 */ %>
     extends: [
         'stylelint-config-standard',
         <% if (cssProcessor === 'sass') { %>'stylelint-config-recommended-scss',<% } %>
@@ -7,7 +6,7 @@ module.exports = {
     <% if (cssProcessor === 'sass') { %>
     plugins: ['stylelint-scss'],
     <% } %>
-    syntax: <% if (cssPreprocessor === 'less') { %>'less'<% } else if (cssPreprocessor === 'stylus') { %>'stylus'<% } else if (cssPreprocessor === 'sass') { %>'scss'<% } else { %>'css'<% } %>,
+    syntax: <% if (cssProcessor === 'less') { %>'less'<% } else if (cssProcessor === 'stylus') { %>'stylus'<% } else if (cssProcessor === 'sass') { %>'scss'<% } else { %>'css'<% } %>,
     rules: {
         'color-no-invalid-hex': true,
         'block-no-empty': true,
@@ -16,13 +15,11 @@ module.exports = {
         'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['global'] }],
         <% if (cssProcessor === 'sass') { %>
         'scss/dollar-variable-colon-space-after': 'always',
-        'scss/percent-placeholder-pattern': '^foo', // 举例，可替换
+        'scss/percent-placeholder-pattern': '^foo',
         <% } %>
         <% if (cssProcessor === 'less') { %>
-        // Less 可加自定义规则，比如变量格式校验
         <% } %>
         <% if (cssProcessor === 'stylus') { %>
-        // Stylus 特殊规则
         <% } %>
     },
     <% if (cssProcessor === 'sass') { %>
