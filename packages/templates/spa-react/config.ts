@@ -108,29 +108,33 @@ export default [
     }),
     (options: InteractionConfig) => ({
         outputPath: '/eslint.config.js',
-        hide: !options.lintTools.incluces(LintToolEnum.eslint)
+        hide: !options.lintTools.includes(LintToolEnum.eslint)
     }),
     (options: InteractionConfig) => ({
         outputPath: '/stylelint.config.js',
-        hide: !options.lintTools.incluces(LintToolEnum.stylelint)
+        hide: !options.lintTools.includes(LintToolEnum.stylelint)
     }),
     (options: InteractionConfig) => ({
         outputPath: '/prettier.config.js',
-        hide: !options.lintTools.incluces(LintToolEnum.prettier)
+        hide: !options.lintTools.includes(LintToolEnum.prettier)
     }),
     (options: InteractionConfig) => ({
         outputPath: '/commitlint.config.js',
-        hide: !options.lintTools.incluces(LintToolEnum.commitlint)
+        hide: !options.lintTools.includes(LintToolEnum.commitlint)
     }),
     (options: InteractionConfig) => ({
         outputPath: '/.eslintignore',
-        hide: !options.lintTools.incluces(LintToolEnum.eslint)
+        hide: !options.lintTools.includes(LintToolEnum.eslint)
     }),(options: InteractionConfig) => ({
         outputPath: '/.stylelintignore',
-        hide: !options.lintTools.incluces(LintToolEnum.stylelint)
+        hide: !options.lintTools.includes(LintToolEnum.stylelint)
     }),
     (options: InteractionConfig) => ({
         outputPath: '/.prettierignore',
-        hide: !options.lintTools.incluces(LintToolEnum.prettier)
+        hide: !options.lintTools.includes(LintToolEnum.prettier)
+    }),
+    (options: InteractionConfig) => ({
+        outputPath: '/.editorconfig',
+        hide: !options.lintTools.includes(LintToolEnum.editorconfig)
     }),
 ];
