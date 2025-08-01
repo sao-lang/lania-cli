@@ -1,1 +1,31 @@
-
+module.exports = {
+    <% /* 基础扩展 */ %>
+    extends: [
+        'stylelint-config-standard',
+        <% if (cssProcessor === 'sass') { %>'stylelint-config-recommended-scss',<% } %>
+    ].filter(Boolean),
+    <% if (cssProcessor === 'sass') { %>
+    plugins: ['stylelint-scss'],
+    <% } %>
+    syntax: <% if (cssPreprocessor === 'less') { %>'less'<% } else if (cssPreprocessor === 'stylus') { %>'stylus'<% } else if (cssPreprocessor === 'sass') { %>'scss'<% } else { %>'css'<% } %>,
+    rules: {
+        'color-no-invalid-hex': true,
+        'block-no-empty': true,
+        'unit-no-unknown': true,
+        'declaration-block-trailing-semicolon': 'always',
+        'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['global'] }],
+        <% if (cssProcessor === 'sass') { %>
+        'scss/dollar-variable-colon-space-after': 'always',
+        'scss/percent-placeholder-pattern': '^foo', // 举例，可替换
+        <% } %>
+        <% if (cssProcessor === 'less') { %>
+        // Less 可加自定义规则，比如变量格式校验
+        <% } %>
+        <% if (cssProcessor === 'stylus') { %>
+        // Stylus 特殊规则
+        <% } %>
+    },
+    <% if (cssProcessor === 'sass') { %>
+    ignoreFiles: ['**/node_modules/**'],
+    <% } %>
+};
