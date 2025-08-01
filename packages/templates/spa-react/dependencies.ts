@@ -1,4 +1,4 @@
-import { CssProcessorEnum, InteractionConfig, LangEnum } from '@lania-cli/types';
+import { CssProcessorEnum, InteractionConfig, LangEnum, LintToolEnum } from '@lania-cli/types';
 
 export const TYPESCRIPT_DEV_DEPENDENCIES = [
     '@types/react',
@@ -48,7 +48,7 @@ export const createCssProcessorLoader = (options: InteractionConfig) => {
     }
 };
 
-export const createWebpackDevDependencies = (options: InteractionConfig) =>
+export const getWebpackDevDependencies = (options: InteractionConfig) =>
     [
         '@babel/plugin-transform-runtime',
         '@babel/runtime',
@@ -83,6 +83,84 @@ export const VITE_DEV_DEPENDENCIES = [
     'rollup-plugin-visualizer',
 ];
 
-export const getEslintDevPenpencies = (options: InteractionConfig) => {
-    
-}
+export const getLintDevPenpencies = (options: InteractionConfig): string[] => {
+    const deps = new Set<string>();
+    const { lintTools, useTs, cssProcessor } = options;
+    const hasLintTool = (tool: LintToolEnum) => lintTools.includes(tool);
+    // 通用的 husky 和 lint-staged 依赖
+    if (
+        [
+            LintToolEnum.eslint,
+            LintToolEnum.prettier,
+            LintToolEnum.stylelint,
+            LintToolEnum.commitlint,
+        ].some(hasLintTool)
+    ) {
+        deps.add('husky');
+        deps.add('lint-staged');
+    }
+    // eslint 相关依赖配置
+    const eslintDeps = [
+        'eslint',
+        'eslint-plugin-react',
+        'eslint-plugin-react-hooks',
+        'eslint-plugin-import',
+        'eslint-plugin-jsx-a11y',
+        'eslint-import-resolver-node',
+    ];
+    // stylelint cssProcessor 相关依赖配置
+    const stylelintCssProcessorDeps: Record<
+        CssProcessorEnum.less | CssProcessorEnum.sass | CssProcessorEnum.stylus,
+        string[]
+    > = {
+        [CssProcessorEnum.less]: ['postcss-less'],
+        [CssProcessorEnum.sass]: [
+            'stylelint-config-recommended-scss',
+            'stylelint-scss',
+            'postcss-scss',
+        ],
+        [CssProcessorEnum.stylus]: ['stylelint-plugin-stylus', 'postcss-styl'],
+    };
+    // 定义 lintTool 到依赖数组的映射
+    const lintToolDepsMap: Record<
+        | LintToolEnum.eslint
+        | LintToolEnum.commitlint
+        | LintToolEnum.prettier
+        | LintToolEnum.stylelint,
+        string[]
+    > = {
+        [LintToolEnum.eslint]: eslintDeps,
+        [LintToolEnum.prettier]: ['prettier'],
+        [LintToolEnum.commitlint]: ['@commitlint/cli', '@commitlint/config-conventional'],
+        [LintToolEnum.stylelint]: ['stylelint', 'stylelint-config-standard'],
+    };
+    // 根据选中的 lintTools 添加基础依赖
+    lintTools.forEach((tool) => {
+        const baseDeps = lintToolDepsMap[tool];
+        if (baseDeps) {
+            baseDeps.forEach((d) => deps.add(d));
+        }
+    });
+    // eslint 特殊处理
+    if (hasLintTool(LintToolEnum.eslint)) {
+        if (useTs) {
+            deps.add('@typescript-eslint/parser');
+            deps.add('@typescript-eslint/eslint-plugin');
+        }
+        if (hasLintTool(LintToolEnum.prettier)) {
+            deps.add('eslint-config-prettier');
+            deps.add('eslint-plugin-prettier');
+        }
+    }
+    // stylelint 特殊处理
+    if (hasLintTool(LintToolEnum.stylelint)) {
+        if (hasLintTool(LintToolEnum.prettier)) {
+            deps.add('stylelint-prettier');
+        }
+        if (cssProcessor in stylelintCssProcessorDeps) {
+            stylelintCssProcessorDeps[cssProcessor].forEach((d) => deps.add(d));
+        }
+    }
+
+    return Array.from(deps);
+};
