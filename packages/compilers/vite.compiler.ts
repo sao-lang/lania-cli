@@ -3,12 +3,12 @@ import type { ViteDevServer, InlineConfig } from 'vite';
 import { Compiler } from './compiler.base';
 import path from 'path';
 import fs from 'fs';
-import {to, styleText, logger} from '@lania-cli/common';
+import { to, styleText, logger } from '@lania-cli/common';
 import type { OutputBundle } from 'rollup';
 import { logOnBuildRollupPlugin } from './compiler.plugin';
 import { ConfigOption, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
 
-export  class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> {
+export class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> {
     protected configOption: ConfigOption;
     protected server: ViteDevServer;
     constructor(configPath?: string) {
@@ -87,12 +87,12 @@ export  class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> {
             }
             const name = `${path.basename(dir)}/${fileName}`;
             const size = (stats.size / 1024).toFixed(2) + 'K';
-            logger.info(
-                `${styleText(name, { color: '#6a7c80' })} ${styleText(size, {
-                    bold: true,
-                    color: '#7a7c80',
-                })}`,
-            );
+            const styledName = styleText(name, { color: '#6a7c80' }).render();
+            const styledSize = styleText(size, {
+                bold: true,
+                color: '#7a7c80',
+            }).render();
+            logger.info(`${styledName} ${styledSize}`);
         });
         await Promise.all(bundleEntries);
     }
