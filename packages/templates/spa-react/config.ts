@@ -4,6 +4,7 @@ import {
     CssToolEnum,
     InteractionConfig,
     LangEnum,
+    LintToolEnum
 } from '@lania-cli/types';
 
 export default [
@@ -104,5 +105,32 @@ export default [
     () => ({
         outputPath: '/.env.development',
         hide: true,
+    }),
+    (options: InteractionConfig) => ({
+        outputPath: '/eslint.config.js',
+        hide: !options.lintTools.incluces(LintToolEnum.eslint)
+    }),
+    (options: InteractionConfig) => ({
+        outputPath: '/stylelint.config.js',
+        hide: !options.lintTools.incluces(LintToolEnum.stylelint)
+    }),
+    (options: InteractionConfig) => ({
+        outputPath: '/prettier.config.js',
+        hide: !options.lintTools.incluces(LintToolEnum.prettier)
+    }),
+    (options: InteractionConfig) => ({
+        outputPath: '/commitlint.config.js',
+        hide: !options.lintTools.incluces(LintToolEnum.commitlint)
+    }),
+    (options: InteractionConfig) => ({
+        outputPath: '/.eslintignore',
+        hide: !options.lintTools.incluces(LintToolEnum.eslint)
+    }),(options: InteractionConfig) => ({
+        outputPath: '/.stylelintignore',
+        hide: !options.lintTools.incluces(LintToolEnum.stylelint)
+    }),
+    (options: InteractionConfig) => ({
+        outputPath: '/.prettierignore',
+        hide: !options.lintTools.incluces(LintToolEnum.prettier)
     }),
 ];
