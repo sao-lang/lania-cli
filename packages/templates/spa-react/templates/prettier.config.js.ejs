@@ -1,1 +1,20 @@
-
+module.exports = {
+    semi: true,
+    singleQuote: true,
+    trailingComma: 'es5',
+    printWidth: 100,
+    arrowParens: 'avoid',
+    proseWrap: 'preserve',
+    bracketSpacing: true,
+    endOfLine: 'lf',
+    <% if (useTs) { %>
+    overrides: [
+        {
+            files: ['*.ts', '*.tsx'],
+            options: {
+                parser: 'typescript'
+            }
+        }
+    ],
+    <% } %>
+};
