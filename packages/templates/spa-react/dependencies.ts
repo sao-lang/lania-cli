@@ -82,3 +82,7 @@ export const VITE_DEV_DEPENDENCIES = [
     'terser',
     'rollup-plugin-visualizer',
 ];
+
+export const getEslintDevPenpencies = (options: InteractionConfig) => {
+    
+}
