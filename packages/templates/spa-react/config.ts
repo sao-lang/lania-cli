@@ -4,7 +4,7 @@ import {
     CssToolEnum,
     InteractionConfig,
     LangEnum,
-    LintToolEnum
+    LintToolEnum,
 } from '@lania-cli/types';
 
 export default [
@@ -107,34 +107,37 @@ export default [
         hide: true,
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/eslint.config.js',
-        hide: !options.lintTools.includes(LintToolEnum.eslint)
+        outputPath: '/eslint.config.cjs',
+        hide: !options.lintTools.includes(LintToolEnum.eslint),
+    }),
+    (options: InteractionConfig) => {
+        return {
+            outputPath: '/stylelint.config.cjs',
+            hide: !options.lintTools.includes(LintToolEnum.stylelint),
+        };
+    },
+    (options: InteractionConfig) => ({
+        outputPath: '/prettier.config.cjs',
+        hide: !options.lintTools.includes(LintToolEnum.prettier),
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/stylelint.config.js',
-        hide: !options.lintTools.includes(LintToolEnum.stylelint)
-    }),
-    (options: InteractionConfig) => ({
-        outputPath: '/prettier.config.js',
-        hide: !options.lintTools.includes(LintToolEnum.prettier)
-    }),
-    (options: InteractionConfig) => ({
-        outputPath: '/commitlint.config.js',
-        hide: !options.lintTools.includes(LintToolEnum.commitlint)
+        outputPath: '/commitlint.config.cjs',
+        hide: !options.lintTools.includes(LintToolEnum.commitlint),
     }),
     (options: InteractionConfig) => ({
         outputPath: '/.eslintignore',
-        hide: !options.lintTools.includes(LintToolEnum.eslint)
-    }),(options: InteractionConfig) => ({
+        hide: !options.lintTools.includes(LintToolEnum.eslint),
+    }),
+    (options: InteractionConfig) => ({
         outputPath: '/.stylelintignore',
-        hide: !options.lintTools.includes(LintToolEnum.stylelint)
+        hide: !options.lintTools.includes(LintToolEnum.stylelint),
     }),
     (options: InteractionConfig) => ({
         outputPath: '/.prettierignore',
-        hide: !options.lintTools.includes(LintToolEnum.prettier)
+        hide: !options.lintTools.includes(LintToolEnum.prettier),
     }),
     (options: InteractionConfig) => ({
         outputPath: '/.editorconfig',
-        hide: !options.lintTools.includes(LintToolEnum.editorconfig)
+        hide: !options.lintTools.includes(LintToolEnum.editorconfig),
     }),
 ];

@@ -1,4 +1,12 @@
 
+<% const postProcessors = ['sass', 'less', 'stylus']; %>
+<%
+    const cssProcessorRegMap = {
+        sass: /\.s[ac]ss$/,
+        less: /\.less$/,
+        stylus: /\.styl$/,
+    };
+%>
 const path = require('path');
 const { Configuration } = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -6,10 +14,11 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const WebpackBar = require('webpackbar')
+const WebpackBar = require('webpackbar');
 const isProduction = process.env.NODE_ENV === 'production';
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
-const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+
 const getStyleLoaders = preProcessor => {
     return [
         isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
@@ -28,10 +37,12 @@ const getStyleLoaders = preProcessor => {
     ].filter(Boolean);
 };
 module.exports = {
-    entry: './src/main.<%if (language === 'TypeScript') {%>tsx<% } else { %>jsx<%}%>',
+    entry: './src/main.<% if (language === "TypeScript") { %>tsx<% } else { %>jsx<% } %>',
     output: {
         path: isProduction ? path.resolve(__dirname, '../dist') : undefined,
-        filename: isProduction ? 'static/js/[name].[contenthash:10].js' : 'static/js/[name].js',
+        filename: isProduction
+            ? 'static/js/[name].[contenthash:10].js'
+            : 'static/js/[name].js',
         chunkFilename: isProduction
             ? 'static/js/[name].[contenthash:10].chunk.js'
             : 'static/js/[name].chunk.js',
@@ -42,26 +53,21 @@ module.exports = {
         rules: [
             {
                 oneOf: [
+                    // 普通 CSS
                     {
-                        test: /\\.css$/,
+                        test: /\.css$/,
                         use: getStyleLoaders(),
                     },
-                    <% const postProcessors = ['sass', 'less', 'stylus']; %>
-                    <%
-                        const cssProcessorRegMap = {
-                            sass: \`\\.s[ac]ss$\`,
-                            less: \`\\.less$\`,
-                            stylus: \`\\.styl$\`,
-                        };
-                    %>
-                    <%if (useCssProcessor && postProcessors.includes(cssProcessor) ) {%>
-                        {
-                            test: /<%= cssProcessorRegMap[cssProcessor] %>/,
-                            use: getStyleLoaders('<%= cssProcessor %>-loader'),
-                        },
-                    <%}%>
+                    // 可选的 CSS 预处理器（sass/less/stylus）
+                    <% if (useCssProcessor && postProcessors.includes(cssProcessor)) { %>
                     {
-                        test: /\\.(png|jpe?g|gif|webp|svg|ico)$/,
+                        test: new RegExp(cssProcessorRegMap[cssProcessor]),
+                        use: getStyleLoaders('<%= cssProcessor %>-loader'),
+                    },
+                    <% } %>
+                    // 图片资源
+                    {
+                        test: /\.(png|jpe?g|gif|webp|svg|ico)$/,
                         type: 'asset',
                         parser: {
                             dataUrlCondition: {
@@ -72,37 +78,35 @@ module.exports = {
                             filename: 'image/[name].[hash:8][ext]',
                         },
                     },
+                    // 字体/媒体等其他资源
                     {
-                        test: /\\.(woff2?|eot|ttf|otf|mp3|mp4|avi|mkv)$/,
+                        test: /\.(woff2?|eot|ttf|otf|mp3|mp4|avi|mkv)$/,
                         type: 'asset/resource',
                         generator: {
                             filename: 'media/[name].[hash:8][ext]',
                         },
                     },
+                    // JS/TS + React
                     {
-                        oneOf: [
+                        test: /\.(jsx|js<% if (useTs) { %>|tsx|ts<% } %>)?$/,
+                        exclude: /node_modules/,
+                        use: [
+                            { loader: 'thread-loader' },
                             {
-                                test: /\\.(jsx|js<% if (useTs) {%>|tsx|ts<% } %>)?$/,
-                                exclude: /node_modules/,
-                                use: [
-                                    { loader: 'thread-loader' },
-                                    {
-                                        loader: 'babel-loader',
-                                        options: {
-                                            presets: [
-                                                '@babel/preset-env',
-                                                '@babel/preset-react',
-                                                <% if (language === 'TypeScript') { %> '@babel/preset-typescript' <% } %>
-                                            ],
-                                            cacheDirectory: true,
-                                            cacheCompression: false,
-                                            plugins: [
-                                                !isProduction && 'react-refresh/babel',
-                                                '@babel/plugin-transform-runtime',
-                                            ].filter(Boolean),
-                                        },
-                                    },
-                                ],
+                                loader: 'babel-loader',
+                                options: {
+                                    presets: [
+                                        '@babel/preset-env',
+                                        '@babel/preset-react',
+                                        <% if (language === 'TypeScript') { %>'@babel/preset-typescript'<% } %>
+                                    ].filter(Boolean),
+                                    cacheDirectory: true,
+                                    cacheCompression: false,
+                                    plugins: [
+                                        !isProduction && 'react-refresh/babel',
+                                        '@babel/plugin-transform-runtime',
+                                    ].filter(Boolean),
+                                },
                             },
                         ],
                     },
@@ -111,10 +115,11 @@ module.exports = {
         ],
     },
     plugins: [
-        isProduction && new BundleAnalyzerPlugin({
-            analyzerMode: "disabled",
-            generateStatsFile: true,
-        }),
+        isProduction &&
+            new BundleAnalyzerPlugin({
+                analyzerMode: 'disabled',
+                generateStatsFile: true,
+            }),
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, './index.html'),
         }),
@@ -140,7 +145,7 @@ module.exports = {
                 },
             ],
         }),
-        new WebpackBar()
+        new WebpackBar(),
     ].filter(Boolean),
     optimization: {
         minimize: isProduction,
@@ -152,7 +157,7 @@ module.exports = {
                     compress: {
                         drop_console: true,
                         drop_debugger: true,
-                    }
+                    },
                 },
             }),
         ],
@@ -161,7 +166,7 @@ module.exports = {
             cacheGroups: {
                 reactBase: {
                     name: 'reactBase',
-                    test: /[\\\\/]node_modules[\\\\/](react|react-dom|react-router-dom)[\\\\/]/,
+                    test: /[\\/](react|react-dom|react-router-dom)[\\/]/,
                     priority: 10,
                     chunks: 'all',
                 },
@@ -174,7 +179,7 @@ module.exports = {
             },
         },
         runtimeChunk: {
-            name: entrypoint => \`runtime-\${entrypoint.name}\`,
+            name: entrypoint => `runtime-${entrypoint.name}`,
         },
     },
     resolve: {
@@ -196,6 +201,6 @@ module.exports = {
     performance: {
         hints: false,
         maxEntrypointSize: 512000,
-        maxAssetSize: 512000
-    }
+        maxAssetSize: 512000,
+    },
 };

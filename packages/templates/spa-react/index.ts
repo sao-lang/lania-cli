@@ -1,7 +1,6 @@
 import {
     BuildToolEnum,
     CreateCommandOptions,
-    CssProcessorEnum,
     LangEnum,
     InteractionConfig,
     CssToolEnum,
@@ -28,30 +27,16 @@ export class SpaReactTemplate extends BaseTemplate {
     public createPromptQuestions(options: CreateCommandOptions & { projectType: string }) {
         return createQuestions(options);
     }
-    public combineAnswersWithOptions(answers: Record<string, string | boolean | number>) {
-        answers.useCssProcessor = answers.cssProcessor === CssProcessorEnum.css ? false : true;
-        answers.useTs = true;
-        return Object.keys(answers).reduce(
-            (acc, key) => {
-                const value = answers[key];
-                if (value) {
-                    acc[key] = value;
-                }
-                return acc;
-            },
-            {} as Record<string, string | boolean | number>,
-        );
-    }
     public getDependenciesArray(options: InteractionConfig) {
         const dependenciesArray = REACT_DEPENDENCIES;
-        const devDependenciesArray: string[] = this.getDevDependencies(options);
+        const devDependenciesArray: (string | Record<'key' | 'version', string>)[] = this.getDevDependencies(options);
         return {
             dependencies: dependenciesArray,
             devDependencies: devDependenciesArray,
         };
     }
     private getDevDependencies(options: InteractionConfig) {
-        const devDependencies: string[] = [options.buildTool];
+        const devDependencies: (string | Record<'key' | 'version', string>)[] = [options.buildTool];
         const buildToolDevDependencies = this.getBuildToolDevDependencies(options);
         const lintToolDevDependencies = getLintDevPenpencies(options);
         devDependencies.push(...buildToolDevDependencies, ...lintToolDevDependencies);

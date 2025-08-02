@@ -83,8 +83,10 @@ export const VITE_DEV_DEPENDENCIES = [
     'rollup-plugin-visualizer',
 ];
 
-export const getLintDevPenpencies = (options: InteractionConfig): string[] => {
-    const deps = new Set<string>();
+export const getLintDevPenpencies = (
+    options: InteractionConfig,
+): (string | Record<'key' | 'version', string>)[] => {
+    const deps = new Set<string | Record<'key' | 'version', string>>();
     const { lintTools, useTs, cssProcessor } = options;
     const hasLintTool = (tool: LintToolEnum) => lintTools.includes(tool);
     // 通用的 husky 和 lint-staged 依赖
@@ -111,15 +113,40 @@ export const getLintDevPenpencies = (options: InteractionConfig): string[] => {
     // stylelint cssProcessor 相关依赖配置
     const stylelintCssProcessorDeps: Record<
         CssProcessorEnum.less | CssProcessorEnum.sass | CssProcessorEnum.stylus,
-        string[]
+        (string | Record<'key' | 'version', string>)[]
     > = {
-        [CssProcessorEnum.less]: ['postcss-less'],
-        [CssProcessorEnum.sass]: [
-            'stylelint-config-recommended-scss',
-            'stylelint-scss',
-            'postcss-scss',
+        [CssProcessorEnum.less]: [
+            { key: 'postcss', version: '^8.4.12' },
+            { key: 'postcss-less', version: '^6.0.0' },
         ],
-        [CssProcessorEnum.stylus]: ['stylelint-plugin-stylus', 'postcss-styl'],
+        [CssProcessorEnum.sass]: [
+            {
+                key: 'postcss',
+                version: '^8.4.12',
+            },
+            {
+                key: 'postcss-scss',
+                version: '^4.0.6',
+            },
+        ],
+        [CssProcessorEnum.stylus]: [
+            {
+                key: 'postcss',
+                version: '^8.4.12',
+            },
+            {
+                key: 'stylelint-stylus',
+                version: '^0.18.0',
+            },
+            {
+                key: 'postcss-styl',
+                version: '^0.12.3',
+            },
+            {
+                key: 'postcss-html',
+                version: '1.5.0',
+            },
+        ],
     };
     // 定义 lintTool 到依赖数组的映射
     const lintToolDepsMap: Record<
@@ -154,8 +181,10 @@ export const getLintDevPenpencies = (options: InteractionConfig): string[] => {
     }
     // stylelint 特殊处理
     if (hasLintTool(LintToolEnum.stylelint)) {
+        deps.add({ key: 'stylelint-config-standard', version: '^23.0.0' });
+        deps.add({ key: 'stylelint', version: '^14.6.0' });
         if (hasLintTool(LintToolEnum.prettier)) {
-            deps.add('stylelint-prettier');
+            deps.add({ key: 'stylelint-config-prettier', version: '^9.0.5' });
         }
         if (cssProcessor in stylelintCssProcessorDeps) {
             stylelintCssProcessorDeps[cssProcessor].forEach((d) => deps.add(d));

@@ -1,6 +1,6 @@
 // rollup.config.js
 import { defineConfig } from 'rollup';
-import { resolvePath, resolvePlugins, resolveExtern, BUILD_CONFIG_MAP } from './utils.js';
+import { resolvePath, resolvePlugins, resolvedExterns, BUILD_CONFIG_MAP } from './utils.js';
 
 const packages = [
     BUILD_CONFIG_MAP.compilers.value,
@@ -25,7 +25,7 @@ const createPackageConfig = (pkg) => {
             preserveModules: true,
             entryFileNames: '[name].js',
         },
-        external: resolveExtern(pkg),
+        external: resolvedExterns,
         plugins: resolvePlugins(pkg),
         onwarn(warning, warn) {
             if (warning.code === 'MIXED_EXPORTS') return;

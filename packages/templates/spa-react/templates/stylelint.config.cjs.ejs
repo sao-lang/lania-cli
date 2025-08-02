@@ -1,0 +1,54 @@
+<% const usePrettier = lintTools.includes('prettier'); %>
+<%
+    const cssProcessorExtMap = {
+        sass: 'scss',
+        less: 'less',
+        stylus: 'styl',
+    };
+    const extname = cssProcessorExtMap[cssProcessor]
+%>
+module.exports = {
+    extends: [
+        'stylelint-config-standard',
+        'stylelint-config-prettier'
+    ],
+    <% if (useCssProcessor) { %>
+    overrides: [
+        {
+            files: ['*.<%= extname %>', '**/*.<%= extname %>'],
+            customSyntax: 'postcss-<%= extname %>'
+        }
+    ],
+    <% } %>
+    <% if (cssProcessor === 'stylus') { %>
+    plugins: ['stylelint-stylus'],
+    <% } %>
+    rules: {
+        indentation: 4,
+        'string-quotes': 'single',
+        'property-no-vendor-prefix': null,
+        'declaration-colon-newline-after': null,
+        'value-list-comma-newline-after': null,
+        'custom-property-pattern': null,
+        'color-hex-length': 'short',
+        'color-function-notation': null,
+        'alpha-value-notation': null,
+        'value-no-vendor-prefix': null,
+        'selector-class-pattern': null,
+        'no-missing-end-of-source-newline': true,
+        'no-descending-specificity': null,
+        'font-family-no-missing-generic-family-keyword': null,
+        'number-leading-zero': 'never',
+        'selector-type-no-unknown': null,
+        'at-rule-no-unknown': null,
+        'no-duplicate-selectors': null,
+        'no-empty-source': null,
+        'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['global'] }],
+        'function-url-quotes': 'always',
+        'length-zero-no-unit': true,
+        'unit-case': 'lower',
+        'value-keyword-case': 'lower',
+        'value-list-comma-space-after': 'always',
+        'declaration-block-semicolon-newline-after': 'always',
+    }
+};

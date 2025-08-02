@@ -1,69 +1,61 @@
-interface TaskConfig {
-    maxConcurrency?: number;
-    maxRetries?: number;
-    retryDelay?: number;
-    timeout?: number;
+import { TaskItem, TaskResult, TaskConfig } from '@lania-cli/types';
+
+export interface ExtendedTaskConfig extends TaskConfig {
     stopOnError?: boolean;
-    autoStart?: boolean;
-    onProgress?: (done: number, total: number, group?: string) => void;
-    onSuccess?: (result: any, task: TaskItem) => void;
-    onError?: (error: Error, task: TaskItem) => void;
-    onComplete?: (result: TaskResult<any>, task: TaskItem) => void;
-    groupConcurrency?: Record<string, number>; // 分组并发限制
-}
-
-interface TaskResult<T> {
-    success: boolean;
-    data?: T;
-    error?: Error;
-    retries: number;
-}
-
-interface TaskItem {
-    task: () => Promise<any>;
-    group?: string;
-    priority?: number;
 }
 
 export class TaskExecutor {
-    private queue: TaskItem[] = [];
-    private runningTasks: Set<TaskItem> = new Set();
-    private results: TaskResult<any>[] = [];
-    private config: TaskConfig;
+    public queue: TaskItem[] = [];
+    public runningTasks: Set<TaskItem> = new Set();
+    public results: TaskResult<any>[] = [];
+    public readonly config: ExtendedTaskConfig;
     private paused = false;
     private running = false;
     private resolveWhenDone: (() => void) | null = null;
+    private rejectWhenError: ((err: Error) => void) | null = null; // 新增
     private globalAbort = new AbortController();
     private groupAbort = new Map<string, AbortController>();
     private activeCounts: Map<string, number> = new Map();
+    private shouldStop = false;
 
-    constructor(initialTasks: TaskItem[] = [], config: TaskConfig = {}) {
+    constructor(initialTasks: TaskItem[] = [], config: ExtendedTaskConfig = {}) {
         this.queue = [...initialTasks];
         this.config = config;
-        if (config.autoStart) this.run();
+        if (config.autoStart) {
+            this.run();
+        }
     }
 
-    addTask(task: TaskItem) {
+    public addTask(task: TaskItem) {
         this.queue.push(task);
-        if (this.running && !this.paused) this.runNext();
+        if (this.running && !this.paused && !this.shouldStop) {
+            this.runNext();
+        }
     }
 
-    pause() {
+    public addTasks(tasks: TaskItem[]) {
+        tasks.forEach((task) => this.addTask(task));
+    }
+
+    public pause() {
         this.paused = true;
     }
 
-    resume() {
+    public resume() {
         if (!this.paused) return;
         this.paused = false;
-        if (this.running) this.runNext();
+        if (this.running && !this.shouldStop) {
+            this.runNext();
+        }
     }
 
-    cancel(group?: string) {
+    public cancel(group?: string) {
         if (group) {
             this.groupAbort.get(group)?.abort();
         } else {
             this.globalAbort.abort();
         }
+        this.shouldStop = true;
     }
 
     private getGroupConcurrency(group?: string): number {
@@ -75,18 +67,25 @@ export class TaskExecutor {
     }
 
     private canRun(group?: string): boolean {
-        const count = this.activeCounts.get(group || 'default') ?? 0;
+        const key = group || 'default';
+        const count = this.activeCounts.get(key) ?? 0;
         return count < this.getGroupConcurrency(group);
     }
 
     private async executeTask(taskItem: TaskItem): Promise<void> {
-        const { maxRetries = 0, retryDelay = 0, timeout = Infinity } = this.config;
+        const {
+            maxRetries = 0,
+            retryDelay = 100,
+            timeout = 10000,
+            stopOnError = false,
+        } = this.config;
         let retries = 0;
         const group = taskItem.group || 'default';
         const signal = this.getSignalForGroup(group);
+        const groupKey = group;
 
         this.runningTasks.add(taskItem);
-        this.activeCounts.set(group, (this.activeCounts.get(group) || 0) + 1);
+        this.activeCounts.set(groupKey, (this.activeCounts.get(groupKey) || 0) + 1);
 
         const finish = (result: TaskResult<any>) => {
             this.runningTasks.delete(taskItem);
@@ -102,15 +101,26 @@ export class TaskExecutor {
             } else {
                 this.config.onError?.(result.error!, taskItem);
             }
-            this.activeCounts.set(group, (this.activeCounts.get(group) || 0) - 1); // 修正此行
+            this.activeCounts.set(groupKey, (this.activeCounts.get(groupKey) || 0) - 1);
+
+            if (!result.success && stopOnError) {
+                this.shouldStop = true;
+                this.rejectWhenError?.(
+                    result.error ?? new Error('Unknown task error')
+                ); // 立即让 run() reject
+                this.cancel();
+            }
         };
 
         const runAttempt = async (): Promise<TaskResult<any>> => {
             try {
-                const timeoutPromise = new Promise((_, reject) =>
+                const timeoutPromise = new Promise<never>((_, reject) =>
                     setTimeout(() => reject(new Error('Task timed out')), timeout),
                 );
                 const result = await Promise.race([taskItem.task(), timeoutPromise]);
+                if (signal.aborted) {
+                    return { success: false, error: new Error('Task cancelled'), retries };
+                }
                 return { success: true, data: result, retries };
             } catch (error) {
                 if (signal.aborted) {
@@ -129,32 +139,57 @@ export class TaskExecutor {
             }
         };
 
-        const result = await runAttempt();
-        finish(result);
-        this.runNext();
+        try {
+            const result = await runAttempt();
+            finish(result);
+        } catch (error) {
+            finish({
+                success: false,
+                error: error instanceof Error ? error : new Error(String(error)),
+                retries,
+            });
+        } finally {
+            this.runNext();
+        }
     }
 
-    async run(): Promise<TaskResult<any>[]> {
+    public async run(): Promise<TaskResult<any>[]> {
         if (this.running) return this.results;
         this.running = true;
-        await new Promise<void>((resolve) => (this.resolveWhenDone = resolve));
+        this.shouldStop = false;
+
+        const donePromise = new Promise<void>((resolve) => (this.resolveWhenDone = resolve));
+        const errorPromise = new Promise<never>((_, reject) => (this.rejectWhenError = reject));
+
+        this.runNext();
+
+        // 如果 stopOnError=true，errorPromise 会优先 reject
+        await (this.config.stopOnError
+            ? Promise.race([donePromise, errorPromise])
+            : donePromise);
+
         return this.results;
     }
 
     private async runNext(): Promise<void> {
-        if (!this.running || this.paused) return;
+        if (!this.running || this.paused || this.shouldStop) return;
 
         while (this.queue.length > 0) {
             const nextIndex = this.queue.findIndex((t) => this.canRun(t.group));
-            if (nextIndex === -1) return;
+            if (nextIndex === -1) break;
+            if (this.shouldStop) break;
 
             const [taskItem] = this.queue.splice(nextIndex, 1);
-            this.executeTask(taskItem);
+            this.executeTask(taskItem).catch((err) => {
+                console.error('executeTask error:', err);
+            });
         }
 
         if (this.queue.length === 0 && this.runningTasks.size === 0 && this.resolveWhenDone) {
             this.running = false;
+            this.shouldStop = false;
             this.resolveWhenDone();
+            this.resolveWhenDone = null;
         }
     }
 
@@ -166,23 +201,23 @@ export class TaskExecutor {
         return this.groupAbort.get(group)!.signal;
     }
 
-    getQueue(): TaskItem[] {
+    public getQueue(): TaskItem[] {
         return [...this.queue];
     }
 
-    getRunningTasks(): TaskItem[] {
+    public getRunningTasks(): TaskItem[] {
         return Array.from(this.runningTasks);
     }
 
-    getCompletedResults(): TaskResult<any>[] {
+    public getCompletedResults(): TaskResult<any>[] {
         return [...this.results];
     }
 
-    isPaused(): boolean {
+    public isPaused(): boolean {
         return this.paused;
     }
 
-    isRunning(): boolean {
+    public isRunning(): boolean {
         return this.running;
     }
 }

@@ -203,7 +203,6 @@ export interface RunnerRunOptions {
     cwd?: string;
 }
 
-
 export type CommitlintConfigSource = string | Record<string, any>;
 
 export interface CommitlintPluginConfig {
@@ -226,3 +225,30 @@ export interface PackageManagerCommands {
 }
 
 export type PackageManagerName = 'npm' | 'yarn' | 'pnpm';
+
+export interface TaskConfig {
+    maxConcurrency?: number;
+    maxRetries?: number;
+    retryDelay?: number;
+    timeout?: number;
+    stopOnError?: boolean;
+    autoStart?: boolean;
+    onProgress?: (done: number, total: number, group?: string) => void;
+    onSuccess?: (result: any, task: TaskItem) => void;
+    onError?: (error: Error, task: TaskItem) => void;
+    onComplete?: (result: TaskResult<any>, task: TaskItem) => void;
+    groupConcurrency?: Record<string, number>; // 分组并发限制
+}
+
+export interface TaskResult<T> {
+    success: boolean;
+    data?: T;
+    error?: Error;
+    retries: number;
+}
+
+export interface TaskItem {
+    task: () => Promise<any>;
+    group?: string;
+    priority?: number;
+}

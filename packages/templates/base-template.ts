@@ -7,8 +7,8 @@ export abstract class BaseTemplate {
         options: CreateCommandOptions,
     ): Parameters<PromptModule>[0];
     protected abstract getDependenciesArray(options: InteractionConfig): {
-        dependencies: string[];
-        devDependencies: string[];
+        dependencies: (string | Record<'key' | 'version', string>)[];
+        devDependencies: (string | Record<'key' | 'version', string>)[];
     };
     public createOutputTasks(options: InteractionConfig) {
         return this.config.map((taskFn) => {

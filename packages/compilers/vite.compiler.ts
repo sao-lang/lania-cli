@@ -85,10 +85,10 @@ export class ViteCompiler extends Compiler<InlineConfig, ViteDevServer> {
                 logger.error(`Failed to log bundle: ${error.message}`);
                 return;
             }
-            const name = `${path.basename(dir)}/${fileName}`;
-            const size = (stats.size / 1024).toFixed(2) + 'K';
-            const styledName = styleText(name, { color: '#6a7c80' }).render();
-            const styledSize = styleText(size, {
+            const styledName = styleText(`${path.basename(dir)}/${fileName}`, {
+                color: '#6a7c80',
+            }).render();
+            const styledSize = styleText((stats.size / 1024).toFixed(2) + 'K', {
                 bold: true,
                 color: '#7a7c80',
             }).render();

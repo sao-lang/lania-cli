@@ -76,7 +76,7 @@ class CreateAction implements LaniaCommandActionInterface<[CreateCommandOptions]
         if (!skipGit) {
             await new GitRunner().git.init({ silent: true });
         }
-        logger.ascii('LANIAKEA');
+        logger.ascii(`${options.name} CREATED`);
     }
 }
 
