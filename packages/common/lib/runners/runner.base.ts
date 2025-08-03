@@ -20,7 +20,7 @@ class BaseRunner {
             const childProcess = $$`${command} ${args.join(' ')}`;
             let message = '';
             if (silent) {
-                childProcess.stdout.on('data', (data) => {
+                childProcess.stdout.on('data', (data: Buffer) => {
                     message += data.toString().replace(/\r\n|\n/, '\n');
                 });
                 childProcess.stderr.on('data', (data: Buffer) => {

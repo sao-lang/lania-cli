@@ -91,7 +91,6 @@ export class Builder {
         this.options.port = await getPort();
         const tasks = (await this.template.createOutputTasks(options)).filter((task) => !task.hide);
         const engine = new EjsRenderer((code, fileType) =>
-            // @ts-ignore
             new Prettier().formatContent(
                 code,
                 {
