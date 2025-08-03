@@ -28,7 +28,21 @@ export class WebpackCompiler extends Compiler<
             const config = await this.mergeConfig(baseConfig);
             const configuration = await this.mergeStatsConfig(config);
             const compiler = this.base.webpack(configuration);
-            this.server = new DevServer(configuration.devServer, compiler);
+            this.server = new DevServer(
+                {
+                    ...configuration.devServer,
+                    devMiddleware: { stats: 'none' },
+                    setupMiddlewares: (middlewares, devServer) => {
+                        if (devServer) {
+                            devServer.logger.info = () => {};
+                            devServer.logger.log = () => {};
+                            devServer.logger.warn = () => {};
+                        }
+                        return middlewares;
+                    },
+                },
+                compiler,
+            );
             this.registerPlugin(compiler, resolve, {
                 watch: configuration.watch,
                 mode: configuration.mode,
