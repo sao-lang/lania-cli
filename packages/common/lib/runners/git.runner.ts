@@ -4,9 +4,8 @@ import path from 'path';
 import fs from 'fs';
 import { RunnerRunOptions } from '@lania-cli/types';
 class GitBranch extends Runner<'git'> {
-    protected command = 'git' as const;
     constructor() {
-        super();
+        super('git');
     }
     // 获取当前分支
     public async getCurrent() {
@@ -137,9 +136,8 @@ class GitBranch extends Runner<'git'> {
 }
 
 class GitRemote extends Runner<'git'> {
-    protected command = 'git' as const;
     constructor() {
-        super();
+        super('git');
     }
     // 获取所有远程仓库
     public async list() {
@@ -186,9 +184,8 @@ class GitRemote extends Runner<'git'> {
 }
 
 class GitStage extends Runner<'git'> {
-    protected command = 'git' as const;
     constructor() {
-        super();
+        super('git');
     }
     // 获取暂存区文件
     public async getFiles() {
@@ -215,9 +212,8 @@ class GitStage extends Runner<'git'> {
 }
 
 class GitWorkspace extends Runner<'git'> {
-    protected command = 'git' as const;
     constructor() {
-        super();
+        super('git');
     }
     // 获取工作区文件的差异
     public async getChangedFiles() {
@@ -292,9 +288,8 @@ class GitWorkspace extends Runner<'git'> {
 }
 
 class GitUser extends Runner<'git'> {
-    protected command = 'git' as const;
     constructor() {
-        super();
+        super('git');
     }
 
     // 获取 Git 用户配置
@@ -312,9 +307,8 @@ class GitUser extends Runner<'git'> {
 }
 
 class GitTag extends Runner<'git'> {
-    protected command = 'git' as const;
     constructor() {
-        super();
+        super('git');
     }
     // 获取所有标签
     public async list() {
@@ -332,9 +326,8 @@ class GitTag extends Runner<'git'> {
 }
 
 class Git extends Runner<'git'> {
-    protected command = 'git' as const;
     constructor() {
-        super();
+        super('git');
     }
 
     // 克隆仓库
@@ -376,7 +369,6 @@ class Git extends Runner<'git'> {
 }
 
 export class GitRunner extends Runner<'git'> {
-    protected command = 'git' as const;
     public branch: GitBranch;
     public remote: GitRemote;
     public stage: GitStage;
@@ -386,7 +378,7 @@ export class GitRunner extends Runner<'git'> {
     public tag: GitTag;
 
     constructor() {
-        super();
+        super('git');
         this.branch = new GitBranch();
         this.remote = new GitRemote();
         this.stage = new GitStage();

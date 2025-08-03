@@ -18,8 +18,6 @@ import {
     SubAddActionOptions,
     SubCommitActionOptions,
     ScopedManager,
-    Question,
-    Context,
 } from '@lania-cli/types';
 
 @ProgressGroup('lania:sync:add', { type: 'spinner' }) // 声明这个类属于哪个进度组
@@ -177,8 +175,8 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         const isClean = await this.git.workspace.isClean();
         const noUnpushedCommits = !(await this.git.branch.hasUnpushedCommits());
         if (isClean && noUnpushedCommits) {
-            logger.error('There are no files to sync!');
-            process.exit(0);
+            throw new Error('There are no files to sync!');
+            // process.exit(0);
             return;
         }
         const currentBranch = await this.git.branch.getCurrent();
@@ -223,7 +221,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             throw new Error('Please select a branch you will push!');
         }
         this.__progressManager.init();
-        const [err] = await to<void, Error>(
+        const [err] = await to(
             (async () => {
                 const needsSetUpstream = await this.git.branch.needSetUpstream();
                 needsSetUpstream

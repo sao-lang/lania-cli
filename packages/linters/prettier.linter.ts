@@ -48,11 +48,16 @@ const transformPlugin = (fileType: PrettierSupportFileType) => {
     }
 };
 
-export class Prettier extends Linter<PrettierSupportFileType, PrettierOutput> {
+export class Prettier extends Linter<
+    PrettierSupportFileType,
+    PrettierOutput,
+    { prettier: typeof prettier }
+> {
     private config: LinterConfiguration;
     private options: LinterHandleDirOptions;
     protected fileTypes: PrettierSupportFileType[];
-    constructor(config: LinterConfiguration, options?: LinterHandleDirOptions) {
+    protected base = { prettier };
+    constructor(config: LinterConfiguration = 'prettier', options?: LinterHandleDirOptions) {
         super();
         this.config = config;
         this.options = options;
@@ -64,13 +69,13 @@ export class Prettier extends Linter<PrettierSupportFileType, PrettierOutput> {
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);
         const content = await readFile(path, 'utf-8');
-        const isFormatted = await prettier.check(content, {
+        const isFormatted = await this.base.prettier.check(content, {
             parser,
             plugins,
             ...configObject,
         });
         if (!isFormatted && this.options?.fix) {
-            const code = await prettier.format(content, {
+            const code = await this.base.prettier.format(content, {
                 parser,
                 plugins,
                 ...configObject,
@@ -108,7 +113,7 @@ export class Prettier extends Linter<PrettierSupportFileType, PrettierOutput> {
         ];
         return fileTypes as PrettierSupportFileType[];
     }
-    public static async formatContent(
+    public async formatContent(
         content: string,
         config: LinterConfiguration,
         fileType: PrettierSupportFileType,
@@ -119,7 +124,7 @@ export class Prettier extends Linter<PrettierSupportFileType, PrettierOutput> {
         const configObject = await getModuleConfig(config);
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);
-        const code = await prettier.format(content, { ...configObject, plugins, parser });
+        const code = await this.base.prettier.format(content, { ...configObject, plugins, parser });
         return code;
     }
 }

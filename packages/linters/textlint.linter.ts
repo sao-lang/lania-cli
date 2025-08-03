@@ -8,12 +8,27 @@ import {
     TextLinterSupportFileType,
 } from '@lania-cli/types';
 
-export class TextLinter extends Linter<TextLinterSupportFileType, TextLinterOutput> {
+interface PartialTextlint {
+    createLinter: typeof createLinter;
+    loadTextlintrc: typeof loadTextlintrc;
+}
+
+export class TextLinter extends Linter<
+    TextLinterSupportFileType,
+    TextLinterOutput,
+    { textlint: PartialTextlint }
+> {
     private config: LinterConfiguration;
     private options: LinterHandleDirOptions;
     protected fileTypes: TextLinterSupportFileType[];
     private innerLinter: ReturnType<typeof createLinter>;
-    constructor(config: LinterConfiguration, options?: LinterHandleDirOptions) {
+    protected base: { textlint: PartialTextlint } = {
+        textlint: {
+            createLinter,
+            loadTextlintrc,
+        },
+    };
+    constructor(config: LinterConfiguration = 'textlint', options?: LinterHandleDirOptions) {
         super();
         this.config = config;
         this.options = options;
@@ -48,9 +63,9 @@ export class TextLinter extends Linter<TextLinterSupportFileType, TextLinterOutp
     private async createInnerLinter() {
         if (this.innerLinter) {
             const configObject = await getModuleConfig(this.config);
-            this.innerLinter = createLinter({
+            this.innerLinter = this.base.textlint.createLinter({
                 ignoreFilePath: this.options?.ignorePath,
-                descriptor: await loadTextlintrc(configObject),
+                descriptor: await this.base.textlint.loadTextlintrc(configObject),
             });
         }
         return this.innerLinter;

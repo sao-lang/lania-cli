@@ -1,13 +1,25 @@
 import { stat } from 'fs/promises';
 import { traverseFiles } from './linter.util';
-import { getFileExt } from '@lania-cli/common';
+import { getFileExt, getLanConfig } from '@lania-cli/common';
 
 export default abstract class Linter<
     SupportFileType extends string,
     LintOutput extends Record<string, any>,
+    Base extends Record<string, any>,
 > {
+    constructor() {
+        this.setBase();
+    }
     protected abstract lintFile(path: string): Promise<LintOutput>;
     protected abstract fileTypes: SupportFileType[];
+    protected abstract base: Base;
+
+    private async setBase() {
+        const config = await getLanConfig();
+        if (config?.dependencies) {
+            this.base = config?.dependencies as Base;
+        }
+    }
     public async lintDir(path: string) {
         const results: LintOutput[] = [];
         await traverseFiles(path, async (filePath) => {
@@ -18,7 +30,6 @@ export default abstract class Linter<
         });
         return results;
     }
-
     public async lint(filePaths: string) {
         const paths = Array.isArray(filePaths) ? filePaths : [filePaths];
         const results: LintOutput[][] = [];

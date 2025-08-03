@@ -50,7 +50,7 @@ export default [
         hide: options.language !== LangEnum.JavaScript,
     }),
     () => ({
-        outputPath: '/lan.config.json',
+        outputPath: '/lan.config.js',
     }),
     (options: InteractionConfig) => ({
         outputPath: '/src/index.styl',

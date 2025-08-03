@@ -8,9 +8,9 @@ const logWebpackErrors = (errors: StatsError[], isWarning: boolean = false) => {
         if (moduleIdentifier) {
             const filenameModifiedText = styleText(moduleIdentifier.replace(/\\/g, '/'), {
                 color: '#28b8db',
-            });
+            }).render();
             logger.log(`file: ${filenameModifiedText}`, { style: { bold: true } });
-            logger.warn(message)
+            logger.warn(message);
         }
         if (!isWarning) {
             logger.error(message);

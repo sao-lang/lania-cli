@@ -6,7 +6,7 @@ export const getLanConfig = async (lanConfigPath?: string) => {
     if (!lanConfigPath) {
         return (await ConfigurationLoader.load({
             module: 'lan',
-            searchPlaces: ['lan.config.json'],
+            searchPlaces: ['lan.config.js'],
         })) as LaniaConfig;
     }
     const lanBasename = path.basename(lanConfigPath);
@@ -14,7 +14,7 @@ export const getLanConfig = async (lanConfigPath?: string) => {
     return (await ConfigurationLoader.load(
         {
             module: 'lan',
-            searchPlaces: [lanBasename || 'lan.config.json'],
+            searchPlaces: [lanBasename || 'lan.config.js'],
         },
         lanDirname,
     )) as LaniaConfig;

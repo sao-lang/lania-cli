@@ -91,7 +91,8 @@ export class Builder {
         this.options.port = await getPort();
         const tasks = (await this.template.createOutputTasks(options)).filter((task) => !task.hide);
         const engine = new EjsRenderer((code, fileType) =>
-            Prettier.formatContent(
+            // @ts-ignore
+            new Prettier().formatContent(
                 code,
                 {
                     tabWidth: 4,
@@ -126,7 +127,7 @@ export class Builder {
                 };
             }),
             {
-                maxConcurrency: 10,
+                maxConcurrency: 5,
                 stopOnError: true,
             },
         );

@@ -1,4 +1,10 @@
-import { PACKAGES_MANAGERS, GitRunner, LaniaCommand, styleText, logger } from '@lania-cli/common';
+import {
+    PACKAGES_MANAGERS,
+    GitRunner,
+    LaniaCommand,
+    logger,
+    LaniaCommandConfig,
+} from '@lania-cli/common';
 import { mkdir, readdir } from 'fs/promises';
 import path from 'path';
 import { Builder } from './builder';
@@ -24,7 +30,7 @@ class CreateAction implements LaniaCommandActionInterface<[CreateCommandOptions]
             };
         }
         if (name === '.' || !name) {
-            this.options.name = path.basename(process.cwd());
+            this.options.name = path.basename(cwd);
             if (!this.validateProjectName(this.options.name)) {
                 return {
                     status: false,
@@ -80,38 +86,36 @@ class CreateAction implements LaniaCommandActionInterface<[CreateCommandOptions]
     }
 }
 
-export class CreateCommand extends LaniaCommand<[CreateCommandOptions]> {
-    protected actor = new CreateAction();
-    protected commandNeededArgs = {
-        name: 'create [name]',
-        description: 'Generate an application.',
-        options: [
-            {
-                flags: '-d, --directory [directory]',
-                description: 'Specify the destination directory.',
-            },
-            {
-                flags: '-g, --skip-git',
-                description: 'Skip git repository initialization.',
-                defaultValue: false,
-            },
-            {
-                flags: '-s, --skip-install',
-                description: 'Skip package installation.',
-                defaultValue: false,
-            },
-            {
-                flags: '-p, --package-manager [packageManager]',
-                description: 'Specify package manager.',
-            },
-            {
-                flags: '-l, --language [language]',
-                description: 'Programming language to be used (TypeScript or JavaScript).',
-                defaultValue: 'TypeScript',
-            },
-        ],
-        alias: '-c',
-    };
-}
+@LaniaCommandConfig(new CreateAction(), {
+    name: 'create [name]',
+    description: 'Generate an application.',
+    options: [
+        {
+            flags: '-d, --directory [directory]',
+            description: 'Specify the destination directory.',
+        },
+        {
+            flags: '-g, --skip-git',
+            description: 'Skip git repository initialization.',
+            defaultValue: false,
+        },
+        {
+            flags: '-s, --skip-install',
+            description: 'Skip package installation.',
+            defaultValue: false,
+        },
+        {
+            flags: '-p, --package-manager [packageManager]',
+            description: 'Specify package manager.',
+        },
+        {
+            flags: '-l, --language [language]',
+            description: 'Programming language to be used (TypeScript or JavaScript).',
+            defaultValue: 'TypeScript',
+        },
+    ],
+    alias: '-c',
+})
+export class CreateCommand extends LaniaCommand<[CreateCommandOptions]> {}
 
 export default CreateCommand;

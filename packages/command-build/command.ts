@@ -1,4 +1,4 @@
-import { getLanConfig, LaniaCommand } from '@lania-cli/common';
+import { getLanConfig, LaniaCommand, LaniaCommandConfig } from '@lania-cli/common';
 import { WebpackCompiler, ViteCompiler, RollupCompiler } from '@lania-cli/compilers';
 import webpack, { Configuration } from 'webpack';
 import { BuildActionOptions, LaniaCommandActionInterface } from '@lania-cli/types';
@@ -55,25 +55,28 @@ class BuildAction implements LaniaCommandActionInterface<[BuildActionOptions]> {
     }
 }
 
+@LaniaCommandConfig(new BuildAction(), {
+    name: 'build',
+    description: 'Build the application.',
+    options: [
+        { flags: '-c, --config [config]', description: 'Path to configuration file.' },
+        { flags: '-p, --path [path]', description: 'Path to lan configuration file.' },
+        {
+            flags: '-w, --watch',
+            description: 'Run in watch mode.',
+            defaultValue: false,
+        },
+        {
+            flags: '-m, --mode [mode]',
+            description:
+                'Specify whether the running mode of the server is production or development.',
+            defaultValue: 'development',
+        },
+        { flags: '--mode', description: 'Mode of initiating the project.' },
+    ],
+    alias: '-b',
+})
 export class BuildCommand extends LaniaCommand<[BuildActionOptions]> {
-    protected actor = new BuildAction();
-    protected commandNeededArgs = {
-        name: 'build',
-        description: 'Build the application.',
-        options: [
-            { flags: '-c, --config [config]', description: 'Path to configuration file.' },
-            { flags: '-p, --path [path]', description: 'Path to lan configuration file.' },
-            { flags: '-w, --watch', description: 'Run in watch mode.', defaultValue: false },
-            {
-                flags: '-m, --mode [mode]',
-                description:
-                    'Specify whether the running mode of the server is production or development.',
-                defaultValue: 'development',
-            },
-            { flags: '--mode', description: 'Mode of initiating the project.' },
-        ],
-        alias: '-b',
-    };
 }
 
 export default BuildCommand;

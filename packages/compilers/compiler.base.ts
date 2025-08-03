@@ -1,4 +1,4 @@
-import { ConfigurationLoader } from '@lania-cli/common';
+import { ConfigurationLoader, getLanConfig } from '@lania-cli/common';
 import path from 'path';
 import { mergeConfig as mergeViteConfig } from 'vite';
 import * as mergeWebpackConfig from 'webpack-merge';
@@ -17,9 +17,14 @@ const createMergeConfig = <Config>(module: ConfigOption['module']) => {
     }
 };
 
-export abstract class Compiler<Config extends Record<string, any> = any, Server = any> {
+export abstract class Compiler<Config extends Record<string, any> = any, Server = any, Base = any> {
+    constructor() {
+        this.setBase();
+    }
     protected abstract server: Server;
     protected abstract configOption: ConfigOption;
+    protected abstract base: Base;
+
     protected async getConfig() {
         const { module, configPath } = this.configOption;
         if (!module) {
@@ -43,7 +48,16 @@ export abstract class Compiler<Config extends Record<string, any> = any, Server 
         const config = await this.getConfig();
         return baseConfig ? mergeConfig(config, baseConfig) : config;
     }
+    private async setBase() {
+        const config = await getLanConfig();
+        if (config?.dependencies) {
+            this.base = config?.dependencies as Base;
+        }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected createServer(_baseConfig?: Config): Promise<void> | void {}
     protected closeServer(): Promise<void> | void {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected build(_baseConfig?: Config): Promise<void> | void {}
 }

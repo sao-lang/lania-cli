@@ -1,7 +1,7 @@
 import getPort from 'get-port';
 import webpack from 'webpack';
 import { ViteCompiler, WebpackCompiler } from '@lania-cli/compilers';
-import { getLanConfig, LaniaCommand, logger } from '@lania-cli/common';
+import { getLanConfig, LaniaCommand, LaniaCommandConfig } from '@lania-cli/common';
 import { DevActionOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
 const { DefinePlugin } = webpack;
@@ -47,9 +47,7 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
             }
             case 'rollup':
             case 'tsc': {
-                logger.error('The current packaging tool does not support the dev command!');
-                process.exit(1);
-                break;
+                throw new Error('The current packaging tool does not support the dev command!')
             }
             default: {
                 throw new Error('Unknown build tool!');
@@ -58,39 +56,36 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
     }
 }
 
-export class DevCommand extends LaniaCommand<[DevActionOptions]> {
-    protected actor = new DevAction();
-    protected commandNeededArgs = {
-        name: 'dev',
-        description: 'Start a development server for the application.',
-        options: [
-            {
-                flags: '-p, --port [port]',
-                description: 'Port to the development server.',
-                defaultValue: '8089',
-            },
-            { flags: '-c, --config [config]', description: 'Path to configuration file.' },
-            {
-                flags: '--hmr',
-                description: 'Whether to turn on HMR or not.',
-                defaultValue: true,
-            },
-            {
-                flags: '--host',
-                description: 'Host to the development server',
-                defaultValue: '127.0.0.1',
-            },
-            { flags: '--path [path]', description: 'Path to lan configuration file.' },
-            { flags: '--mode', description: 'Mode of initiating the project.' },
-            {
-                flags: '-o, --open',
-                description:
-                    'Automatically open projects in the browser after starting the server.',
-                defaultValue: true,
-            },
-        ],
-        alias: '-d',
-    };
-}
+@LaniaCommandConfig(new DevAction(), {
+    name: 'dev',
+    description: 'Start a development server for the application.',
+    options: [
+        {
+            flags: '-p, --port [port]',
+            description: 'Port to the development server.',
+            defaultValue: '8089',
+        },
+        { flags: '-c, --config [config]', description: 'Path to configuration file.' },
+        {
+            flags: '--hmr',
+            description: 'Whether to turn on HMR or not.',
+            defaultValue: true,
+        },
+        {
+            flags: '--host',
+            description: 'Host to the development server',
+            defaultValue: '127.0.0.1',
+        },
+        { flags: '--path [path]', description: 'Path to lan configuration file.' },
+        { flags: '--mode', description: 'Mode of initiating the project.' },
+        {
+            flags: '-o, --open',
+            description: 'Automatically open projects in the browser after starting the server.',
+            defaultValue: true,
+        },
+    ],
+    alias: '-d',
+})
+export class DevCommand extends LaniaCommand<[DevActionOptions]> {}
 
 export default DevCommand;

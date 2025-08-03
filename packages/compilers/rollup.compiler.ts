@@ -9,9 +9,10 @@ import { mergeConfig } from 'vite';
 import { logOnBuildRollupPlugin } from './compiler.plugin';
 import { ConfigOption, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
 
-export class RollupCompiler extends Compiler<RollupOptions> {
+export class RollupCompiler extends Compiler<RollupOptions, null, { rollup: typeof rollup }> {
     protected configOption: ConfigOption;
     protected server: null;
+    protected base = { rollup };
     constructor(configPath?: string) {
         super();
         this.configOption = { module: 'rollup', configPath };
@@ -41,7 +42,7 @@ export class RollupCompiler extends Compiler<RollupOptions> {
         const configuration = await this.mergeConfig(
             mergeConfig(config, { plugins: [logOnBuildRollupPlugin(logOnBuildOptions)] }),
         );
-        const [buildErr] = await to(rollup(configuration));
+        const [buildErr] = await to(this.base.rollup(configuration));
         if (buildErr) {
             logger.error(`Build failed: ${buildErr.message}`);
             throw buildErr;
@@ -56,11 +57,11 @@ export class RollupCompiler extends Compiler<RollupOptions> {
                 const size = (stats.size / 1024).toFixed(2) + 'K';
                 const nameModifiedText = styleText(name, {
                     color: '#6a7c80',
-                });
+                }).render();
                 const sizeModifiedText = styleText(size, {
                     bold: true,
                     color: '#7a7c80',
-                });
+                }).render();
                 logger.log(`${nameModifiedText} ${sizeModifiedText}`);
             } else {
                 logger.error(error.message);

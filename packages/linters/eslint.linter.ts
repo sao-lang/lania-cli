@@ -9,12 +9,17 @@ import {
     LinterHandleDirOptions,
 } from '@lania-cli/types';
 
-export class EsLinter extends Linter<EsLinterSupportFileType, EsLinterOutput> {
+export class EsLinter extends Linter<
+    EsLinterSupportFileType,
+    EsLinterOutput,
+    { eslint: { ESLint: typeof ESLint } }
+> {
     private config: LinterConfiguration;
     private options: LinterHandleDirOptions;
+    protected base = { eslint: { ESLint } };
     protected fileTypes: EsLinterSupportFileType[];
     private innerLinter: ESLint;
-    constructor(config: LinterConfiguration, options?: LinterHandleDirOptions) {
+    constructor(config: LinterConfiguration = 'eslint', options?: LinterHandleDirOptions) {
         super();
         this.config = config;
         this.options = options;
@@ -55,7 +60,7 @@ export class EsLinter extends Linter<EsLinterSupportFileType, EsLinterOutput> {
     private async createInnerLinter() {
         if (this.innerLinter) {
             const configObject = await getModuleConfig(this.config);
-            this.innerLinter = new ESLint({
+            this.innerLinter = new this.base.eslint.ESLint({
                 overrideConfig: configObject,
                 ignorePath: this.options?.ignorePath,
                 fix: this.options?.fix,
@@ -65,4 +70,4 @@ export class EsLinter extends Linter<EsLinterSupportFileType, EsLinterOutput> {
     }
 }
 
-export default EsLinter
+export default EsLinter;

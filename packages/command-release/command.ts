@@ -1,28 +1,26 @@
-import { LaniaCommand } from '@lania-cli/common';
+import { LaniaCommand, LaniaCommandConfig } from '@lania-cli/common';
+import { AddCommandOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
 class ReleaseAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
     async handle({ filepath, template }: AddCommandOptions = {}) {}
 }
-import { AddCommandOptions, LaniaCommandActionInterface } from '@lania-cli/types';
 
-export class ReleaseCommand extends LaniaCommand<[AddCommandOptions]> {
-    protected actor = new ReleaseAction();
-    protected commandNeededArgs = {
-        name: 'add',
-        description: 'Add files for current application.',
-        options: [
-            {
-                flags: '-p, --filepath [directory]',
-                description: 'The filepath you will add.',
-            },
-            {
-                flags: '-t, --template',
-                description: 'The template of the file you will add.',
-                defaultValue: false,
-            },
-        ],
-        alias: '-a',
-    };
-}
+@LaniaCommandConfig(new ReleaseAction(), {
+    name: 'release',
+    description: 'Add files for current application.',
+    options: [
+        {
+            flags: '-p, --filepath [directory]',
+            description: 'The filepath you will add.',
+        },
+        {
+            flags: '-t, --template',
+            description: 'The template of the file you will add.',
+            defaultValue: false,
+        },
+    ],
+    alias: '-a',
+})
+export class ReleaseCommand extends LaniaCommand<[AddCommandOptions]> {}
 
 export default ReleaseCommand;

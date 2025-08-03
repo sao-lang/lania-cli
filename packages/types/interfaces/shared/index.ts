@@ -1,3 +1,4 @@
+import type { LaniaCommand } from '@lania-cli/common';
 import {
     BuildToolEnum,
     CssProcessorEnum,
@@ -15,7 +16,7 @@ import {
     UnitTestFrameEnum,
 } from '../../enum';
 
-import { CommandNeededArgsInterface, LaniaCommandActionInterface } from '../commands';
+import { CommandHook, CommandNeededArgsInterface, LaniaCommandActionInterface } from '../commands';
 
 import { Question as InquirerQuestion } from 'inquirer';
 export type ConfigurationLoadType =
@@ -33,7 +34,8 @@ export type ConfigurationLoadType =
     | 'webpack'
     | 'vite'
     | 'gulp'
-    | 'rollup';
+    | 'rollup'
+    | 'textlint';
 
 export type ModuleName = ConfigurationLoadType | { module: string; searchPlaces?: string[] };
 
@@ -196,6 +198,7 @@ export interface LaniaConfig {
     };
     custom?: Record<string, any>; // 用户扩展字段（为了未来兼容）
     linters?: LintToolEnum[];
+    dependencies?: Record<string, any>;
 }
 
 export interface RunnerRunOptions {
@@ -251,4 +254,16 @@ export interface TaskItem {
     task: () => Promise<any>;
     group?: string;
     priority?: number;
+}
+
+export interface LaniaCommandConfigInterface<ActionArgs extends any[] = any[]> {
+    actor: LaniaCommandActionInterface<ActionArgs>;
+    commandNeededArgs: CommandNeededArgsInterface;
+    subcommands?: LaniaCommand[];
+    parent?: LaniaCommand;
+    hooks?: {
+        beforeExecute?: CommandHook;
+        afterExecute?: CommandHook;
+        onError?: CommandHook;
+    };
 }

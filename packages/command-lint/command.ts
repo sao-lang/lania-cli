@@ -1,4 +1,10 @@
-import { LINTERS, LaniaCommand, getLanConfig, TaskExecutor } from '@lania-cli/common';
+import {
+    LINTERS,
+    LaniaCommand,
+    getLanConfig,
+    TaskExecutor,
+    LaniaCommandConfig,
+} from '@lania-cli/common';
 import { Prettier, StyleLinter, EsLinter } from '@lania-cli/linters';
 import {
     LaniaCommandActionInterface,
@@ -83,25 +89,24 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         }
     }
 }
-export class LintCommand extends LaniaCommand<[LintActionOptions]> {
-    protected actor = new LintAction();
-    protected commandNeededArgs = {
-        name: 'lint',
-        description: 'Lint the code.',
-        options: [
-            {
-                flags: '-l, --linters <names>',
-                description: 'The linters that lint code.',
-                defaultValue: [],
-            },
-            {
-                flags: '-f, --fix',
-                description:
-                    'Check whether the code needs to be modified when the linters lint the code.',
-            },
-        ],
-        alias: '-l',
-    };
-}
+
+@LaniaCommandConfig(new LintAction(), {
+    name: 'lint',
+    description: 'Lint the code.',
+    options: [
+        {
+            flags: '-l, --linters <names>',
+            description: 'The linters that lint code.',
+            defaultValue: [],
+        },
+        {
+            flags: '-f, --fix',
+            description:
+                'Check whether the code needs to be modified when the linters lint the code.',
+        },
+    ],
+    alias: '-l',
+})
+export class LintCommand extends LaniaCommand<[LintActionOptions]> {}
 
 export default LintCommand;

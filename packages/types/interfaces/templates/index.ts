@@ -18,7 +18,7 @@ export interface Template {
     }>;
 }
 
-export interface TaskConfig {
+export interface TaskOptions {
     filePath: string;
     outputPath: string;
     hide?: boolean;

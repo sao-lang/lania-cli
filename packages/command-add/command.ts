@@ -51,9 +51,8 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
         return promptTemplate;
     }
     private async getPromptFilepath(filepath: string) {
-        filepath =
-            filepath ||
-            (
+        if (!filepath) {
+            filepath = (
                 await simplePromptInteraction({
                     type: 'input',
                     name: 'filepath',
@@ -61,6 +60,7 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
                         'Please enter the filepath(example: /src/pages or /src/pages/test/index.tsx):',
                 })
             )?.filepath;
+        }
         if (!isUnixAbsoluteFilePath(filepath) && !isUnixAbsoluteDirPath(filepath)) {
             throw new Error(
                 'Please enter a valid directory or file path, such as: /src/pages or /src/pages/test/index.tsx',

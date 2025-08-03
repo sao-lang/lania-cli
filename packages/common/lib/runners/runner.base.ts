@@ -43,15 +43,17 @@ class BaseRunner {
 }
 
 export abstract class Runner<Command extends string> {
-    protected abstract command: Command;
+    private command: Command;
     private runner = new BaseRunner();
+    constructor(command: Command) {
+        this.command = command;
+    }
     protected run(action: string, args: string[] = [], options: RunnerRunOptions = {}) {
         return this.runner.run(`${this.command} ${action}`, args, options);
     }
 }
 
 export abstract class PackageManager<Command extends PackageManagerName> extends Runner<Command> {
-    protected command: Command;
     private actions: PackageManagerCommands;
     private flags: PackageManagerCommandFlags;
     private registry: string;
@@ -61,8 +63,7 @@ export abstract class PackageManager<Command extends PackageManagerName> extends
         flags: PackageManagerCommandFlags,
         registry = 'https://registry.npmmirror.com',
     ) {
-        super();
-        this.command = name;
+        super(name);
         this.actions = actions;
         this.flags = flags;
         this.registry = registry;
@@ -84,11 +85,11 @@ export abstract class PackageManager<Command extends PackageManagerName> extends
         return await this.run(this.actions.install, [...dependencies, flag], options);
     }
 
-    public addInProduction(dependencies: string[], options: RunnerRunOptions = {}) {
+    public addWithProduction(dependencies: string[], options: RunnerRunOptions = {}) {
         return this.add(dependencies, this.flags.saveFlag, options);
     }
 
-    public addInDevelopment(devDependencies: string[], options: RunnerRunOptions = {}) {
+    public addWithDevelopment(devDependencies: string[], options: RunnerRunOptions = {}) {
         return this.add(devDependencies, this.flags.saveDevFlag, options);
     }
 
@@ -100,11 +101,11 @@ export abstract class PackageManager<Command extends PackageManagerName> extends
         return await this.run(this.actions.update, [...dependencies, flag, this.registry], options);
     }
 
-    public async updateInProduction(dependencies: string[], options: RunnerRunOptions = {}) {
+    public async updateWithProduction(dependencies: string[], options: RunnerRunOptions = {}) {
         return this.update(dependencies, this.flags.saveFlag, options);
     }
 
-    public async updateInDevelopment(devDependencies: string[], options: RunnerRunOptions = {}) {
+    public async updateWithDevelopment(devDependencies: string[], options: RunnerRunOptions = {}) {
         return this.update(devDependencies, this.flags.saveDevFlag, options);
     }
 
@@ -112,15 +113,15 @@ export abstract class PackageManager<Command extends PackageManagerName> extends
         return await this.run(this.actions.remove, dependencies, options);
     }
 
-    public async upgradeInProduction(dependencies: string[], options: RunnerRunOptions = {}) {
+    public async upgradeWithProduction(dependencies: string[], options: RunnerRunOptions = {}) {
         const data1 = await this.remove(dependencies, options);
-        const data2 = await this.addInProduction(dependencies, options);
+        const data2 = await this.addWithProduction(dependencies, options);
         return data1 + data2;
     }
 
-    public async upgradeInDevelopment(devDependencies: string[], options: RunnerRunOptions = {}) {
+    public async upgradeWithDevelopment(devDependencies: string[], options: RunnerRunOptions = {}) {
         const data1 = await this.remove(devDependencies, options);
-        const data2 = await this.addInDevelopment(devDependencies, options);
+        const data2 = await this.addWithDevelopment(devDependencies, options);
         return data1 + data2;
     }
 
@@ -130,5 +131,11 @@ export abstract class PackageManager<Command extends PackageManagerName> extends
 
     public async getDevDependencies() {
         return (await this.getPackageJsonContent()).devDependencies;
+    }
+
+    public async getAllDependencies() {
+        const dependencies = await this.getDependencies();
+        const devDependencies = await this.getDevDependencies();
+        return [...dependencies, ...devDependencies];
     }
 }

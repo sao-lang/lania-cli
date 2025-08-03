@@ -8,6 +8,7 @@ import {
     LaniaCommandActionInterface,
     LaniaCommandMetadata,
     YargsOption,
+    LaniaCommandConfigInterface,
 } from '@lania-cli/types';
 import { hideBin } from 'yargs/helpers';
 
@@ -67,21 +68,25 @@ const inferTypeFromFlags = (flags: string, defaultValue: any) => {
 };
 
 export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
-    protected hooks: {
+    private hooks: {
         beforeExecute?: CommandHook;
         afterExecute?: CommandHook;
         onError?: CommandHook;
     } = {};
 
-    private parentCommand?: LaniaCommand;
+    private parentCommand?: LaniaCommandConfigInterface['parent'];
+    private actor?: LaniaCommandActionInterface<ActionArgs>;
+    private commandNeededArgs?: CommandNeededArgsInterface;
+    private subcommands?: LaniaCommandConfigInterface['subcommands'];
 
-    // ✅ 子类可赋值
-    protected actor?: LaniaCommandActionInterface<ActionArgs>;
-    protected commandNeededArgs?: CommandNeededArgsInterface;
-    protected subcommands?: LaniaCommand[];
-
-    constructor(parent?: LaniaCommand) {
-        this.parentCommand = parent;
+    constructor(
+        config: LaniaCommandConfigInterface<ActionArgs> = {} as LaniaCommandConfigInterface,
+    ) {
+        this.parentCommand = config.parent;
+        this.actor = config.actor;
+        this.hooks = config.hooks ?? {};
+        this.commandNeededArgs = config.commandNeededArgs;
+        this.subcommands = config.subcommands;
     }
 
     public load(): CommandModule {
@@ -108,7 +113,7 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
     private _buildCommandModule(
         actor: LaniaCommandActionInterface<ActionArgs>,
         commandNeededArgs: CommandNeededArgsInterface,
-        subcommands?: LaniaCommand[],
+        subcommands?: LaniaCommandConfigInterface['subcommands'],
     ): CommandModule {
         const {
             name,
@@ -174,7 +179,7 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
         this.hooks[type] = fn;
     }
 
-    public getParent(): LaniaCommand | undefined {
+    public getParent(): LaniaCommandConfigInterface['parent'] | undefined {
         return this.parentCommand;
     }
 }
