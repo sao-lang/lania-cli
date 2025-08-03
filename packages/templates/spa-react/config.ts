@@ -107,7 +107,7 @@ export default [
         hide: true,
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/eslint.config.cjs',
+        outputPath: '/.eslintrc.cjs',
         hide: !options.lintTools.includes(LintToolEnum.eslint),
     }),
     (options: InteractionConfig) => {

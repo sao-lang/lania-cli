@@ -3,7 +3,7 @@ import { CssProcessorEnum, InteractionConfig, LangEnum, LintToolEnum } from '@la
 export const TYPESCRIPT_DEV_DEPENDENCIES = [
     '@types/react',
     '@types/react-dom',
-    'typescript',
+    { key: 'typescript', version: '^5.0.4' },
     '@types/node',
 ];
 
@@ -103,12 +103,14 @@ export const getLintDevPenpencies = (
     }
     // eslint 相关依赖配置
     const eslintDeps = [
-        'eslint',
-        'eslint-plugin-react',
-        'eslint-plugin-react-hooks',
-        'eslint-plugin-import',
-        'eslint-plugin-jsx-a11y',
-        'eslint-import-resolver-node',
+        {
+            key: 'eslint',
+            version: 'R^8.43.0',
+        },
+        {
+            key: 'eslint-plugin-react',
+            version: '^7.32.2',
+        },
     ];
     // stylelint cssProcessor 相关依赖配置
     const stylelintCssProcessorDeps: Record<
@@ -142,10 +144,6 @@ export const getLintDevPenpencies = (
                 key: 'postcss-styl',
                 version: '^0.12.3',
             },
-            {
-                key: 'postcss-html',
-                version: '1.5.0',
-            },
         ],
     };
     // 定义 lintTool 到依赖数组的映射
@@ -154,10 +152,10 @@ export const getLintDevPenpencies = (
         | LintToolEnum.commitlint
         | LintToolEnum.prettier
         | LintToolEnum.stylelint,
-        string[]
+        (string | { key: string; version: string })[]
     > = {
         [LintToolEnum.eslint]: eslintDeps,
-        [LintToolEnum.prettier]: ['prettier'],
+        [LintToolEnum.prettier]: [{ key: 'prettier', version: '^2.8.8' }],
         [LintToolEnum.commitlint]: ['@commitlint/cli', '@commitlint/config-conventional'],
         [LintToolEnum.stylelint]: ['stylelint', 'stylelint-config-standard'],
     };
@@ -175,8 +173,14 @@ export const getLintDevPenpencies = (
             deps.add('@typescript-eslint/eslint-plugin');
         }
         if (hasLintTool(LintToolEnum.prettier)) {
-            deps.add('eslint-config-prettier');
-            deps.add('eslint-plugin-prettier');
+            deps.add({
+                key: 'eslint-config-prettier',
+                version: '^8.8.0',
+            });
+            deps.add({
+                key: 'eslint-plugin-prettier',
+                version: '^4.2.1',
+            });
         }
     }
     // stylelint 特殊处理
