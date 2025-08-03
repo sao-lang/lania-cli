@@ -23,8 +23,6 @@ export class WebpackCompiler extends Compiler<
     public async createServer(baseConfig?: Configuration): Promise<void> {
         await this.closeServer();
         return new Promise(async (resolve, reject) => {
-            const { webpack: base } = (await getLanConfig()) as any;
-            this.base = base;
             const config = await this.mergeConfig(baseConfig);
             const configuration = await this.mergeStatsConfig(config);
             const compiler = this.base.webpack(configuration);
@@ -145,3 +143,4 @@ export class WebpackCompiler extends Compiler<
     }
 }
 export default WebpackCompiler;
+
