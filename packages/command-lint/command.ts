@@ -59,8 +59,10 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         if (linter) {
             return linter;
         }
-        const { linters } = await getLanConfig();
-        return linters;
+        // @ts-ignore
+        const { lintTools } = await getLanConfig();
+        console.log(lintTools, 'lintTools')
+        return lintTools;
     }
     private switchLinter<T extends keyof LinterMap>(
         linter: T,

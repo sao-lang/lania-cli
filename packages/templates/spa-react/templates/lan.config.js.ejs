@@ -1,9 +1,9 @@
 export default {
     "name": "<%= name %>",
     "type": "spa",
-    "repository": "",
+    "repository": <%= repository %>,
     "packageManager": "<%= packageManager %>",
-    "lintTools": [],
+    "lintTools": <%= JSON.stringify(lintTools) %>,
     "cssProcessor":"<%= cssProcessor %>",
     "buildTool": "<%= buildTool %>",
     "frame": "react"

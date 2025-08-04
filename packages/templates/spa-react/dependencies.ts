@@ -100,6 +100,10 @@ export const getLintDevPenpencies = (
     ) {
         deps.add('husky');
         deps.add('lint-staged');
+        if ([LintToolEnum.commitlint].some(hasLintTool)) {
+            deps.add('commitizen');
+            deps.add('cz-customizable')
+        }
     }
     // eslint 相关依赖配置
     const eslintDeps = [

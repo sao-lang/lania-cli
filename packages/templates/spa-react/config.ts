@@ -140,4 +140,26 @@ export default [
         outputPath: '/.editorconfig',
         hide: !options.lintTools.includes(LintToolEnum.editorconfig),
     }),
+    (options: InteractionConfig) => ({
+        outputPath: '/.czrc.cjs',
+        hide: !options.lintTools.includes(LintToolEnum.commitlint),
+    }),
+    (options: InteractionConfig) => ({
+        outputPath: '/husky/commit-msg',
+        hide: ![
+            LintToolEnum.eslint,
+            LintToolEnum.prettier,
+            LintToolEnum.stylelint,
+            LintToolEnum.commitlint,
+        ].some((lintTool) => options.lintTools.includes(lintTool)),
+    }),
+    (options: InteractionConfig) => ({
+        outputPath: '/husky/commit-msg',
+        hide: ![
+            LintToolEnum.eslint,
+            LintToolEnum.prettier,
+            LintToolEnum.stylelint,
+            LintToolEnum.commitlint,
+        ].some((lintTool) => options.lintTools.includes(lintTool)),
+    }),
 ];

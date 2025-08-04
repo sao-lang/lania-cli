@@ -22,10 +22,10 @@
         "@lania-cli/common": "workspace:^",
         "@lania-cli/core": "workspace:^",
         "@lania-cli/templates": "workspace:^",
-        "@lania-cli/types": "workspace:^",
-        "glob": "^11.0.0"
+        "@lania-cli/types": "workspace:^"
     },
     "devDependencies": {
+        "glob": "^11.0.0",
         "@changesets/cli": "^2.27.1",
         "@commitlint/cli": "^17.7.1",
         "@commitlint/config-conventional": "^17.7.0",

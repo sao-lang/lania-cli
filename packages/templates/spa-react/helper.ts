@@ -90,4 +90,15 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
         },
         type: 'list',
     },
+    {
+        name: 'repository',
+        message: 'Please input the repository:',
+        when: () => {
+            if (options.skipInstall) {
+                return false;
+            }
+            return true;
+        },
+        type: 'input',
+    },
 ];

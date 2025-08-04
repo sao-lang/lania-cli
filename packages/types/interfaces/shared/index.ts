@@ -74,8 +74,8 @@ export interface TaskEvent {
 export interface LaniaCommandMetadata {
     actor: LaniaCommandActionInterface;
     commandNeededArgs: CommandNeededArgsInterface;
-    // subcommands?: (new (...args: any[]) => LaniaCommand)[];
-    subcommands?: any[];
+    subcommands?: (new (...args: any[]) => LaniaCommand)[];
+    // subcommands?: any[];
 }
 
 export type ProgressInfo = {
@@ -182,7 +182,6 @@ export interface LaniaConfig {
     type?: ProjectTypeEnum; // 项目类型：应用 / 库
     language: LangEnum; // 编程语言
     frame: FrameEnum; // 框架类型
-    linterTools?: LintToolEnum;
     cssProcessor: CssProcessorEnum; // 主样式方案
     cssTools?: CssToolEnum[]; // 额外的 CSS 工具（如 autoprefixer、postcss-preset-env）
     buildTool?: BuildToolEnum; // 构建工具
@@ -197,7 +196,7 @@ export interface LaniaConfig {
         [hookName: string]: string | string[] | undefined; // 支持自定义 hook
     };
     custom?: Record<string, any>; // 用户扩展字段（为了未来兼容）
-    linters?: LintToolEnum[];
+    lintTools?: LintToolEnum[];
     dependencies?: Record<string, any>;
 }
 
@@ -266,4 +265,12 @@ export interface LaniaCommandConfigInterface<ActionArgs extends any[] = any[]> {
         afterExecute?: CommandHook;
         onError?: CommandHook;
     };
+}
+
+export interface OutputFileTask {
+    outputPath: string;
+    options?: InteractionConfig;
+    templatePath?: string;
+    content?: string;
+    hide?: boolean;
 }
