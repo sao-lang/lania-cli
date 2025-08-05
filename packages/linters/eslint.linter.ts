@@ -1,6 +1,5 @@
 import { ESLint } from 'eslint';
 import Linter from './linter.base';
-import { getModuleConfig } from './linter.util';
 import { readFile, writeFile } from 'fs/promises';
 import {
     EsLinterOutput,
@@ -8,6 +7,7 @@ import {
     LinterConfiguration,
     LinterHandleDirOptions,
 } from '@lania-cli/types';
+import { getLinterModuleConfig } from '@lania-cli/common';
 
 export class EsLinter extends Linter<
     EsLinterSupportFileType,
@@ -15,20 +15,17 @@ export class EsLinter extends Linter<
     { eslint: { ESLint: typeof ESLint } }
 > {
     private config: LinterConfiguration;
-    private options: LinterHandleDirOptions;
     protected base = { eslint: { ESLint } };
     protected fileTypes: EsLinterSupportFileType[];
     private innerLinter: ESLint;
     constructor(config: LinterConfiguration = 'eslint', options?: LinterHandleDirOptions) {
-        super();
+        super(options);
         this.config = config;
-        this.options = options;
         this.fileTypes = this.getFileTypes();
     }
     public async lintFile(path: string) {
         const eslint = await this.createInnerLinter();
         const [{ messages, errorCount, warningCount }] = await eslint.lintFiles(path);
-
         const output = messages.map(({ message, line, endColumn, endLine, column, severity }) => ({
             description: message,
             line,
@@ -58,8 +55,8 @@ export class EsLinter extends Linter<
         return fileTypes as EsLinterSupportFileType[];
     }
     private async createInnerLinter() {
-        if (this.innerLinter) {
-            const configObject = await getModuleConfig(this.config);
+        if (!this.innerLinter) {
+            const configObject = await getLinterModuleConfig(this.config);
             this.innerLinter = new this.base.eslint.ESLint({
                 overrideConfig: configObject,
                 ignorePath: this.options?.ignorePath,

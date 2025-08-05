@@ -22,7 +22,7 @@
         <% if (buildTool === 'webpack') { %>"analyzer": "npx webpack-bundle-analyzer ./dist/stats.json",<% } %>
         "dev": "lan dev",
         <% if (hasHusky) { %>"prepare": "husky install",<% } >
-        "build": "lan build"
+        "build": "lan build --mode production"
     },
     <% if (hasLintStaged) { %>
         "lint-staged": {

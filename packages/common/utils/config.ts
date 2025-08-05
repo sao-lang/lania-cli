@@ -1,4 +1,4 @@
-import { LaniaConfig } from '@lania-cli/types';
+import { LaniaConfig, LinterConfiguration } from '@lania-cli/types';
 import { ConfigurationLoader } from '../lib/configuration-loader';
 import path from 'path';
 
@@ -18,4 +18,12 @@ export const getLanConfig = async (lanConfigPath?: string) => {
         },
         lanDirname,
     )) as LaniaConfig;
+};
+
+export const getLinterModuleConfig = async (config: LinterConfiguration) => {
+    if (typeof config === 'string') {
+        const moduleConfig = await ConfigurationLoader.load(config);
+        return moduleConfig as Record<string, any>;
+    }
+    return config;
 };

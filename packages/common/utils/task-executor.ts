@@ -1,14 +1,10 @@
 import { TaskItem, TaskResult, TaskConfig } from '@lania-cli/types';
 
-export interface ExtendedTaskConfig extends TaskConfig {
-    stopOnError?: boolean;
-}
-
 export class TaskExecutor {
     public queue: TaskItem[] = [];
     public runningTasks: Set<TaskItem> = new Set();
     public results: TaskResult<any>[] = [];
-    public readonly config: ExtendedTaskConfig;
+    public readonly config: TaskConfig;
     private paused = false;
     private running = false;
     private resolveWhenDone: (() => void) | null = null;
@@ -18,7 +14,7 @@ export class TaskExecutor {
     private activeCounts: Map<string, number> = new Map();
     private shouldStop = false;
 
-    constructor(initialTasks: TaskItem[] = [], config: ExtendedTaskConfig = {}) {
+    constructor(initialTasks: TaskItem[] = [], config: TaskConfig = {}) {
         this.queue = [...initialTasks];
         this.config = config;
         if (config.autoStart) {
@@ -76,74 +72,87 @@ export class TaskExecutor {
         const {
             maxRetries = 0,
             retryDelay = 100,
-            timeout = 10000,
             stopOnError = false,
+            timeout: globalTimeout,
         } = this.config;
-        let retries = 0;
+
+        const timeout = taskItem.timeout ?? globalTimeout;
         const group = taskItem.group || 'default';
-        const signal = this.getSignalForGroup(group);
         const groupKey = group;
+        const signal = this.getSignalForGroup(group);
+        let retries = 0;
 
-        this.runningTasks.add(taskItem);
-        this.activeCounts.set(groupKey, (this.activeCounts.get(groupKey) || 0) + 1);
+        const incrementActive = () =>
+            this.activeCounts.set(groupKey, (this.activeCounts.get(groupKey) || 0) + 1);
+        const decrementActive = () =>
+            this.activeCounts.set(groupKey, (this.activeCounts.get(groupKey) || 0) - 1);
 
-        const finish = (result: TaskResult<any>) => {
+        const handleFinish = (result: TaskResult<any>) => {
             this.runningTasks.delete(taskItem);
             this.results.push(result);
+            decrementActive();
+
             this.config.onProgress?.(
                 this.results.length,
                 this.results.length + this.queue.length,
                 group,
             );
             this.config.onComplete?.(result, taskItem);
+
             if (result.success) {
                 this.config.onSuccess?.(result.data, taskItem);
             } else {
                 this.config.onError?.(result.error!, taskItem);
+                if (stopOnError) {
+                    this.shouldStop = true;
+                    this.rejectWhenError?.(result.error ?? new Error('Unknown task error'));
+                    this.cancel();
+                }
             }
-            this.activeCounts.set(groupKey, (this.activeCounts.get(groupKey) || 0) - 1);
+        };
 
-            if (!result.success && stopOnError) {
-                this.shouldStop = true;
-                this.rejectWhenError?.(
-                    result.error ?? new Error('Unknown task error')
-                ); // 立即让 run() reject
-                this.cancel();
-            }
+        const runWithTimeout = (task: () => Promise<any>): Promise<any> => {
+            if (timeout == null) return task();
+            return new Promise((resolve, reject) => {
+                const timeoutId = setTimeout(() => reject(new Error('Task timed out')), timeout);
+                task()
+                    .then(resolve, reject)
+                    .finally(() => clearTimeout(timeoutId));
+            });
         };
 
         const runAttempt = async (): Promise<TaskResult<any>> => {
-            try {
-                const timeoutPromise = new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error('Task timed out')), timeout),
-                );
-                const result = await Promise.race([taskItem.task(), timeoutPromise]);
-                if (signal.aborted) {
-                    return { success: false, error: new Error('Task cancelled'), retries };
+            while (retries <= maxRetries) {
+                try {
+                    const result = await runWithTimeout(taskItem.task);
+                    if (signal.aborted) throw new Error('Task cancelled');
+                    return { success: true, data: result, retries };
+                } catch (error) {
+                    if (signal.aborted)
+                        return { success: false, error: new Error('Task cancelled'), retries };
+                    if (retries < maxRetries) {
+                        retries++;
+                        await new Promise((res) => setTimeout(res, retryDelay));
+                    } else {
+                        return {
+                            success: false,
+                            error: error instanceof Error ? error : new Error(String(error)),
+                            retries,
+                        };
+                    }
                 }
-                return { success: true, data: result, retries };
-            } catch (error) {
-                if (signal.aborted) {
-                    return { success: false, error: new Error('Task cancelled'), retries };
-                }
-                if (retries < maxRetries) {
-                    retries++;
-                    await new Promise((res) => setTimeout(res, retryDelay));
-                    return runAttempt();
-                }
-                return {
-                    success: false,
-                    error: error instanceof Error ? error : new Error(String(error)),
-                    retries,
-                };
             }
+            return { success: false, error: new Error('Unknown error'), retries };
         };
+
+        this.runningTasks.add(taskItem);
+        incrementActive();
 
         try {
             const result = await runAttempt();
-            finish(result);
+            handleFinish(result);
         } catch (error) {
-            finish({
+            handleFinish({
                 success: false,
                 error: error instanceof Error ? error : new Error(String(error)),
                 retries,
@@ -164,9 +173,7 @@ export class TaskExecutor {
         this.runNext();
 
         // 如果 stopOnError=true，errorPromise 会优先 reject
-        await (this.config.stopOnError
-            ? Promise.race([donePromise, errorPromise])
-            : donePromise);
+        await (this.config.stopOnError ? Promise.race([donePromise, errorPromise]) : donePromise);
 
         return this.results;
     }

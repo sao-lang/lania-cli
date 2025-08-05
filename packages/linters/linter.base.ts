@@ -1,18 +1,20 @@
 import { stat } from 'fs/promises';
-import { traverseFiles } from './linter.util';
-import { getFileExt, getLanConfig } from '@lania-cli/common';
+import { getFileExt, getLanConfig, traverseFiles } from '@lania-cli/common';
+import { LinterHandleDirOptions } from '@lania-cli/types';
 
 export default abstract class Linter<
     SupportFileType extends string,
     LintOutput extends Record<string, any>,
     Base extends Record<string, any>,
 > {
-    constructor() {
-        this.setBase();
-    }
+    protected options: LinterHandleDirOptions;
     protected abstract lintFile(path: string): Promise<LintOutput>;
     protected abstract fileTypes: SupportFileType[];
     protected abstract base: Base;
+    constructor(options = {}) {
+        this.setBase();
+        this.options = options;
+    }
 
     private async setBase() {
         const config = await getLanConfig();
@@ -23,10 +25,11 @@ export default abstract class Linter<
     public async lintDir(path: string) {
         const results: LintOutput[] = [];
         await traverseFiles(path, async (filePath) => {
-            const ext = getFileExt(filePath);
-            if (this.fileTypes.includes(ext as SupportFileType)) {
-                results.push(await this.lintFile(path));
-            }
+            console.log(filePath);
+            // const ext = getFileExt(filePath);
+            // if (this.fileTypes.includes(ext as SupportFileType)) {
+            //     results.push(await this.lintFile(path));
+            // }
         });
         return results;
     }
@@ -36,8 +39,12 @@ export default abstract class Linter<
         for (const path of paths) {
             const stats = await stat(path);
             const isDirectory = stats.isDirectory();
-            const result = isDirectory ? await this.lintDir(path) : [await this.lintFile(path)];
-            results.push(result);
+            if (isDirectory) {
+                await this.lintDir(path);
+            }
+            // console.log(path);
+            // const result = isDirectory ? await this.lintDir(path) : [await this.lintFile(path)];
+            // results.push(result);
         }
         return results;
     }

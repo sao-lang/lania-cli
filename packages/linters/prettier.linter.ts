@@ -1,6 +1,5 @@
 import Linter from './linter.base';
-import { getModuleConfig } from './linter.util';
-import { getFileExt } from '@lania-cli/common';
+import { getFileExt, getLinterModuleConfig } from '@lania-cli/common';
 
 import prettier from 'prettier';
 import stylus from 'prettier-plugin-stylus';
@@ -54,17 +53,15 @@ export class Prettier extends Linter<
     { prettier: typeof prettier }
 > {
     private config: LinterConfiguration;
-    private options: LinterHandleDirOptions;
     protected fileTypes: PrettierSupportFileType[];
     protected base = { prettier };
     constructor(config: LinterConfiguration = 'prettier', options?: LinterHandleDirOptions) {
-        super();
+        super(options);
         this.config = config;
-        this.options = options;
         this.fileTypes = Prettier.listFileTypes();
     }
     public async lintFile(path: string) {
-        const configObject = getModuleConfig(this.config);
+        const configObject = getLinterModuleConfig(this.config);
         const fileType = getFileExt<PrettierSupportFileType>(path);
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);
@@ -121,7 +118,7 @@ export class Prettier extends Linter<
         if (!Prettier.listFileTypes().includes(fileType)) {
             return content;
         }
-        const configObject = await getModuleConfig(config);
+        const configObject = await getLinterModuleConfig(config);
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);
         const code = await this.base.prettier.format(content, { ...configObject, plugins, parser });

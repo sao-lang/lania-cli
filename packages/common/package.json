@@ -23,6 +23,7 @@
         "execa": "^8.0.1",
         "figlet": "^1.6.0",
         "get-port": "^7.0.0",
+        "ignore": "^7.0.5",
         "inquirer": "^8.2.5",
         "latest-version": "^7.0.0",
         "ora": "^8.2.0",
@@ -30,6 +31,7 @@
         "yargs": "^18.0.0"
     },
     "devDependencies": {
+        "@types/node": "^20.4.10",
         "@types/reflect-metadata": "^0.1.0",
         "@types/stylelint": "^14.0.0",
         "@types/yargs": "^17.0.33"

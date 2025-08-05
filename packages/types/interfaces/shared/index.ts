@@ -74,7 +74,7 @@ export interface TaskEvent {
 export interface LaniaCommandMetadata {
     actor: LaniaCommandActionInterface;
     commandNeededArgs: CommandNeededArgsInterface;
-    subcommands?: (new (...args: any[]) => LaniaCommand)[];
+    subcommands?: LaniaCommand[];
     // subcommands?: any[];
 }
 
@@ -253,6 +253,7 @@ export interface TaskItem {
     task: () => Promise<any>;
     group?: string;
     priority?: number;
+    timeout?: number;
 }
 
 export interface LaniaCommandConfigInterface<ActionArgs extends any[] = any[]> {
@@ -273,4 +274,9 @@ export interface OutputFileTask {
     templatePath?: string;
     content?: string;
     hide?: boolean;
+}
+
+export interface TraverseOptions {
+    ignoreFilePath?: string; // 比如：'.laniaignore'
+    ignorePatterns?: string[]; // 额外传入忽略规则
 }

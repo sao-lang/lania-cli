@@ -4,6 +4,7 @@ import {
     getLanConfig,
     TaskExecutor,
     LaniaCommandConfig,
+    TaskProgressManager,
 } from '@lania-cli/common';
 import { Prettier, StyleLinter, EsLinter } from '@lania-cli/linters';
 import {
@@ -23,27 +24,33 @@ type LinterMap = {
 class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
     public async handle(options: LintActionOptions) {
         const { linters, fix = false } = options;
-        const transformedLinters = await this.transformParams(linters);
+        const transformedLinters = await this.transformLinterParams(linters);
         if (!transformedLinters.length) {
             throw new Error('Please specify linter!');
         }
+        const taskProgressManager = new TaskProgressManager('spinner');
+        taskProgressManager.init('LintFiles', 1);
         const taskExecutor = new TaskExecutor([], { maxConcurrency: 1 });
-        transformedLinters.forEach((linter) => {
-            taskExecutor.addTask({
-                task: async () => {
-                    // const target = typeof linter === 'string' ? linter : linter.linter;
-                    const checkLinter = this.switchLinter(
-                        linter as keyof LinterMap,
-                        (linter as LinterConfigItem)?.config,
-                        fix,
-                    );
-                    await checkLinter.lint(process.cwd());
-                },
-            });
-        });
-        taskExecutor.run();
+        taskExecutor.addTasks(
+            transformedLinters.map((linter) => {
+                return {
+                    task: async () => {
+                        // const target = typeof linter === 'string' ? linter : linter.linter;
+                        const checkLinter = this.switchLinter(
+                            linter as keyof LinterMap,
+                            (linter as LinterConfigItem)?.config,
+                            fix,
+                        );
+                        return await checkLinter.lint(process.cwd());
+                    },
+                };
+            }),
+        );
+        const results = await taskExecutor.run();
+        taskProgressManager.increment('LintFiles');
+        console.log(results, 'res');
     }
-    private async transformParams(linterConfigs: LintActionHandleConfigsParam) {
+    private async transformLinterParams(linterConfigs: LintActionHandleConfigsParam) {
         const finalLinterConfigs = await this.getLinterConfigs(linterConfigs as string[]);
         if (!Array.isArray(finalLinterConfigs)) {
             return [];
@@ -56,12 +63,10 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         );
     }
     private async getLinterConfigs(linter?: string[]) {
-        if (linter) {
+        if (linter.length) {
             return linter;
         }
-        // @ts-ignore
         const { lintTools } = await getLanConfig();
-        console.log(lintTools, 'lintTools')
         return lintTools;
     }
     private switchLinter<T extends keyof LinterMap>(

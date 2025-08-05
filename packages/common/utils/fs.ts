@@ -1,7 +1,8 @@
 import { existsSync } from 'fs';
-import { access, mkdir } from 'fs/promises';
-import { dirname } from 'path';
-import { extname } from 'path';
+import { access, mkdir, readdir, readFile, stat } from 'fs/promises';
+import { dirname, extname, join, relative, resolve } from 'path';
+import ignore from 'ignore';
+import { TraverseOptions } from '@lania-cli/types';
 
 export const getFileExt = <T extends string>(filePath: string) => {
     return extname(filePath).replace('.', '') as T;
@@ -89,4 +90,45 @@ export const fileExists = async (filePath: string) => {
     } catch {
         return false;
     }
+};
+
+export const traverseFiles = async (
+    inputDir: string,
+    cb?: (filePath: string) => Promise<void>,
+    options: TraverseOptions = {}
+) => {
+    const { ignoreFilePath, ignorePatterns = [] } = options;
+
+    const rootDir = resolve(inputDir); // 统一为绝对路径
+    const ig = ignore();
+
+    if (ignoreFilePath) {
+        try {
+            const content = await readFile(ignoreFilePath, 'utf-8');
+            ig.add(content.split('\n'));
+        } catch (err) {
+            // 忽略读取错误
+        }
+    }
+
+    ig.add(ignorePatterns);
+
+    const walk = async (currentDir: string) => {
+        const entries = await readdir(currentDir);
+        for (const entry of entries) {
+            const fullPath = join(currentDir, entry);
+            const relativePath = relative(rootDir, fullPath); // 相对于 rootDir 的相对路径
+            console.log('---------', relativePath, '---------')
+            if (ig.ignores(relativePath)) continue;
+
+            const stats = await stat(fullPath);
+            if (stats.isDirectory()) {
+                await walk(fullPath);
+            } else if (stats.isFile()) {
+                await cb?.(fullPath);
+            }
+        }
+    };
+
+    await walk(rootDir);
 };

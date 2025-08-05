@@ -1,12 +1,12 @@
 import stylelint from 'stylelint';
 import Linter from './linter.base';
-import { getModuleConfig } from './linter.util';
 import {
     LinterConfiguration,
     LinterHandleDirOptions,
     StyleLinterOutput,
     StyleLinterSupportFileType,
 } from '@lania-cli/types';
+import { getLinterModuleConfig } from '@lania-cli/common';
 
 export class StyleLinter extends Linter<
     StyleLinterSupportFileType,
@@ -14,17 +14,15 @@ export class StyleLinter extends Linter<
     { stylelint: typeof stylelint }
 > {
     private config: LinterConfiguration;
-    private options: LinterHandleDirOptions;
     protected fileTypes: StyleLinterSupportFileType[];
     protected base = { stylelint };
     constructor(config: LinterConfiguration = 'stylelint', options?: LinterHandleDirOptions) {
-        super();
+        super(options);
         this.config = config;
-        this.options = options;
         this.fileTypes = this.getFileTypes();
     }
     public async lintFile(path: string) {
-        const config = await getModuleConfig(this.config);
+        const config = await getLinterModuleConfig(this.config);
         const { results } = await this.base.stylelint.lint({ files: path, config, ...(this.options || {}) });
         const { warnings, parseErrors } = results[0];
         return {
