@@ -1,23 +1,5 @@
+import { HSL, RGB, StyleFlags, StyleOptions } from '@lania-cli/types';
 import chalk from 'chalk';
-
-type StyleFlags = {
-    bold: boolean;
-    italic: boolean;
-    underline: boolean;
-    overline: boolean;
-    inverse: boolean;
-    strikethrough: boolean;
-    visible: boolean;
-    hidden: boolean;
-};
-
-type StyleOptions = {
-    color?: string;
-    bgColor?: string;
-    prefix?: string;
-    suffix?: string;
-    dimLevel?: number;
-} & Partial<StyleFlags>;
 
 const STYLE_FLAGS = {
     bold: 'bold',
@@ -29,9 +11,6 @@ const STYLE_FLAGS = {
     visible: 'visible',
     hidden: 'hidden',
 } as const;
-
-type RGB = { r: number; g: number; b: number };
-type HSL = { h: number; s: number; l: number };
 
 const COLOR_REGEX = {
     RGB: /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/i,
@@ -116,9 +95,11 @@ export class StyledText {
         }
 
         // 灰度处理
-        if (typeof this._options.dimLevel === 'number' &&
+        if (
+            typeof this._options.dimLevel === 'number' &&
             this._options.dimLevel >= 1 &&
-            this._options.dimLevel <= 10) {
+            this._options.dimLevel <= 10
+        ) {
             const level = this._options.dimLevel;
             const gray = 255 - Math.floor((level / 10) * 255);
             const hex = ColorParser.rgbToHex(gray, gray, gray);
@@ -135,12 +116,12 @@ export class StyledText {
     }
 
     private static _chainMethods?: Record<keyof StyleFlags, () => StyledText>;
-    
+
     static getChainMethods(): Record<keyof StyleFlags, () => StyledText> {
         if (!this._chainMethods) {
             this._chainMethods = {} as Record<keyof StyleFlags, () => StyledText>;
             for (const key of Object.keys(STYLE_FLAGS) as Array<keyof StyleFlags>) {
-                this._chainMethods[key] = function(this: StyledText) {
+                this._chainMethods[key] = function (this: StyledText) {
                     if (!this._options) this._options = {};
                     this._options[key] = true;
                     this.ensureChainInitialized();
@@ -167,9 +148,7 @@ export class StyledText {
         this.ensureChainInitialized();
         const { prefix = '', suffix = '' } = this._options;
         const text = `${prefix}${this.content}${suffix}`;
-        return typeof this.chain === 'function'
-            ? this.chain(text)
-            : text;
+        return typeof this.chain === 'function' ? this.chain(text) : text;
     }
 }
 
@@ -179,4 +158,5 @@ for (const key in methods) {
     StyledText.prototype[key] = methods[key];
 }
 
-export const styleText = (content: string, options?: StyleOptions) => new StyledText(content, options);
+export const styleText = (content: string, options?: StyleOptions) =>
+    new StyledText(content, options);

@@ -12,6 +12,7 @@ import {
     PrettierOutput,
     PrettierSupportFileType,
 } from '@lania-cli/types';
+import { getFileTypes } from './helper';
 
 const transformParser = (fileType: PrettierSupportFileType) => {
     switch (fileType) {
@@ -56,12 +57,12 @@ export class Prettier extends Linter<
     protected fileTypes: PrettierSupportFileType[];
     protected base = { prettier };
     constructor(config: LinterConfiguration = 'prettier', options?: LinterHandleDirOptions) {
-        super(options);
+        super(options, (filePath) => this.getFileTypes().includes(getFileExt(filePath)));
         this.config = config;
-        this.fileTypes = Prettier.listFileTypes();
+        this.fileTypes = this.getFileTypes();
     }
     public async lintFile(path: string) {
-        const configObject = getLinterModuleConfig(this.config);
+        const configObject = await getLinterModuleConfig(this.config);
         const fileType = getFileExt<PrettierSupportFileType>(path);
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);
@@ -80,42 +81,23 @@ export class Prettier extends Linter<
             await writeFile(path, code, 'utf-8');
         }
         if (this.options?.fix) {
-            return { filePath: path };
+            return { filePath: path, lintType: 'prettier' };
         }
         return {
             filePath: path,
             isFormatted,
+            lintType: 'prettier',
         };
     }
-
-    public static listFileTypes() {
-        const fileTypes = [
-            'js',
-            'json',
-            'ts',
-            'jsx',
-            'tsx',
-            'vue',
-            'svelte',
-            'css',
-            'html',
-            'scss',
-            'less',
-            'styl',
-            'md',
-            'yaml',
-            'astro',
-            'yml',
-            'ejs',
-        ];
-        return fileTypes as PrettierSupportFileType[];
+    private getFileTypes() {
+        return getFileTypes('prettier') as PrettierSupportFileType[];
     }
     public async formatContent(
         content: string,
         config: LinterConfiguration,
         fileType: PrettierSupportFileType,
     ) {
-        if (!Prettier.listFileTypes().includes(fileType)) {
+        if (!this.getFileTypes().includes(fileType)) {
             return content;
         }
         const configObject = await getLinterModuleConfig(config);

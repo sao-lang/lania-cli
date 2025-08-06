@@ -11,9 +11,11 @@ export default abstract class Linter<
     protected abstract lintFile(path: string): Promise<LintOutput>;
     protected abstract fileTypes: SupportFileType[];
     protected abstract base: Base;
-    constructor(options = {}) {
+    private fileFilter: (filePath: string) => boolean | Promise<boolean>;
+    constructor(options = {}, fileFilter?: (filePath: string) => boolean | Promise<boolean>) {
         this.setBase();
         this.options = options;
+        this.fileFilter = fileFilter;
     }
 
     private async setBase() {
@@ -22,15 +24,49 @@ export default abstract class Linter<
             this.base = config?.dependencies as Base;
         }
     }
-    public async lintDir(path: string) {
+    public async lintDir(dir: string) {
         const results: LintOutput[] = [];
-        await traverseFiles(path, async (filePath) => {
-            console.log(filePath);
-            // const ext = getFileExt(filePath);
-            // if (this.fileTypes.includes(ext as SupportFileType)) {
-            //     results.push(await this.lintFile(path));
-            // }
-        });
+        const defaultIgnoreDirs = [
+            'node_modules',
+            '.git',
+            '.vscode',
+            '.idea',
+            '.husky',
+            '.changeset',
+            'dist',
+            'build',
+            'coverage',
+            '.cache',
+            'logs',
+            'tmp',
+            'temp',
+            '.output',
+            '.next',
+            '.nuxt',
+            '.vite',
+            '.svelte-kit',
+            '.storybook',
+            '.parcel-cache',
+            'out',
+            '__tests__',
+            '__mocks__'
+        ];
+
+        await traverseFiles(
+            dir,
+            async (filePath) => {
+                const ext = getFileExt(filePath);
+                if (this.fileTypes.includes(ext as SupportFileType)) {
+                    results.push(await this.lintFile(filePath));
+                }
+            },
+            {
+                rootDir: process.cwd(),
+                ignoreFilePath: this.options.ignorePath,
+                ignorePatterns: defaultIgnoreDirs,
+            },
+            this.fileFilter,
+        );
         return results;
     }
     public async lint(filePaths: string) {
@@ -42,9 +78,8 @@ export default abstract class Linter<
             if (isDirectory) {
                 await this.lintDir(path);
             }
-            // console.log(path);
-            // const result = isDirectory ? await this.lintDir(path) : [await this.lintFile(path)];
-            // results.push(result);
+            const result = isDirectory ? await this.lintDir(path) : [await this.lintFile(path)];
+            results.push(result);
         }
         return results;
     }

@@ -1,6 +1,7 @@
 <%
-    const hasHusky = devDependencies.includes('husky');
-    const hasLintStaged = devDependencies.includes('lint-staged');
+    const devDependencyKeys = Object.keys(devDependencies)
+    const hasHusky = devDependencyKeys.includes('husky');
+    const hasLintStaged = devDependencyKeys.includes('lint-staged');
     const hasEslint = lintTools.includes('eslint');
     const hasStylelint = lintTools.includes('stylelint');
     const hasPrettier = lintTools.includes('prettier');
@@ -21,7 +22,7 @@
     "scripts": {
         <% if (buildTool === 'webpack') { %>"analyzer": "npx webpack-bundle-analyzer ./dist/stats.json",<% } %>
         "dev": "lan dev",
-        <% if (hasHusky) { %>"prepare": "husky install",<% } >
+        <% if (hasHusky) { %>"prepare": "husky install",<% } %>
         "build": "lan build --mode production"
     },
     <% if (hasLintStaged) { %>

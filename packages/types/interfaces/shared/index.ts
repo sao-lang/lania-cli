@@ -247,6 +247,7 @@ export interface TaskResult<T> {
     data?: T;
     error?: Error;
     retries: number;
+    group?: string;
 }
 
 export interface TaskItem {
@@ -275,8 +276,40 @@ export interface OutputFileTask {
     content?: string;
     hide?: boolean;
 }
-
-export interface TraverseOptions {
-    ignoreFilePath?: string; // 比如：'.laniaignore'
-    ignorePatterns?: string[]; // 额外传入忽略规则
+export interface IgnoreOptions {
+    rootDir?: string;
+    ignoreFilePath?: string;
+    ignorePatterns?: string[];
 }
+
+export interface IgnoredInnerRule {
+    raw: string;
+    pattern: string;
+    regex: RegExp;
+    negative: boolean;
+    fromRoot: boolean;
+}
+
+export type StyleFlags = {
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    overline: boolean;
+    inverse: boolean;
+    strikethrough: boolean;
+    visible: boolean;
+    hidden: boolean;
+};
+
+export type StyleOptions = {
+    color?: string;
+    bgColor?: string;
+    prefix?: string;
+    suffix?: string;
+    dimLevel?: number;
+} & Partial<StyleFlags>;
+
+export type RGB = { r: number; g: number; b: number };
+export type HSL = { h: number; s: number; l: number };
+
+export type DepencencyAndVresion = { key: string; version?: string };

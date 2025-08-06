@@ -98,14 +98,6 @@ export default [
     () => ({
         outputPath: '/.gitignore',
     }),
-    () => ({
-        outputPath: '/.env.production',
-        hide: true,
-    }),
-    () => ({
-        outputPath: '/.env.development',
-        hide: true,
-    }),
     (options: InteractionConfig) => ({
         outputPath: '/.eslintrc.cjs',
         hide: !options.lintTools.includes(LintToolEnum.eslint),
@@ -145,7 +137,7 @@ export default [
         hide: !options.lintTools.includes(LintToolEnum.commitlint),
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/husky/commit-msg',
+        outputPath: '/.husky/commit-msg',
         hide: ![
             LintToolEnum.eslint,
             LintToolEnum.prettier,
@@ -154,7 +146,7 @@ export default [
         ].some((lintTool) => options.lintTools.includes(lintTool)),
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/husky/commit-msg',
+        outputPath: '/.husky/pre-commit',
         hide: ![
             LintToolEnum.eslint,
             LintToolEnum.prettier,

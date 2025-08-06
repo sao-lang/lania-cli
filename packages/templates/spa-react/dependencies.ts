@@ -1,4 +1,10 @@
-import { CssProcessorEnum, InteractionConfig, LangEnum, LintToolEnum } from '@lania-cli/types';
+import {
+    CssProcessorEnum,
+    DepencencyAndVresion,
+    InteractionConfig,
+    LangEnum,
+    LintToolEnum,
+} from '@lania-cli/types';
 
 export const TYPESCRIPT_DEV_DEPENDENCIES = [
     '@types/react',
@@ -83,121 +89,97 @@ export const VITE_DEV_DEPENDENCIES = [
     'rollup-plugin-visualizer',
 ];
 
-export const getLintDevPenpencies = (
-    options: InteractionConfig,
-): (string | Record<'key' | 'version', string>)[] => {
-    const deps = new Set<string | Record<'key' | 'version', string>>();
+export const getLintDevPenpencies = (options: InteractionConfig): DepencencyAndVresion[] => {
+    const depsMap = new Map<string, DepencencyAndVresion>();
     const { lintTools, useTs, cssProcessor } = options;
     const hasLintTool = (tool: LintToolEnum) => lintTools.includes(tool);
-    // 通用的 husky 和 lint-staged 依赖
-    if (
-        [
-            LintToolEnum.eslint,
-            LintToolEnum.prettier,
-            LintToolEnum.stylelint,
-            LintToolEnum.commitlint,
-        ].some(hasLintTool)
-    ) {
-        deps.add('husky');
-        deps.add('lint-staged');
-        if ([LintToolEnum.commitlint].some(hasLintTool)) {
-            deps.add('commitizen');
-            deps.add('cz-customizable')
-        }
-    }
-    // eslint 相关依赖配置
-    const eslintDeps = [
-        {
-            key: 'eslint',
-            version: 'R^8.43.0',
-        },
-        {
-            key: 'eslint-plugin-react',
-            version: '^7.32.2',
-        },
-    ];
-    // stylelint cssProcessor 相关依赖配置
-    const stylelintCssProcessorDeps: Record<
-        CssProcessorEnum.less | CssProcessorEnum.sass | CssProcessorEnum.stylus,
-        (string | Record<'key' | 'version', string>)[]
+    const addDep = (dep: string | DepencencyAndVresion) => {
+        const key = typeof dep === 'string' ? dep : dep.key;
+        const version = typeof dep === 'string' ? undefined : dep.version;
+        depsMap.set(key, { key, version });
+    };
+    const lintToolDepsMap: Record<
+        | LintToolEnum.eslint
+        | LintToolEnum.prettier
+        | LintToolEnum.stylelint
+        | LintToolEnum.commitlint,
+        DepencencyAndVresion[]
     > = {
+        [LintToolEnum.eslint]: [
+            { key: 'eslint', version: '^8.43.0' },
+            { key: 'eslint-plugin-react', version: '^7.32.2' },
+        ],
+        [LintToolEnum.prettier]: [{ key: 'prettier', version: '^2.8.8' }],
+        [LintToolEnum.commitlint]: [
+            { key: '@commitlint/cli' },
+            { key: '@commitlint/config-conventional' },
+            { key: 'commitizen' },
+            { key: 'cz-customizable' },
+        ],
+        [LintToolEnum.stylelint]: [
+            { key: 'stylelint', version: '^14.6.0' },
+            { key: 'stylelint-config-standard', version: '^23.0.0' },
+        ],
+    };
+
+    const stylelintCssProcessorDeps: Partial<Record<CssProcessorEnum, DepencencyAndVresion[]>> = {
         [CssProcessorEnum.less]: [
             { key: 'postcss', version: '^8.4.12' },
             { key: 'postcss-less', version: '^6.0.0' },
         ],
         [CssProcessorEnum.sass]: [
-            {
-                key: 'postcss',
-                version: '^8.4.12',
-            },
-            {
-                key: 'postcss-scss',
-                version: '^4.0.6',
-            },
+            { key: 'postcss', version: '^8.4.12' },
+            { key: 'postcss-scss', version: '^4.0.6' },
         ],
         [CssProcessorEnum.stylus]: [
-            {
-                key: 'postcss',
-                version: '^8.4.12',
-            },
-            {
-                key: 'stylelint-stylus',
-                version: '^0.18.0',
-            },
-            {
-                key: 'postcss-styl',
-                version: '^0.12.3',
-            },
+            { key: 'postcss', version: '^8.4.12' },
+            { key: 'stylelint-stylus', version: '^0.18.0' },
+            { key: 'postcss-styl', version: '^0.12.3' },
         ],
     };
-    // 定义 lintTool 到依赖数组的映射
-    const lintToolDepsMap: Record<
-        | LintToolEnum.eslint
-        | LintToolEnum.commitlint
-        | LintToolEnum.prettier
-        | LintToolEnum.stylelint,
-        (string | { key: string; version: string })[]
-    > = {
-        [LintToolEnum.eslint]: eslintDeps,
-        [LintToolEnum.prettier]: [{ key: 'prettier', version: '^2.8.8' }],
-        [LintToolEnum.commitlint]: ['@commitlint/cli', '@commitlint/config-conventional'],
-        [LintToolEnum.stylelint]: ['stylelint', 'stylelint-config-standard'],
-    };
-    // 根据选中的 lintTools 添加基础依赖
-    lintTools.forEach((tool) => {
-        const baseDeps = lintToolDepsMap[tool];
-        if (baseDeps) {
-            baseDeps.forEach((d) => deps.add(d));
-        }
-    });
-    // eslint 特殊处理
-    if (hasLintTool(LintToolEnum.eslint)) {
-        if (useTs) {
-            deps.add('@typescript-eslint/parser');
-            deps.add('@typescript-eslint/eslint-plugin');
-        }
-        if (hasLintTool(LintToolEnum.prettier)) {
-            deps.add({
-                key: 'eslint-config-prettier',
-                version: '^8.8.0',
-            });
-            deps.add({
-                key: 'eslint-plugin-prettier',
-                version: '^4.2.1',
-            });
-        }
-    }
-    // stylelint 特殊处理
-    if (hasLintTool(LintToolEnum.stylelint)) {
-        deps.add({ key: 'stylelint-config-standard', version: '^23.0.0' });
-        deps.add({ key: 'stylelint', version: '^14.6.0' });
-        if (hasLintTool(LintToolEnum.prettier)) {
-            deps.add({ key: 'stylelint-config-prettier', version: '^9.0.5' });
-        }
-        if (cssProcessor in stylelintCssProcessorDeps) {
-            stylelintCssProcessorDeps[cssProcessor].forEach((d) => deps.add(d));
-        }
-    }
 
-    return Array.from(deps);
+    const addLintToolDeps = () => {
+        let addHusky = false;
+        console.log(lintTools, 'lintTools');
+        lintTools.forEach((tool) => {
+            if (!addHusky) {
+                console.log('addHusky');
+                ['husky', 'lint-staged'].forEach(addDep);
+                addHusky = true;
+            }
+            lintToolDepsMap[tool]?.forEach(addDep);
+        });
+        console.log(Array.from(depsMap.values()))
+    };
+
+    const handleESLintExtras = () => {
+        if (!hasLintTool(LintToolEnum.eslint)) return;
+
+        if (useTs) {
+            [
+                { key: '@typescript-eslint/parser', version: '^5.59.11' },
+                { key: '@typescript-eslint/eslint-plugin', version: '^5.59.11' },
+            ].forEach(addDep);
+        }
+
+        if (hasLintTool(LintToolEnum.prettier)) {
+            addDep({ key: 'eslint-config-prettier', version: '^8.8.0' });
+            addDep({ key: 'eslint-plugin-prettier', version: '^4.2.1' });
+        }
+    };
+
+    const handleStylelintExtras = () => {
+        if (!hasLintTool(LintToolEnum.stylelint)) return;
+
+        if (hasLintTool(LintToolEnum.prettier)) {
+            addDep({ key: 'stylelint-config-prettier', version: '^9.0.5' });
+        }
+
+        stylelintCssProcessorDeps[cssProcessor]?.forEach(addDep);
+    };
+    addLintToolDeps();
+    handleESLintExtras();
+    handleStylelintExtras();
+
+    return Array.from(depsMap.values());
 };

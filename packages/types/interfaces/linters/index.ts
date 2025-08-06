@@ -17,18 +17,21 @@ export type EsLinterSupportFileType =
     | 'cjs'
     | 'mjs';
 
-export interface EsLinterOutput {
+export interface LinterOutput {
     filePath: string;
-    output: {
-        description: string;
-        line: number;
-        endColumn: number;
-        endLine: number;
-        column: number;
-        type: 'error' | 'warning';
-    }[];
+    output:
+        | {
+              description: string;
+              line?: number;
+              endColumn?: number;
+              endLine?: number;
+              column?: number;
+              type: 'error' | 'warning';
+          }[]
+        | null;
     errorCount: number;
     warningCount: number;
+    lintType: string;
 }
 export type PrettierSupportFileType =
     | 'js'
@@ -52,6 +55,7 @@ export type PrettierSupportFileType =
 export interface PrettierOutput {
     filePath: string;
     isFormatted?: boolean;
+    lintType: string;
 }
 
 export type StyleLinterSupportFileType =
@@ -62,8 +66,4 @@ export type StyleLinterSupportFileType =
     | 'vue'
     | 'svelte'
     | 'astro';
-export interface StyleLinterOutput extends EsLinterOutput {}
-
 export type TextLinterSupportFileType = 'txt' | 'md';
-
-export interface TextLinterOutput extends EsLinterOutput {}

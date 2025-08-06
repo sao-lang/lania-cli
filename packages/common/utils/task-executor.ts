@@ -3,12 +3,12 @@ import { TaskItem, TaskResult, TaskConfig } from '@lania-cli/types';
 export class TaskExecutor {
     public queue: TaskItem[] = [];
     public runningTasks: Set<TaskItem> = new Set();
-    public results: TaskResult<any>[] = [];
+    public results: (TaskResult<any>)[] = [];
     public readonly config: TaskConfig;
     private paused = false;
     private running = false;
     private resolveWhenDone: (() => void) | null = null;
-    private rejectWhenError: ((err: Error) => void) | null = null; // 新增
+    private rejectWhenError: ((err: Error) => void) | null = null;
     private globalAbort = new AbortController();
     private groupAbort = new Map<string, AbortController>();
     private activeCounts: Map<string, number> = new Map();
@@ -150,19 +150,20 @@ export class TaskExecutor {
 
         try {
             const result = await runAttempt();
-            handleFinish(result);
+            handleFinish({ ...result, group });
         } catch (error) {
             handleFinish({
                 success: false,
                 error: error instanceof Error ? error : new Error(String(error)),
                 retries,
+                group,
             });
         } finally {
             this.runNext();
         }
     }
 
-    public async run(): Promise<TaskResult<any>[]> {
+    public async run(): Promise<(TaskResult<any>)[]> {
         if (this.running) return this.results;
         this.running = true;
         this.shouldStop = false;
@@ -172,7 +173,6 @@ export class TaskExecutor {
 
         this.runNext();
 
-        // 如果 stopOnError=true，errorPromise 会优先 reject
         await (this.config.stopOnError ? Promise.race([donePromise, errorPromise]) : donePromise);
 
         return this.results;
@@ -216,7 +216,7 @@ export class TaskExecutor {
         return Array.from(this.runningTasks);
     }
 
-    public getCompletedResults(): TaskResult<any>[] {
+    public getCompletedResults(): (TaskResult<any>)[] {
         return [...this.results];
     }
 

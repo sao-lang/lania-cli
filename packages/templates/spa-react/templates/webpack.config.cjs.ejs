@@ -14,7 +14,6 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const WebpackBar = require('webpackbar');
 const isProduction = process.env.NODE_ENV === 'production';
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -145,7 +144,6 @@ module.exports = {
                 },
             ],
         }),
-        new WebpackBar(),
     ].filter(Boolean),
     optimization: {
         minimize: isProduction,

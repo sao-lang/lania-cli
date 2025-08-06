@@ -4,6 +4,7 @@ import {
     LangEnum,
     InteractionConfig,
     CssToolEnum,
+    DepencencyAndVresion,
 } from '@lania-cli/types';
 import config from './config';
 import { BaseTemplate } from '../base-template';
@@ -29,16 +30,17 @@ export class SpaReactTemplate extends BaseTemplate {
     }
     public getDependenciesArray(options: InteractionConfig) {
         const dependenciesArray = REACT_DEPENDENCIES;
-        const devDependenciesArray: (string | Record<'key' | 'version', string>)[] = this.getDevDependencies(options);
+        const devDependenciesArray: (string | DepencencyAndVresion)[] = this.getDevDependencies(options);
         return {
             dependencies: dependenciesArray,
             devDependencies: devDependenciesArray,
         };
     }
     private getDevDependencies(options: InteractionConfig) {
-        const devDependencies: (string | Record<'key' | 'version', string>)[] = [options.buildTool];
+        const devDependencies: (string | DepencencyAndVresion)[] = [options.buildTool];
         const buildToolDevDependencies = this.getBuildToolDevDependencies(options);
         const lintToolDevDependencies = getLintDevPenpencies(options);
+        console.log(lintToolDevDependencies, 'lintToolDevDependencies')
         devDependencies.push(...buildToolDevDependencies, ...lintToolDevDependencies);
         if (options.language === LangEnum.TypeScript) {
             devDependencies.push(...TYPESCRIPT_DEV_DEPENDENCIES);

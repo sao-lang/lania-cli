@@ -1,8 +1,8 @@
 import { existsSync } from 'fs';
-import { access, mkdir, readdir, readFile, stat } from 'fs/promises';
-import { dirname, extname, join, relative, resolve } from 'path';
-import ignore from 'ignore';
-import { TraverseOptions } from '@lania-cli/types';
+import { access, mkdir, readdir, stat } from 'fs/promises';
+import { dirname, extname, join, resolve } from 'path';
+import { IgnoreEngine } from './ignore-engine';
+import { IgnoreOptions } from '@lania-cli/types';
 
 export const getFileExt = <T extends string>(filePath: string) => {
     return extname(filePath).replace('.', '') as T;
@@ -93,42 +93,43 @@ export const fileExists = async (filePath: string) => {
 };
 
 export const traverseFiles = async (
-    inputDir: string,
+    dir: string,
     cb?: (filePath: string) => Promise<void>,
-    options: TraverseOptions = {}
+    ignoreOptions?: IgnoreOptions,
+    fileFilter?: (filePath: string) => boolean | Promise<boolean>,
 ) => {
-    const { ignoreFilePath, ignorePatterns = [] } = options;
+    const rootDir = ignoreOptions?.rootDir || process.cwd();
+    const ignoreEngine = new IgnoreEngine({
+        rootDir,
+        ignoreFilePath: ignoreOptions?.ignoreFilePath,
+        ignorePatterns: ignoreOptions?.ignorePatterns,
+    });
 
-    const rootDir = resolve(inputDir); // 统一为绝对路径
-    const ig = ignore();
-
-    if (ignoreFilePath) {
-        try {
-            const content = await readFile(ignoreFilePath, 'utf-8');
-            ig.add(content.split('\n'));
-        } catch (err) {
-            // 忽略读取错误
-        }
-    }
-
-    ig.add(ignorePatterns);
-
-    const walk = async (currentDir: string) => {
+    const _traverse = async (currentDir: string) => {
         const entries = await readdir(currentDir);
         for (const entry of entries) {
             const fullPath = join(currentDir, entry);
-            const relativePath = relative(rootDir, fullPath); // 相对于 rootDir 的相对路径
-            console.log('---------', relativePath, '---------')
-            if (ig.ignores(relativePath)) continue;
+
+            // 忽略规则判断
+            if (ignoreEngine.isIgnored(fullPath)) {
+                continue;
+            }
 
             const stats = await stat(fullPath);
+
             if (stats.isDirectory()) {
-                await walk(fullPath);
+                await _traverse(fullPath);
             } else if (stats.isFile()) {
-                await cb?.(fullPath);
+                if (fileFilter) {
+                    const pass = await fileFilter(fullPath);
+                    if (!pass) continue;
+                }
+                if (cb) {
+                    await cb(fullPath);
+                }
             }
         }
     };
 
-    await walk(rootDir);
+    await _traverse(resolve(dir));
 };

@@ -12,6 +12,7 @@ import getPort from 'get-port';
 import {
     CreateCommandOptions,
     CssProcessorEnum,
+    DepencencyAndVresion,
     InteractionConfig,
     PackageManagerEnum,
     PrettierSupportFileType,
@@ -78,7 +79,7 @@ export class Builder {
     }
     private async insertDependencyVersion(
         dependencyMap: Record<string, string>,
-        dependency: string | Record<'key' | 'version', string>,
+        dependency: string | DepencencyAndVresion,
     ) {
         const isStringDep = typeof dependency === 'string';
         const depName = isStringDep ? dependency : dependency.key;
@@ -89,6 +90,7 @@ export class Builder {
     }
     private async outputFiles(options: InteractionConfig) {
         this.options.port = await getPort();
+        console.log(options, 'options')
         const tasks = (await this.template.createOutputTasks(options)).filter((task) => !task.hide);
         const engine = new EjsRenderer((code, fileType) =>
             new Prettier().formatContent(

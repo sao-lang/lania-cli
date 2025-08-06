@@ -2,16 +2,17 @@ import { ESLint } from 'eslint';
 import Linter from './linter.base';
 import { readFile, writeFile } from 'fs/promises';
 import {
-    EsLinterOutput,
+    LinterOutput,
     EsLinterSupportFileType,
     LinterConfiguration,
     LinterHandleDirOptions,
 } from '@lania-cli/types';
-import { getLinterModuleConfig } from '@lania-cli/common';
+import { getFileExt, getLinterModuleConfig } from '@lania-cli/common';
+import { getFileTypes } from './helper';
 
 export class EsLinter extends Linter<
     EsLinterSupportFileType,
-    EsLinterOutput,
+    LinterOutput,
     { eslint: { ESLint: typeof ESLint } }
 > {
     private config: LinterConfiguration;
@@ -19,7 +20,7 @@ export class EsLinter extends Linter<
     protected fileTypes: EsLinterSupportFileType[];
     private innerLinter: ESLint;
     constructor(config: LinterConfiguration = 'eslint', options?: LinterHandleDirOptions) {
-        super(options);
+        super(options, (filePath) => this.getFileTypes().includes(getFileExt(filePath)));
         this.config = config;
         this.fileTypes = this.getFileTypes();
     }
@@ -34,7 +35,6 @@ export class EsLinter extends Linter<
             column,
             type: severity === 1 ? 'warning' : 'error',
         }));
-
         if (this.options?.fix && errorCount !== 0) {
             const content = await readFile(path, 'utf-8');
             const [{ output: fixedContent }] = await eslint.lintText(content);
@@ -48,18 +48,17 @@ export class EsLinter extends Linter<
             output: output.length ? output : null,
             errorCount,
             warningCount,
-        } as EsLinterOutput;
+            lintType: 'eslint',
+        } as LinterOutput;
     }
     private getFileTypes() {
-        const fileTypes = ['ts', 'tsx', 'js', 'jsx', 'vue', 'astro', 'svelte', 'cjs', 'mjs'];
-        return fileTypes as EsLinterSupportFileType[];
+        return getFileTypes('eslint') as EsLinterSupportFileType[];
     }
     private async createInnerLinter() {
         if (!this.innerLinter) {
             const configObject = await getLinterModuleConfig(this.config);
             this.innerLinter = new this.base.eslint.ESLint({
                 overrideConfig: configObject,
-                ignorePath: this.options?.ignorePath,
                 fix: this.options?.fix,
             });
         }
