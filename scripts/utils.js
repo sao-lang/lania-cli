@@ -213,33 +213,6 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
     return [];
 };
 
-export const resolveExtern = (packageName = BUILD_CONFIG_MAP.core.value) => {
-    const { dependencies, devDependencies } = getPackageJson(packageName);
-    const resolveDependencies = [
-        ...Object.keys(dependencies || {}),
-        ...Object.keys(devDependencies || {}),
-    ];
-    console.log(packageName, resolveDependencies);
-    return [
-        'path',
-        'fs',
-        'net',
-        'fs/promises',
-        'eslint',
-        'prettier',
-        'prettier-plugin-stylus',
-        'prettier-plugin-ejs',
-        'prettier-plugin-svelte',
-        'stylelint',
-        'textlint',
-        'inquirer',
-        '@lania-cli/linters',
-        'yargs/helpers',
-        'url',
-        ...resolveDependencies,
-    ];
-};
-
 export const resolvedExterns = (() => {
     return [
         ...new Set([
@@ -256,6 +229,7 @@ export const resolvedExterns = (() => {
             'textlint',
             'inquirer',
             '@lania-cli/linters',
+            '@lania-cli/types',
             'yargs/helpers',
             'url',
             'os',

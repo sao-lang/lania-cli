@@ -1,5 +1,5 @@
 <%
-    const devDependencyKeys = Object.keys(devDependencies)
+    const devDependencyKeys = Object.keys(devDependencies);
     const hasHusky = devDependencyKeys.includes('husky');
     const hasLintStaged = devDependencyKeys.includes('lint-staged');
     const hasEslint = lintTools.includes('eslint');
@@ -37,9 +37,8 @@
                 ],
             <% } %>
             <% if (hasStylelint) { %>
-                <% if (hasEslint) { %>,<% } %>
                 "*.{css<% if (useTs) { %>,<%= stagedCssProcessor %><% } %>}": [
-                    "stylelint --fix",
+                    "stylelint --fix"
                     <% if (hasPrettier) { %>
                         ,
                         "prettier --write"
@@ -47,7 +46,6 @@
                 ],
             <% } %>
             <% if (hasPrettier) { %>
-                <% if (hasEslint || hasStylelint) { %>,<% } %>
                 "*.{md,json}": "prettier --write"
             <% } %>
         },

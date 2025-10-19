@@ -138,4 +138,17 @@ export abstract class PackageManager<Command extends PackageManagerName> extends
         const devDependencies = await this.getDevDependencies();
         return [...dependencies, ...devDependencies];
     }
+
+    public async runScript(scriptName: string, scriptArgs: string[] = []) {
+        const pkg = await this.getPackageJsonContent();
+        if (!pkg.scripts || !pkg.scripts[scriptName]) {
+            throw new Error(
+                `Script "${scriptName}" not found in package.json. Available scripts: ${
+                    Object.keys(pkg.scripts || {}).join(', ') || 'none'
+                }`,
+            );
+        }
+        const args = ['run', scriptName, ...(scriptArgs.length ? ['--', ...scriptArgs] : [])];
+        return await this.run('', args);
+    }
 }

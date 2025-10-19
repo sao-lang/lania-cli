@@ -89,21 +89,22 @@ export const VITE_DEV_DEPENDENCIES = [
     'rollup-plugin-visualizer',
 ];
 
-export const getLintDevPenpencies = (options: InteractionConfig): DepencencyAndVresion[] => {
-    const depsMap = new Map<string, DepencencyAndVresion>();
+export const getLintDevPenpencies = (
+    options: InteractionConfig,
+): (string | DepencencyAndVresion)[] => {
+    const depsMap = new Map<string, string | DepencencyAndVresion>();
     const { lintTools, useTs, cssProcessor } = options;
     const hasLintTool = (tool: LintToolEnum) => lintTools.includes(tool);
     const addDep = (dep: string | DepencencyAndVresion) => {
         const key = typeof dep === 'string' ? dep : dep.key;
-        const version = typeof dep === 'string' ? undefined : dep.version;
-        depsMap.set(key, { key, version });
+        depsMap.set(key, typeof dep === 'string' ? dep : { key, version: dep.version });
     };
     const lintToolDepsMap: Record<
         | LintToolEnum.eslint
         | LintToolEnum.prettier
         | LintToolEnum.stylelint
         | LintToolEnum.commitlint,
-        DepencencyAndVresion[]
+        (string | DepencencyAndVresion)[]
     > = {
         [LintToolEnum.eslint]: [
             { key: 'eslint', version: '^8.43.0' },
@@ -111,10 +112,10 @@ export const getLintDevPenpencies = (options: InteractionConfig): DepencencyAndV
         ],
         [LintToolEnum.prettier]: [{ key: 'prettier', version: '^2.8.8' }],
         [LintToolEnum.commitlint]: [
-            { key: '@commitlint/cli' },
-            { key: '@commitlint/config-conventional' },
-            { key: 'commitizen' },
-            { key: 'cz-customizable' },
+            '@commitlint/cli',
+            '@commitlint/config-conventional',
+            'commitizen',
+            'cz-customizable',
         ],
         [LintToolEnum.stylelint]: [
             { key: 'stylelint', version: '^14.6.0' },
@@ -122,34 +123,13 @@ export const getLintDevPenpencies = (options: InteractionConfig): DepencencyAndV
         ],
     };
 
-    const stylelintCssProcessorDeps: Partial<Record<CssProcessorEnum, DepencencyAndVresion[]>> = {
-        [CssProcessorEnum.less]: [
-            { key: 'postcss', version: '^8.4.12' },
-            { key: 'postcss-less', version: '^6.0.0' },
-        ],
-        [CssProcessorEnum.sass]: [
-            { key: 'postcss', version: '^8.4.12' },
-            { key: 'postcss-scss', version: '^4.0.6' },
-        ],
-        [CssProcessorEnum.stylus]: [
-            { key: 'postcss', version: '^8.4.12' },
-            { key: 'stylelint-stylus', version: '^0.18.0' },
-            { key: 'postcss-styl', version: '^0.12.3' },
-        ],
-    };
-
     const addLintToolDeps = () => {
-        let addHusky = false;
-        console.log(lintTools, 'lintTools');
-        lintTools.forEach((tool) => {
-            if (!addHusky) {
-                console.log('addHusky');
+        lintTools.forEach((tool, index) => {
+            if (index === 0) {
                 ['husky', 'lint-staged'].forEach(addDep);
-                addHusky = true;
             }
             lintToolDepsMap[tool]?.forEach(addDep);
         });
-        console.log(Array.from(depsMap.values()))
     };
 
     const handleESLintExtras = () => {
@@ -174,7 +154,22 @@ export const getLintDevPenpencies = (options: InteractionConfig): DepencencyAndV
         if (hasLintTool(LintToolEnum.prettier)) {
             addDep({ key: 'stylelint-config-prettier', version: '^9.0.5' });
         }
-
+        const stylelintCssProcessorDeps: Partial<Record<CssProcessorEnum, DepencencyAndVresion[]>> =
+            {
+                [CssProcessorEnum.less]: [
+                    { key: 'postcss', version: '^8.4.12' },
+                    { key: 'postcss-less', version: '^6.0.0' },
+                ],
+                [CssProcessorEnum.sass]: [
+                    { key: 'postcss', version: '^8.4.12' },
+                    { key: 'postcss-scss', version: '^4.0.6' },
+                ],
+                [CssProcessorEnum.stylus]: [
+                    { key: 'postcss', version: '^8.4.12' },
+                    { key: 'stylelint-stylus', version: '^0.18.0' },
+                    { key: 'postcss-styl', version: '^0.12.3' },
+                ],
+            };
         stylelintCssProcessorDeps[cssProcessor]?.forEach(addDep);
     };
     addLintToolDeps();

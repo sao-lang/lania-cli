@@ -1,6 +1,6 @@
 // logger.ts
 import figlet from 'figlet';
-import { styleText } from './style-text';
+import { styleText } from '../utils/style-text';
 
 type LogLevel = 'log' | 'info' | 'warn' | 'error' | 'success' | 'ascii';
 

@@ -32,6 +32,15 @@
             "@/*": ["src/*"]
         }
     },
-    "include": ["src/**/*", <% if (hasEslint) { %> ".eslintrc.cjs" <% } %>],
+    "include": [
+        "src/**/*",
+        ".eslintrc.cjs",
+        ".czrc.cjs",
+        "stylelint.config.cjs",
+        "webpack.config.cjs",
+        "prettier.config.cjs",
+        "commitlint.config.cjs",
+        "lan.config.js"
+    ],
     "exclude": ["node_modules", "dist"]
 }

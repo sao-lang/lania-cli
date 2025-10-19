@@ -148,7 +148,6 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
             logger.success('All files passed linting!');
         }
     }
-
     private async transformLinterParams(linterConfigs: LintActionHandleConfigsParam) {
         const finalLinterConfigs = await this.getLinterConfigs(linterConfigs as string[]);
         if (!Array.isArray(finalLinterConfigs)) {
@@ -212,6 +211,7 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
             flags: '-f, --fix',
             description:
                 'Check whether the code needs to be modified when the linters lint the code.',
+            defaultValue: false
         },
     ],
     alias: '-l',

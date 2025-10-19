@@ -3,7 +3,7 @@ import {
     LaniaCommandActionInterface,
     LaniaCommandMetadata,
 } from '@lania-cli/types';
-import { LaniaCommand } from '../utils';
+import { LaniaCommand } from '../lib';
 
 export function LaniaCommandConfig(
     actor: LaniaCommandActionInterface,
@@ -15,6 +15,7 @@ export function LaniaCommandConfig(
         if (!actor || !commandNeededArgs?.name) {
             throw new Error('@LaniaCommandConfig requires actor and commandNeededArgs.name');
         }
+        // @ts-ignore
         const metadata: LaniaCommandMetadata = { actor, commandNeededArgs, subcommands };
         Reflect.defineMetadata(target, metadata, target);
     };

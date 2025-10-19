@@ -33,7 +33,7 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
     {
         message: 'Please select a css tool:',
         name: 'cssTools',
-        choices: [...CSS_TOOLS, { name: 'skip', value: null }],
+        choices: [...CSS_TOOLS],
         default: null,
         when: () => {
             if (
@@ -50,7 +50,7 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
     {
         message: 'Please select the lint tools:',
         name: 'lintTools',
-        choices: [...LINT_TOOLS, { name: 'skip', value: null }],
+        choices: [...LINT_TOOLS],
         type: 'checkbox',
         default: null,
     },

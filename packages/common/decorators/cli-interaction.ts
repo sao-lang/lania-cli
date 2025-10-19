@@ -1,6 +1,6 @@
 import type { Question } from '@lania-cli/types';
 import type { Answer } from '@lania-cli/types';
-import { CliInteraction } from '../utils';
+import { CliInteraction } from '../lib';
 
 type MaybeFunc<T> = T | (() => T | Promise<T>);
 

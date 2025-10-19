@@ -1,5 +1,5 @@
 import { ProgressManagerConfig, ScopedManager } from '@lania-cli/types';
-import { TaskProgressManager } from '../utils';
+import { TaskProgressManager } from '../lib';
 
 // 全局 Map：配置字符串 -> TaskProgressManager 单例
 const globalManagerMap = new Map<string, TaskProgressManager>();

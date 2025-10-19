@@ -1,6 +1,6 @@
 import { PackageManager } from './runner.base';
 
-export default class PnpmPackageManager extends PackageManager<'pnpm'> {
+export class PnpmPackageManager extends PackageManager<'pnpm'> {
     constructor() {
         super(
             'pnpm',
@@ -10,6 +10,7 @@ export default class PnpmPackageManager extends PackageManager<'pnpm'> {
                 update: 'update',
                 remove: 'uninstall',
                 init: 'init',
+                run: 'run'
             },
             {
                 saveFlag: '--save',
@@ -20,3 +21,5 @@ export default class PnpmPackageManager extends PackageManager<'pnpm'> {
         );
     }
 }
+
+export default PnpmPackageManager;

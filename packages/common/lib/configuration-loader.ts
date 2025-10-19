@@ -71,7 +71,7 @@ const getConfigOptions = (moduleName: ModuleName) => {
     return moduleName;
 };
 
-export  class ConfigurationLoader {
+export class ConfigurationLoader {
     static async load(moduleName: ModuleName, configPath?: string) {
         const { module, searchPlaces } = getConfigOptions(moduleName);
         const result = await cosmiconfig(module, { searchPlaces }).search(configPath);

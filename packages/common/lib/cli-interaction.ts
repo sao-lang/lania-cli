@@ -15,17 +15,15 @@ function resolve<T, C extends Context>(
 const BACK_SIGNAL = '__BACK__';
 const EXIT_SIGNAL = '__EXIT__';
 
-export interface InteractionAccumulationOptions {
-    /** 是否开启多次 execute 结果累积（默认 true） */
-    accumulate?: boolean;
-    /** 如果开启累积，用于合并上一次与本次答案的策略（默认浅合并：current 覆盖 previous） */
-    mergeStrategy?: (previous: Answer, current: Answer) => Answer;
-    /** 每次 execute 之前是否先清空历史（如果为 true，等于每次都是干净的一轮） */
-    resetOnExecute?: boolean;
-}
-
-export interface ExtendedCliOptions<TCtx extends Context = Context> extends CliOptions<TCtx> {
-    accumulation?: InteractionAccumulationOptions;
+interface ExtendedCliOptions<TCtx extends Context = Context> extends CliOptions<TCtx> {
+    accumulation?: {
+        /** 是否开启多次 execute 结果累积（默认 true） */
+        accumulate?: boolean;
+        /** 如果开启累积，用于合并上一次与本次答案的策略（默认浅合并：current 覆盖 previous） */
+        mergeStrategy?: (previous: Answer, current: Answer) => Answer;
+        /** 每次 execute 之前是否先清空历史（如果为 true，等于每次都是干净的一轮） */
+        resetOnExecute?: boolean;
+    };
 }
 
 export class CliInteraction<TCtx extends Context = Context> {
@@ -97,9 +95,7 @@ export class CliInteraction<TCtx extends Context = Context> {
         }
 
         // 依据 accumulate 决定起点
-        const baseAnswers: Answer = this.shouldAccumulate()
-            ? { ...this.previousAnswers }
-            : {};
+        const baseAnswers: Answer = this.shouldAccumulate() ? { ...this.previousAnswers } : {};
         const answers: Answer = { ...baseAnswers };
 
         let step = 0;
@@ -222,9 +218,3 @@ export class CliInteraction<TCtx extends Context = Context> {
         return Promise.race([prompt, timeout]);
     }
 }
-
-export const simplePromptInteraction = async (questions: Question[] | Question) => {
-    return await new CliInteraction()
-        .addQuestions(Array.isArray(questions) ? questions : [questions])
-        .execute();
-};

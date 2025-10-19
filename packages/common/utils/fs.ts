@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { access, mkdir, readdir, stat } from 'fs/promises';
 import { dirname, extname, join, resolve } from 'path';
-import { IgnoreEngine } from './ignore-engine';
+import { IgnoreEngine } from '../lib/ignore-engine';
 import { IgnoreOptions } from '@lania-cli/types';
 
 export const getFileExt = <T extends string>(filePath: string) => {

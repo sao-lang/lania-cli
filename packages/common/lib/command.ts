@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import yargs, { Argv, CommandModule } from 'yargs';
+import { Argv, CommandModule } from 'yargs';
 import { logger } from './logger'; // 替换为你的 logger 实现
 import {
     CommandHook,
@@ -10,7 +10,6 @@ import {
     YargsOption,
     LaniaCommandConfigInterface,
 } from '@lania-cli/types';
-import { hideBin } from 'yargs/helpers';
 
 const camelCase = (input: string) => {
     return input.toLowerCase().replace(/[-_]+(\w)/g, (_, c) => c.toUpperCase());
@@ -184,29 +183,3 @@ export abstract class LaniaCommand<ActionArgs extends any[] = any[]> {
     }
 }
 
-// 注册入口函数，注册所有命令
-export const registerCommands = async (
-    name: string,
-    version: string,
-    commands?: LaniaCommand[],
-) => {
-    try {
-        let cli = yargs(hideBin(process.argv))
-            .scriptName(name)
-            .version('version', version, '显示版本')
-            .usage('<command> [options]')
-            .help('help', '显示帮助信息')
-            .alias('h', 'help')
-            .alias('v', 'version')
-            .showHelpOnFail(false);
-
-        commands?.forEach((command) => {
-            cli = cli.command(command.load());
-        });
-
-        await cli.parseAsync();
-    } catch (e) {
-        logger.error(e instanceof Error ? e.message : String(e));
-        process.exit(1);
-    }
-};

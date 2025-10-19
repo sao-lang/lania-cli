@@ -1,6 +1,6 @@
 import { PackageManager } from './runner.base';
 
-export default class YarnPackageManager extends PackageManager<'yarn'> {
+export class YarnPackageManager extends PackageManager<'yarn'> {
     constructor() {
         super(
             'yarn',
@@ -10,8 +10,12 @@ export default class YarnPackageManager extends PackageManager<'yarn'> {
                 update: 'upgrade',
                 remove: 'remove',
                 init: 'init',
+                run: 'run'
             },
             { saveFlag: '', saveDevFlag: '-D', silentFlag: '--silent', initFlag: '-y' },
         );
     }
 }
+
+
+export default YarnPackageManager;

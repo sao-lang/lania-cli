@@ -224,6 +224,7 @@ export interface PackageManagerCommands {
     update: string;
     remove: string;
     init: string;
+    run: string
 }
 
 export type PackageManagerName = 'npm' | 'yarn' | 'pnpm';

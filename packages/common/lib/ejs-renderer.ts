@@ -1,7 +1,7 @@
 import { writeFile, readFile } from 'fs/promises';
 import { dirname, resolve } from 'path';
 import ejs from 'ejs';
-import { mkDirs, getFileExt } from '../utils';
+import { mkDirs, getFileExt } from '../utils/fs';
 import { PrettierSupportFileType } from '@lania-cli/types';
 
 export class EjsRenderer {

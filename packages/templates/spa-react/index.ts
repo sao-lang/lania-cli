@@ -40,7 +40,6 @@ export class SpaReactTemplate extends BaseTemplate {
         const devDependencies: (string | DepencencyAndVresion)[] = [options.buildTool];
         const buildToolDevDependencies = this.getBuildToolDevDependencies(options);
         const lintToolDevDependencies = getLintDevPenpencies(options);
-        console.log(lintToolDevDependencies, 'lintToolDevDependencies')
         devDependencies.push(...buildToolDevDependencies, ...lintToolDevDependencies);
         if (options.language === LangEnum.TypeScript) {
             devDependencies.push(...TYPESCRIPT_DEV_DEPENDENCIES);

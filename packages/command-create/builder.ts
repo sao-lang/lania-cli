@@ -3,8 +3,9 @@ import {
     EjsRenderer,
     PackageManagerFactory,
     TaskProgressManager,
-    CliInteraction,
     TaskExecutor,
+    simplePromptInteraction,
+    NpmPackageManager,
 } from '@lania-cli/common';
 import { SpaReactTemplate, TemplateFactory } from '@lania-cli/templates';
 import latestVersion from 'latest-version';
@@ -25,18 +26,16 @@ export class Builder {
     private template: SpaReactTemplate;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
-        const { projectType } = await new CliInteraction()
-            .addQuestion({
-                type: 'list',
-                message: 'Please select project template:',
-                name: 'projectType',
-                choices: templateList,
-            })
-            .execute();
+        const { projectType } = await simplePromptInteraction({
+            type: 'list',
+            message: 'Please select project template:',
+            name: 'projectType',
+            choices: templateList,
+        });
         this.template = TemplateFactory.create(projectType);
         const choices = this.template.createPromptQuestions({ ...options, projectType });
-        const answers = await new CliInteraction().addQuestions(choices as Question[]).execute();
-        answers.useCssProcessor = answers.cssProcessor === CssProcessorEnum.css ? false : true;
+        const answers = await simplePromptInteraction(choices as Question[]);
+        answers.useCssProcessor = answers.cssProcessor === CssProcessorEnum.css;
         answers.useTs = true;
         return { ...answers, projectType } as InteractionConfig;
     }
@@ -90,10 +89,8 @@ export class Builder {
     }
     private async outputFiles(options: InteractionConfig) {
         this.options.port = await getPort();
-        console.log(options, 'options')
-        const tasks = (await this.template.createOutputTasks(options)).filter((task) => !task.hide);
-        const engine = new EjsRenderer((code, fileType) =>
-            new Prettier().formatContent(
+        const engine = new EjsRenderer(async (code, fileType) => {
+            return await new Prettier().formatContent(
                 code,
                 {
                     tabWidth: 4,
@@ -102,12 +99,13 @@ export class Builder {
                     singleQuote: true,
                 },
                 fileType as PrettierSupportFileType,
-            ),
-        );
+            );
+        });
         const taskProgressManager = new TaskProgressManager('spinner');
-        taskProgressManager.init('OutputFiles', tasks.length);
-        const taskExecutor = new TaskExecutor(
-            tasks.map((task) => {
+        const tmpTasks = await this.template.createOutputTasks(options);
+        const tasks = tmpTasks
+            .filter((task) => !task.hide)
+            .map((task) => {
                 return {
                     task: async () => {
                         const { outputPath, filepath } = task;
@@ -126,12 +124,12 @@ export class Builder {
                         taskProgressManager.increment('OutputFiles', 1);
                     },
                 };
-            }),
-            {
-                maxConcurrency: 5,
-                stopOnError: true,
-            },
-        );
+            });
+        taskProgressManager.init('OutputFiles', tasks.length);
+        const taskExecutor = new TaskExecutor(tasks, {
+            maxConcurrency: 5,
+            stopOnError: true,
+        });
         await taskExecutor.run();
     }
     private async downloadDependencies() {
@@ -156,8 +154,9 @@ export class Builder {
         if (getErr) {
             throw getErr;
         }
-        this.options = { ...this.options, ...result };
+        Object.assign(this.options, result);
         await this.outputFiles(this.options);
         !options.skipInstall && (await this.downloadDependencies());
+        result.devDependencies['husky'] && new NpmPackageManager().runScript('prepare');
     }
 }

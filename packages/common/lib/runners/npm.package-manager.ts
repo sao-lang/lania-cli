@@ -1,6 +1,6 @@
 import { PackageManager } from './runner.base';
 
-export default class NpmPackageManager extends PackageManager<'npm'> {
+export class NpmPackageManager extends PackageManager<'npm'> {
     constructor() {
         super(
             'npm',
@@ -10,6 +10,7 @@ export default class NpmPackageManager extends PackageManager<'npm'> {
                 update: 'update',
                 remove: 'uninstall',
                 init: 'init',
+                run: 'run'
             },
             {
                 saveFlag: '--save',
@@ -20,3 +21,5 @@ export default class NpmPackageManager extends PackageManager<'npm'> {
         );
     }
 }
+
+export default NpmPackageManager;

@@ -83,7 +83,7 @@ export const FRAMES = [
 export const CSS_PROCESSORS = [
     CssProcessorEnum.sass,
     CssProcessorEnum.less,
-    CssProcessorEnum.stylus,
+    // CssProcessorEnum.stylus,
     CssProcessorEnum.css,
 ];
 
@@ -92,7 +92,7 @@ export const LINT_TOOLS = [
     LintToolEnum.prettier,
     LintToolEnum.stylelint,
     LintToolEnum.commitlint,
-    LintToolEnum.textlint,
+    // LintToolEnum.textlint,
     LintToolEnum.editorconfig,
 ];
 
