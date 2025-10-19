@@ -63,7 +63,6 @@ export class Prettier extends Linter<
     }
     public async lintFile(path: string) {
         const configObject = await getLinterModuleConfig(this.config);
-        console.log(configObject, 'configObject');
         const fileType = getFileExt<PrettierSupportFileType>(path);
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);

@@ -19,6 +19,7 @@ import {
     LinterConfigItem,
     PrettierOutput,
     TaskResult,
+    LaniaConfig,
 } from '@lania-cli/types';
 
 type LinterMap = {
@@ -28,8 +29,10 @@ type LinterMap = {
 };
 
 class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
+    private laniaConfig: LaniaConfig;
     public async handle(options: LintActionOptions) {
         const { linters, fix = false } = options;
+        this.laniaConfig = await getLanConfig();
         const transformedLinters = await this.transformLinterParams(linters);
         if (!transformedLinters.length) {
             throw new Error('Please specify linter!');
@@ -41,13 +44,11 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
             transformedLinters.map((linter) => {
                 return {
                     task: async () => {
-                        // const target = typeof linter === 'string' ? linter : linter.linter;
                         const checkLinter = this.switchLinter(
                             linter as keyof LinterMap,
                             (linter as LinterConfigItem)?.config,
                             fix,
                         );
-                        console.log(linter, 'linter');
                         return await checkLinter.lint(process.cwd());
                     },
                     group: linter,
@@ -56,7 +57,6 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         );
         const results: TaskResult<LinterOutput[][]>[] = await taskExecutor.run();
         taskProgressManager.increment('LintFiles');
-        console.log(JSON.stringify(results), 'res');
         this.printResults(results);
     }
     private printResults(results: TaskResult<(LinterOutput | PrettierOutput)[][]>[]) {
@@ -125,10 +125,8 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
                                         bold: true,
                                     },
                                 ).render();
-
                                 console.log('  ' + styledMessage);
                             }
-
                             console.log(''); // spacer between files
                         }
                     }
@@ -137,9 +135,7 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
 
             logger.log(styleText(`=== End of Group: ${group} ===\n`).render());
         }
-
         console.log('\n');
-
         if (hasError) {
             logger.error('Linting completed with errors.');
         } else if (hasWarning) {
@@ -164,8 +160,7 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         if (linter.length) {
             return linter;
         }
-        const { lintTools } = await getLanConfig();
-        return lintTools;
+        return this.laniaConfig.lintTools;
     }
     private switchLinter<T extends keyof LinterMap>(
         linter: T,
@@ -176,16 +171,25 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
             ignorePath: this.createIgnoreFilePath(linter),
             fix,
         };
-        const linterMap = {
-            prettier: Prettier,
-            eslint: EsLinter,
-            stylelint: StyleLinter,
-        };
-        const linterCtr = linterMap[linter];
-        if (!linterCtr) {
-            return undefined;
+        // const linterMap = {
+        //     prettier: Prettier,
+        //     eslint: EsLinter,
+        //     stylelint: StyleLinter,
+        // };
+        // const LinterCtr = linterMap[linter];
+        // if (!LinterCtr) {
+        //     return undefined;
+        // }
+        // return new LinterCtr(config || 'prettier', linterOptions) as LinterMap[T];
+        if (!this.laniaConfig.lintAdaptors?.eslint) {
+            throw new Error('Lack of external lint tools!');
         }
-        return new linterCtr(config || 'prettier', linterOptions) as LinterMap[T];
+        // @ts-ignore
+        return new EsLinter(
+            'eslint',
+            this.laniaConfig.lintAdaptors?.eslint,
+            linterOptions,
+        ) as LinterMap[T];
     }
     private createIgnoreFilePath(linter: keyof LinterMap) {
         const fileExtMap = {
@@ -211,7 +215,7 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
             flags: '-f, --fix',
             description:
                 'Check whether the code needs to be modified when the linters lint the code.',
-            defaultValue: false
+            defaultValue: false,
         },
     ],
     alias: '-l',

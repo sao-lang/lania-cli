@@ -198,6 +198,9 @@ export interface LaniaConfig {
     custom?: Record<string, any>; // 用户扩展字段（为了未来兼容）
     lintTools?: LintToolEnum[];
     dependencies?: Record<string, any>;
+    lintAdaptors: {
+        eslint: any;
+    }
 }
 
 export interface RunnerRunOptions {

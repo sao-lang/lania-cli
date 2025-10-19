@@ -1,4 +1,5 @@
 import { ConfigurationLoadType } from '../shared';
+export * from './eslint';
 export interface LinterHandleDirOptions {
     fix?: boolean;
     ignorePath?: string;

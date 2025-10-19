@@ -16,7 +16,9 @@ const getConfigOptions = (moduleName: ModuleName) => {
                     '.prettierrc.yaml',
                     '.prettierrc.yml',
                     '.prettierrc.config.js',
+                    'prettier.config.js',
                     '.prettierrc.config.cjs',
+                    'prettier.config.cjs',
                 ],
             ],
             eslint: [

@@ -1,5 +1,6 @@
-import { ESLint } from 'eslint';
+// import { ESLint,  } from 'eslint';
 import Linter from './linter.base';
+import { ESLint } from './eslint.types';
 import { readFile, writeFile } from 'fs/promises';
 import {
     LinterOutput,
@@ -13,16 +14,17 @@ import { getFileTypes } from './helper';
 export class EsLinter extends Linter<
     EsLinterSupportFileType,
     LinterOutput,
-    { eslint: { ESLint: typeof ESLint } }
+    { eslint: { ESLint: ESLint } }
 > {
     private config: LinterConfiguration;
-    protected base = { eslint: { ESLint } };
+    protected base: any = {};
     protected fileTypes: EsLinterSupportFileType[];
     private innerLinter: ESLint;
-    constructor(config: LinterConfiguration = 'eslint', options?: LinterHandleDirOptions) {
+    constructor(config: LinterConfiguration = 'eslint', eslintAdaptor: ESLint, options?: LinterHandleDirOptions) {
         super(options, (filePath) => this.getFileTypes().includes(getFileExt(filePath)));
         this.config = config;
         this.fileTypes = this.getFileTypes();
+        this.base = { eslint: eslintAdaptor }
     }
     public async lintFile(path: string) {
         const eslint = await this.createInnerLinter();
