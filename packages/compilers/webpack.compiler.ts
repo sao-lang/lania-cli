@@ -4,35 +4,30 @@ import os from 'os';
 import webpack, { type Configuration, type StatsAsset } from 'webpack';
 import DevServer from 'webpack-dev-server';
 import { logOnBuildWebpackPlugin } from './compiler.plugin';
-import { to, styleText, logger, getLanConfig } from '@lania-cli/common';
-import { ConfigOption } from '@lania-cli/types';
+import { to, styleText, logger } from '@lania-cli/common';
+import { CompilerHandleOptions, ConfigOption } from '@lania-cli/types';
 
-export class WebpackCompiler extends Compiler<
-    Configuration,
-    DevServer,
-    { webpack: typeof webpack }
-> {
+export class WebpackCompiler extends Compiler<Configuration, DevServer, typeof webpack> {
     protected server!: DevServer;
     protected configOption: ConfigOption;
-    protected base: { webpack: typeof webpack } = { webpack };
+    protected base: typeof webpack;
+    private devServer: typeof DevServer;
 
-    constructor(configPath?: string) {
+    constructor(configPath?: string, options?: CompilerHandleOptions) {
         super();
         this.configOption = { module: 'webpack', configPath };
+        this.base = options?.outerCompiler?.webpack ?? webpack;
+        this.devServer = options?.outerCompiler?.webpackDevServer ?? DevServer;
     }
 
     public async createServer(baseConfig?: Configuration): Promise<void> {
         await this.closeServer();
         return new Promise(async (resolve, reject) => {
             try {
-                const { webpack: base } = (await getLanConfig()) as any;
-                if (base && base.webpack) {
-                    this.base = base;
-                }
-                const config = await this.mergeConfig(baseConfig);
-                const configuration = await this.mergeStatsConfig(config);
-                const compiler = this.base.webpack(configuration);
-                this.server = new DevServer(configuration.devServer, compiler);
+                const config = await this.mergeBaseConfig(baseConfig);
+                const configuration = await this.overrideStatsConfig(config);
+                const compiler = this.base(configuration);
+                this.server = new this.devServer(configuration.devServer, compiler);
                 this.registerPlugin(compiler, resolve, {
                     watch: !!configuration.watch,
                     mode: configuration.mode,
@@ -64,9 +59,9 @@ export class WebpackCompiler extends Compiler<
     public async build(baseConfig?: Configuration): Promise<void> {
         return new Promise(async (resolve, reject) => {
             try {
-                const config = await this.mergeConfig(baseConfig);
-                const configuration = await this.mergeStatsConfig(config);
-                const compiler = this.base.webpack(configuration, () => {});
+                const config = await this.mergeBaseConfig(baseConfig);
+                const configuration = await this.overrideStatsConfig(config);
+                const compiler = this.base(configuration, () => {});
                 this.registerPlugin(compiler, resolve, {
                     watch: !!configuration.watch,
                     mode: configuration.mode,
@@ -79,7 +74,7 @@ export class WebpackCompiler extends Compiler<
         });
     }
 
-    private mergeStatsConfig(config: Configuration) {
+    private overrideStatsConfig(config: Configuration) {
         return {
             ...config,
             stats: 'none',

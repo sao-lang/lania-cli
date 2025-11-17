@@ -34,6 +34,8 @@
         "@types/node": "^20.4.10",
         "@types/reflect-metadata": "^0.1.0",
         "@types/stylelint": "^14.0.0",
-        "@types/yargs": "^17.0.33"
+        "@types/yargs": "^17.0.33",
+        "rollup": "^4.0.2",
+        "vite": "^5.0.10"
     }
 }

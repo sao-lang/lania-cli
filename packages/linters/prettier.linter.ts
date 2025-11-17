@@ -55,7 +55,7 @@ export class Prettier extends Linter<PrettierSupportFileType, PrettierOutput, ty
     constructor(config: ConfigurationGetType = 'prettier', options?: LinterHandleDirOptions) {
         super(options);
         this.config = config;
-        this.base = options?.outerLinter ?? prettier;
+        this.base = options?.outerLinter?.prettier ?? prettier;
     }
     public async lintFile(path: string) {
         const configObject = await getPrettierConfig(this.config);

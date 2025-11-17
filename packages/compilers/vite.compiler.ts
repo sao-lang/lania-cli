@@ -1,39 +1,40 @@
-import { build, createServer, createLogger, mergeConfig } from 'vite';
+import { build, createServer, createLogger } from 'vite';
 import type { ViteDevServer, InlineConfig } from 'vite';
 import { Compiler } from './compiler.base';
 import path from 'path';
 import fs from 'fs';
-import { to, styleText, logger } from '@lania-cli/common';
+import { to, styleText, logger, mergeConfig } from '@lania-cli/common';
 import type { OutputBundle } from 'rollup';
 import { logOnBuildRollupPlugin } from './compiler.plugin';
-import { ConfigOption, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
+import {
+    CompilerHandleOptions,
+    ConfigOption,
+    LogOnBuildRollupPluginOptions,
+} from '@lania-cli/types';
 
 interface PartialVite {
     build: typeof build;
     createServer: typeof createServer;
     createLogger: typeof createLogger;
-    mergeConfig: typeof mergeConfig;
 }
 
-export class ViteCompiler extends Compiler<InlineConfig, ViteDevServer, { vite: PartialVite }> {
+export class ViteCompiler extends Compiler<InlineConfig, ViteDevServer, PartialVite> {
     protected configOption: ConfigOption;
     protected server: ViteDevServer;
-    protected base = {
-        vite: {
+    protected base: PartialVite;
+    constructor(configPath?: string, options?: CompilerHandleOptions) {
+        super();
+        this.configOption = { module: 'vite', configPath };
+        this.base = options?.outerCompiler?.vite ?? {
             build,
             createServer,
             createLogger,
-            mergeConfig,
-        },
-    };
-    constructor(configPath?: string) {
-        super();
-        this.configOption = { module: 'vite', configPath };
+        };
     }
     public async createServer(config?: InlineConfig) {
         await this.closeServer();
         const configuration = await this.mergeWithPluginOptions(config);
-        const [createServerErr, server] = await to(this.base.vite.createServer(configuration));
+        const [createServerErr, server] = await to(this.base.createServer(configuration));
         if (createServerErr) {
             logger.error(`Create server failed: ${createServerErr.message}`);
             throw createServerErr;
@@ -53,7 +54,7 @@ export class ViteCompiler extends Compiler<InlineConfig, ViteDevServer, { vite: 
     }
     public async build(config?: InlineConfig) {
         const configuration = await this.mergeWithPluginOptions(config, true);
-        const [buildErr] = await to(this.base.vite.build(configuration));
+        const [buildErr] = await to(this.base.build(configuration));
         if (buildErr) {
             logger.error(`Build failed: ${buildErr.message}`);
             throw buildErr;
@@ -62,14 +63,14 @@ export class ViteCompiler extends Compiler<InlineConfig, ViteDevServer, { vite: 
 
     private async mergeWithPluginOptions(config: InlineConfig, isBuildMode = false) {
         const configHook = (currentConfig: InlineConfig) => {
-            return this.base.vite.mergeConfig(currentConfig, {
+            return mergeConfig(currentConfig, {
                 customLogger: this.createViteLogger(),
             });
         };
         const logOptions = this.getLogOptions(isBuildMode);
         const plugins = [logOnBuildRollupPlugin(logOptions), { config: configHook }];
-        return await this.mergeConfig(
-            this.base.vite.mergeConfig({ logLevel: 'silent', plugins }, config),
+        return await this.mergeBaseConfig(
+            mergeConfig({ logLevel: 'silent', plugins }, config),
         );
     }
 
@@ -89,7 +90,7 @@ export class ViteCompiler extends Compiler<InlineConfig, ViteDevServer, { vite: 
     }
 
     private createViteLogger() {
-        const customLogger = this.base.vite.createLogger();
+        const customLogger = this.base.createLogger();
         customLogger.error = (msg) => logger.error(`[Vite] ${msg}`);
         customLogger.warn = (msg) => logger.warn(`[Vite] ${msg}`);
         customLogger.info = (msg) => logger.info(`[Vite] ${msg}`);

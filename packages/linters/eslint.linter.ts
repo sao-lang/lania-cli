@@ -18,7 +18,7 @@ export class EsLinter extends Linter<EsLinterSupportFileType, LinterOutput, type
     constructor(config: ConfigurationGetType = 'eslint', options?: LinterHandleDirOptions) {
         super(options);
         this.config = config;
-        this.base = options.outerLinter ?? ESLint;
+        this.base = options?.outerLinter?.eslint ?? ESLint;
     }
     public async lintFile(path: string) {
         const eslint = await this.createInnerLinter();

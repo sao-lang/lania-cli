@@ -20,7 +20,7 @@ export class StyleLinter extends Linter<
     constructor(config: ConfigurationGetType = 'stylelint', options?: LinterHandleDirOptions) {
         super(options);
         this.config = config;
-        this.base = options?.outerLinter ?? stylelint;
+        this.base = options?.outerLinter?.stylelint ?? stylelint;
     }
     public async lintFile(path: string) {
         const config = await getStylelintConfig(this.config);

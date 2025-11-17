@@ -16,7 +16,8 @@
         "build": "gulp --gulpfile scripts/gulpfile.cjs build",
         "build-common": "gulp --gulpfile scripts/gulpfile.cjs buildCommon",
         "build-types": "gulp --gulpfile scripts/gulpfile.cjs buildTypes",
-        "build-core-lib": "gulp --gulpfile scripts/gulpfile.cjs buildCoreLib"
+        "build-core-lib": "gulp --gulpfile scripts/gulpfile.cjs buildCoreLib",
+        "build-compilers": "gulp --gulpfile scripts/gulpfile.cjs buildCompilers"
     },
     "dependencies": {
         "@lania-cli/common": "workspace:^",

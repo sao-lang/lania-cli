@@ -17,10 +17,11 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
             mode = 'development',
         } = options;
         const availablePort = await getPort({ port: Number(port) });
-        const { buildTool } = await getLanConfig(lanConfigPath);
+        const { buildTool, buildAdaptors } = await getLanConfig(undefined, lanConfigPath);
+        const buildAdaptor = buildAdaptors?.[buildTool];
         switch (buildTool) {
             case 'vite': {
-                const compiler = new ViteCompiler(configPath);
+                const compiler = new ViteCompiler(configPath, buildAdaptor);
                 process.env.NODE_ENV = mode;
                 await compiler.createServer({
                     server: { port: availablePort, hmr, open, host },
@@ -32,7 +33,7 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
                 break;
             }
             case 'webpack': {
-                const compiler = new WebpackCompiler(configPath);
+                const compiler = new WebpackCompiler(configPath, buildAdaptor);
                 const devServer = { port: availablePort, hot: hmr, open, host };
                 process.env.NODE_ENV = mode;
                 await compiler.createServer({
@@ -47,7 +48,7 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
             }
             case 'rollup':
             case 'tsc': {
-                throw new Error('The current packaging tool does not support the dev command!')
+                throw new Error('The current packaging tool does not support the dev command!');
             }
             default: {
                 throw new Error('Unknown build tool!');

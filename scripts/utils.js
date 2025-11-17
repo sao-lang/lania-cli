@@ -102,7 +102,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
             ts({
                 tsconfig: path.resolve(
                     __dirname,
-                    `../packages/${packageName}/tsconfig.${packageName}.json`,
+                    `../packages/${packageName}/tsconfig.json`,
                 ),
             }),
             globalReplacePlugin(createCommonInjectVars()),
@@ -151,7 +151,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
             }),
             json(),
             ts({
-                tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.templates.json'),
+                tsconfig: path.resolve(__dirname, '../packages/templates/tsconfig.json'),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
@@ -161,7 +161,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
             ts({
                 tsconfig: path.resolve(
                     __dirname,
-                    `../packages/${packageName}/tsconfig.${packageName}.json`,
+                    `../packages/${packageName}/tsconfig.json`,
                 ),
             }),
             globalReplacePlugin(createCommonInjectVars()),
@@ -181,7 +181,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
             ts({
                 tsconfig: path.resolve(
                     __dirname,
-                    `../packages/${packageName}/tsconfig.${packageName}.json`,
+                    `../packages/${packageName}/tsconfig.json`,
                 ),
             }),
             globalReplacePlugin(createCommonInjectVars()),
@@ -204,7 +204,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
             ts({
                 tsconfig: path.resolve(
                     __dirname,
-                    `../packages/${packageName}/tsconfig.${packageName}.json`,
+                    `../packages/${packageName}/tsconfig.json`,
                 ),
             }),
             globalReplacePlugin(createCommonInjectVars()),

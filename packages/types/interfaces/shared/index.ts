@@ -18,7 +18,7 @@ import {
 
 import { CommandHook, CommandNeededArgsInterface, LaniaCommandActionInterface } from '../commands';
 
-import { Question as InquirerQuestion } from 'inquirer';
+import type { Question as InquirerQuestion } from 'inquirer';
 export type ConfigurationLoadType =
     | 'npm'
     | 'pnpm'
@@ -39,7 +39,6 @@ export type ConfigurationLoadType =
     | 'lan';
 
 export type ConfigurationGetType = ConfigurationLoadType | Record<string, any>;
-
 
 export type CliConfigModule = ConfigurationLoadType | { module: string; searchPlaces?: string[] };
 
@@ -202,8 +201,34 @@ export interface LaniaConfig {
     custom?: Record<string, any>; // 用户扩展字段（为了未来兼容）
     lintTools?: LintToolEnum[];
     dependencies?: Record<string, any>;
-    lintAdaptors: {
-        eslint: any;
+    lintAdaptors?: {
+        eslint?: {
+            eslint: any;
+        };
+        prettier?: {
+            prettier: any;
+        };
+        stylelint?: {
+            stylelint: any;
+        };
+        textlint?: {
+            textlint: any;
+        };
+    };
+    buildAdaptors?: {
+        webpack?: {
+            webpack?: any;
+            webpackDevServer: any;
+        };
+        vite?: {
+            vite: any;
+        };
+        tsc?: {
+            typescript: any;
+        };
+        rollup?: {
+            rollup: any;
+        };
     };
 }
 

@@ -1,11 +1,8 @@
-import { ConfigurationLoadType } from '../shared';
 export interface LinterHandleDirOptions {
     fix?: boolean;
     ignorePath?: string;
     outerLinter?: any;
 }
-
-export type LinterConfiguration = ConfigurationLoadType | Record<string, any>;
 
 export type EsLinterSupportFileType =
     | 'ts'

@@ -4,7 +4,7 @@ import path from 'path';
 import type { PluginOption } from 'vite';
 import type { Compiler, StatsError } from 'webpack';
 const logWebpackErrors = (errors: StatsError[], isWarning: boolean = false) => {
-    errors.forEach(({ moduleIdentifier, message }, index) => {
+    errors.forEach(({ moduleIdentifier, message }) => {
         if (moduleIdentifier) {
             const filenameModifiedText = styleText(moduleIdentifier.replace(/\\/g, '/'), {
                 color: '#28b8db',

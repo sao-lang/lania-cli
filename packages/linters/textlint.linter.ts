@@ -22,7 +22,7 @@ export class TextLinter extends Linter<TextLinterSupportFileType, LinterOutput, 
     constructor(config: ConfigurationGetType = 'textlint', options?: LinterHandleDirOptions) {
         super(options);
         this.config = config;
-        this.base = options?.outerLinter ?? {
+        this.base = options?.outerLinter?.textlint ?? {
             createLinter,
             loadTextlintrc,
         };

@@ -7,10 +7,11 @@ const { DefinePlugin } = webpack;
 class BuildAction implements LaniaCommandActionInterface<[BuildActionOptions]> {
     public async handle(options: BuildActionOptions) {
         const { watch, config: configPath, path: lanConfigPath, mode } = options;
-        const { buildTool } = await getLanConfig(lanConfigPath);
+        const { buildTool, buildAdaptors } = await getLanConfig(undefined, lanConfigPath);
+        const buildAdaptor = buildAdaptors?.[buildTool];
         switch (buildTool) {
             case 'vite': {
-                const compiler = new ViteCompiler(configPath);
+                const compiler = new ViteCompiler(configPath, buildAdaptor);
                 process.env.NODE_ENV = mode;
                 await compiler.build({
                     build: { watch: watch ? {} : null },
@@ -22,7 +23,7 @@ class BuildAction implements LaniaCommandActionInterface<[BuildActionOptions]> {
                 break;
             }
             case 'webpack': {
-                const compiler = new WebpackCompiler(configPath);
+                const compiler = new WebpackCompiler(configPath, buildAdaptor);
                 process.env.NODE_ENV = mode;
                 const pluginOptions: Configuration = {
                     watch,

@@ -43,7 +43,7 @@ export abstract class Compiler<Config extends Record<string, any> = any, Server 
         const result = await ConfigurationLoader.load(module, configPath);
         return (result || {}) as Config;
     }
-    protected async mergeConfig(baseConfig?: Config): Promise<Config> {
+    protected async mergeBaseConfig(baseConfig?: Config): Promise<Config> {
         const mergeConfig = createMergeConfig<Config>(this.configOption.module);
         const config = await this.getConfig();
         return baseConfig ? mergeConfig(config, baseConfig) : config;

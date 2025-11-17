@@ -19,7 +19,8 @@ import {
     PrettierOutput,
     TaskResult,
     LaniaConfig,
-    LinterConfiguration,
+    ConfigurationGetType,
+    LinterHandleDirOptions,
 } from '@lania-cli/types';
 
 type LinterMap = {
@@ -175,12 +176,13 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
     }
     private switchLinter<T extends keyof LinterMap>(
         linter: T,
-        config?: LinterConfiguration,
+        config?: ConfigurationGetType,
         fix?: boolean,
     ): LinterMap[T] | undefined {
-        const linterOptions = {
+        const linterOptions: LinterHandleDirOptions = {
             ignorePath: this.createIgnoreFilePath(linter),
             fix,
+            outerLinter: this.laniaConfig?.lintAdaptors?.[linter],
         };
         const linterMap = {
             prettier: Prettier,

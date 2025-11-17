@@ -9,7 +9,7 @@ import {
 export const TYPESCRIPT_DEV_DEPENDENCIES = [
     '@types/react',
     '@types/react-dom',
-    { key: 'typescript', version: '^5.0.4' },
+    'typescript',
     '@types/node',
 ];
 
@@ -106,21 +106,15 @@ export const getLintDevPenpencies = (
         | LintToolEnum.commitlint,
         (string | DepencencyAndVresion)[]
     > = {
-        [LintToolEnum.eslint]: [
-            { key: 'eslint', version: '^8.43.0' },
-            { key: 'eslint-plugin-react', version: '^7.32.2' },
-        ],
-        [LintToolEnum.prettier]: [{ key: 'prettier', version: '^2.8.8' }],
+        [LintToolEnum.eslint]: ['eslint', 'eslint-plugin-react', '@eslint/js'],
+        [LintToolEnum.prettier]: ['prettier'],
         [LintToolEnum.commitlint]: [
             '@commitlint/cli',
             '@commitlint/config-conventional',
             'commitizen',
             'cz-customizable',
         ],
-        [LintToolEnum.stylelint]: [
-            { key: 'stylelint', version: '^14.6.0' },
-            { key: 'stylelint-config-standard', version: '^23.0.0' },
-        ],
+        [LintToolEnum.stylelint]: ['stylelint', 'stylelint-config-standard'],
     };
 
     const addLintToolDeps = () => {
@@ -136,15 +130,11 @@ export const getLintDevPenpencies = (
         if (!hasLintTool(LintToolEnum.eslint)) return;
 
         if (useTs) {
-            [
-                { key: '@typescript-eslint/parser', version: '^5.59.11' },
-                { key: '@typescript-eslint/eslint-plugin', version: '^5.59.11' },
-            ].forEach(addDep);
+            ['typescript-eslint'].forEach(addDep);
         }
 
         if (hasLintTool(LintToolEnum.prettier)) {
-            addDep({ key: 'eslint-config-prettier', version: '^8.8.0' });
-            addDep({ key: 'eslint-plugin-prettier', version: '^4.2.1' });
+            ['eslint-config-prettier', 'eslint-plugin-prettier'].forEach(addDep);
         }
     };
 
@@ -152,24 +142,13 @@ export const getLintDevPenpencies = (
         if (!hasLintTool(LintToolEnum.stylelint)) return;
 
         if (hasLintTool(LintToolEnum.prettier)) {
-            addDep({ key: 'stylelint-config-prettier', version: '^9.0.5' });
+            addDep('stylelint-config-prettier');
         }
-        const stylelintCssProcessorDeps: Partial<Record<CssProcessorEnum, DepencencyAndVresion[]>> =
-            {
-                [CssProcessorEnum.less]: [
-                    { key: 'postcss', version: '^8.4.12' },
-                    { key: 'postcss-less', version: '^6.0.0' },
-                ],
-                [CssProcessorEnum.sass]: [
-                    { key: 'postcss', version: '^8.4.12' },
-                    { key: 'postcss-scss', version: '^4.0.6' },
-                ],
-                [CssProcessorEnum.stylus]: [
-                    { key: 'postcss', version: '^8.4.12' },
-                    { key: 'stylelint-stylus', version: '^0.18.0' },
-                    { key: 'postcss-styl', version: '^0.12.3' },
-                ],
-            };
+        const stylelintCssProcessorDeps: Partial<Record<CssProcessorEnum, string[]>> = {
+            [CssProcessorEnum.less]: ['postcss', 'postcss-less'],
+            [CssProcessorEnum.sass]: ['postcss', 'postcss-scss', ,],
+            [CssProcessorEnum.stylus]: ['postcss', 'stylelint-stylus', 'postcss-styl'],
+        };
         stylelintCssProcessorDeps[cssProcessor]?.forEach(addDep);
     };
     addLintToolDeps();

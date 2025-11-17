@@ -1,4 +1,4 @@
-import { StyleOptions } from '@lania-cli/types';
+import type { StyleOptions } from '@lania-cli/types';
 import { StyledTextModefier } from '../lib/styled-text-modefier';
 
 const methods = StyledTextModefier.getChainMethods();
