@@ -1,54 +1,48 @@
-<% const usePrettier = lintTools.includes('prettier'); %>
 <%
-    const cssProcessorExtMap = {
-        sass: 'scss',
-        less: 'less',
+    const usePrettier = lintTools.includes('prettier');
+    const extendsArrMap = {
+        sass:  [
+            'stylelint-config-standard-scss',
+        ],
+        less: [
+            "stylelint-config-standard-less",
+        ],
         stylus: 'styl',
     };
-    const extname = cssProcessorExtMap[cssProcessor]
+    const extendsArr = extendsMap[cssProcessor];
+    extendsArr && hasPrettier && extendsArr.push('stylelint-prettier/recommended')
+    const isSass = cssProcessor === 'sass';
+    const isLess = cssProcessor === 'less';
 %>
 module.exports = {
-    extends: [
-        'stylelint-config-standard',
-        'stylelint-config-prettier'
-    ],
-    <% if (useCssProcessor) { %>
-    overrides: [
-        {
-            files: ['*.<%= extname %>', '**/*.<%= extname %>'],
-            customSyntax: 'postcss-<%= extname %>'
-        }
-    ],
+    <% if (extendsArr) { %>
+    extends: <%= JSON.stringify(extendsArr) %>,
     <% } %>
-    <% if (cssProcessor === 'stylus') { %>
-    plugins: ['stylelint-stylus'],
+    <% if (hasPrettier) { %>
+    plugins: ['stylelint-prettier'],
+    <% } %>
+    <% if (isLess) { %>
+    customSyntax: "postcss-less",
     <% } %>
     rules: {
-        indentation: 4,
-        'string-quotes': 'single',
-        'property-no-vendor-prefix': null,
-        'declaration-colon-newline-after': null,
-        'value-list-comma-newline-after': null,
-        'custom-property-pattern': null,
-        'color-hex-length': 'short',
-        'color-function-notation': null,
-        'alpha-value-notation': null,
-        'value-no-vendor-prefix': null,
+        <% if (hasPrettier) { %>
+        'prettier/prettier': true,
+        <% } %>
+        <% if (isSass) { %>
+        'scss/at-rule-no-unknown': [
+            true,
+            {
+                ignoreAtRules: ['tailwind', 'apply', 'layer', 'config'],
+            },
+        ],
+        'scss/dollar-variable-pattern': '^[a-z][a-z0-9-]*$',
+        <% } else if (isLess) { %>
+        "less/color-no-invalid-hex": true,
+        "less/no-dynamic-variables": null,
+        <% } %>
         'selector-class-pattern': null,
-        'no-missing-end-of-source-newline': true,
         'no-descending-specificity': null,
-        'font-family-no-missing-generic-family-keyword': null,
-        'number-leading-zero': 'never',
-        'selector-type-no-unknown': null,
-        'at-rule-no-unknown': null,
-        'no-duplicate-selectors': null,
-        'no-empty-source': null,
-        'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['global'] }],
-        'function-url-quotes': 'always',
-        'length-zero-no-unit': true,
-        'unit-case': 'lower',
-        'value-keyword-case': 'lower',
-        'value-list-comma-space-after': 'always',
-        'declaration-block-semicolon-newline-after': 'always',
-    }
+        'alpha-value-notation': 'number',
+        'color-function-notation': 'modern',
+    },
 };

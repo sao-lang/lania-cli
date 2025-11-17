@@ -2,8 +2,9 @@
     "name": "@lania-cli/command-dev",
     "version": "1.0.0",
     "description": "",
+    "commandName": "lan-dev",
     "bin": {
-        "lan-build": "./bin/index.js"
+        "lan-dev": "./bin/index.js"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

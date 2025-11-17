@@ -34,7 +34,9 @@ export default [
                     semi: true,
                 },
             ],
+            'no-unused-vars': 'off',
         },
+        ignores: ['node_modules/', 'dist/', 'build/', 'coverage/', '*.lock', '*.min.js'],
     },
     <% } %>
     <% if (useTs) { %>

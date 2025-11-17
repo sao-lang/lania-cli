@@ -46,7 +46,7 @@ class LinterResultPrinter {
                 }
                 for (const resultGroup of task.data) {
                     for (const result of resultGroup) {
-                        if ('isFormatted' in result) {
+                        if (result?.lintType === 'prettier') {
                             this.printPrettierResult(result);
                         } else {
                             const { errorCount, warningCount } = this.printLinterResult(result);
@@ -150,7 +150,7 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         const tasks = transformedLinters.map((linter: keyof LinterMap) => {
             return {
                 task: async () => {
-                    const checkLinter = this.switchLinter(linter, linter, fix);
+                    const checkLinter = await this.switchLinter(linter, linter, fix);
                     return await checkLinter.lint(process.cwd());
                 },
                 group: linter,
@@ -174,16 +174,19 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         }
         return this.laniaConfig.lintTools;
     }
-    private switchLinter<T extends keyof LinterMap>(
+    private async switchLinter<T extends keyof LinterMap>(
         linter: T,
         config?: ConfigurationGetType,
         fix?: boolean,
-    ): LinterMap[T] | undefined {
+    ): Promise<LinterMap[T]> {
         const linterOptions: LinterHandleDirOptions = {
-            ignorePath: this.createIgnoreFilePath(linter),
+            ignorePath: await this.createIgnoreFilePath(linter),
             fix,
             outerLinter: this.laniaConfig?.lintAdaptors?.[linter],
         };
+        if (!linterOptions.ignorePath) {
+            delete linterOptions.ignorePath;
+        }
         const linterMap = {
             prettier: Prettier,
             eslint: EsLinter,
@@ -195,14 +198,14 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
         }
         return new LinterCtr(config || 'prettier', linterOptions) as LinterMap[T];
     }
-    private createIgnoreFilePath(linter: keyof LinterMap) {
+    private async createIgnoreFilePath(linter: keyof LinterMap) {
         const fileExtMap = {
             prettier: '.prettierignore',
             eslint: '.eslintignore',
             stylelint: '.stylelintignore',
         };
         const path = `${process.cwd()}/${fileExtMap[linter]}`;
-        return fileExists(path) ? path : null;
+        return await fileExists(path) ? path : null;
     }
 }
 

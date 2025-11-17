@@ -2,8 +2,9 @@
     "name": "@lania-cli/command-lint",
     "version": "1.0.0",
     "description": "",
+    "commandName": "lan-lint",
     "bin": {
-        "lan-build": "./bin/index.js"
+        "lan-lint": "./bin/index.js"
     },
     "main": "dist/index.js",
     "types": "dist/command-lint/index.d.ts",

@@ -2,6 +2,7 @@
     "name": "@lania-cli/command-build",
     "version": "1.0.0",
     "description": "",
+    "commandName": "lan-build",
     "bin": {
         "lan-build": "./bin/index.js"
     },

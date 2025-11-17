@@ -6,7 +6,7 @@ import { LintCommand } from '@lania-cli/command-lint';
 import { CreateCommand } from '@lania-cli/command-create';
 import { AddCommand } from '@lania-cli/command-add';
 import { registerCommands } from '@lania-cli/common';
-registerCommands(pkgJsonContent.name, pkgJsonContent.version, [
+registerCommands(pkgJsonContent.commandName, pkgJsonContent.version, [
     new CreateCommand(),
     new DevCommand(),
     new BuildCommand(),

@@ -12,15 +12,7 @@ export default abstract class Linter<
     protected abstract fileTypes: SupportFileType[];
     protected abstract base: Base;
     constructor(options = {}) {
-        this.setBase();
         this.options = options;
-    }
-
-    private async setBase() {
-        const config = await getLanConfig();
-        if (config?.dependencies) {
-            this.base = config?.dependencies as Base;
-        }
     }
     public async lintDir(dir: string) {
         const results: LintOutput[] = [];

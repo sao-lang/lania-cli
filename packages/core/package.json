@@ -2,6 +2,7 @@
     "name": "@lania-cli/core",
     "version": "0.0.3",
     "description": "",
+    "commandName": "lan",
     "main": "dist/commands/index.js",
     "types": "dist/commands/index.d.ts",
     "keywords": [

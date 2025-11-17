@@ -49,9 +49,9 @@ export class EsLinter extends Linter<EsLinterSupportFileType, LinterOutput, type
     }
     private async createInnerLinter() {
         if (!this.innerLinter) {
-            const configObject = await getEslintConfig(this.config);
+            const overrideConfig = await getEslintConfig(this.config);
             this.innerLinter = new this.base({
-                overrideConfig: configObject,
+                overrideConfig,
                 fix: this.options?.fix,
             });
         }

@@ -2,6 +2,7 @@
     "name": "@lania-cli/command-sync",
     "version": "1.0.0",
     "description": "",
+    "commandName": "lan-sync",
     "bin": {
         "lan-sync": "./bin/index.js"
     },

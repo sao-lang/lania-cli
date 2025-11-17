@@ -2,6 +2,7 @@
     "name": "@lania-cli/command-add",
     "version": "1.0.0",
     "description": "",
+    "commandName": "lan-add",
     "bin": {
         "lan-add": "./bin/index.js"
     },

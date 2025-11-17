@@ -142,12 +142,12 @@ export const getLintDevPenpencies = (
         if (!hasLintTool(LintToolEnum.stylelint)) return;
 
         if (hasLintTool(LintToolEnum.prettier)) {
-            addDep('stylelint-config-prettier');
+            addDep('stylelint-prettier');
         }
         const stylelintCssProcessorDeps: Partial<Record<CssProcessorEnum, string[]>> = {
-            [CssProcessorEnum.less]: ['postcss', 'postcss-less'],
-            [CssProcessorEnum.sass]: ['postcss', 'postcss-scss', ,],
-            [CssProcessorEnum.stylus]: ['postcss', 'stylelint-stylus', 'postcss-styl'],
+            [CssProcessorEnum.less]: ['postcss', 'postcss-less', 'stylelint-config-standard-less'],
+            [CssProcessorEnum.sass]: ['stylelint-config-standard-scss',],
+            [CssProcessorEnum.stylus]: [],
         };
         stylelintCssProcessorDeps[cssProcessor]?.forEach(addDep);
     };
