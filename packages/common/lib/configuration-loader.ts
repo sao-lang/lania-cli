@@ -1,8 +1,8 @@
-import { ModuleName } from '@lania-cli/types';
+import { CliConfigModule } from '@lania-cli/types';
 import { cosmiconfig } from 'cosmiconfig';
 
-const getConfigOptions = (moduleName: ModuleName) => {
-    if (typeof moduleName === 'string') {
+const getConfigOptions = (CliConfigModule: CliConfigModule) => {
+    if (typeof CliConfigModule === 'string') {
         const map = {
             package: ['package', ['package.json']],
             npm: ['npm', ['.npmrc']],
@@ -16,8 +16,10 @@ const getConfigOptions = (moduleName: ModuleName) => {
                     '.prettierrc.yaml',
                     '.prettierrc.yml',
                     '.prettierrc.config.js',
-                    'prettier.config.js',
                     '.prettierrc.config.cjs',
+                    'prettierrc.config.js',
+                    'prettierrc.config.cjs',
+                    'prettier.config.js',
                     'prettier.config.cjs',
                 ],
             ],
@@ -45,6 +47,12 @@ const getConfigOptions = (moduleName: ModuleName) => {
                     '.stylelintrc.json',
                     '.stylelintrc.config.js',
                     '.stylelintrc.config.cjs',
+                    '.stylelint.config.js',
+                    '.stylelint.config.cjs',
+                    'stylelintrc.config.js',
+                    'stylelintrc.config.cjs',
+                    'stylelint.config.js',
+                    'stylelint.config.cjs',
                 ],
             ],
             markdownlint: [
@@ -66,16 +74,17 @@ const getConfigOptions = (moduleName: ModuleName) => {
             gulp: ['gulp', ['gulpfile.js', 'gulpfile.cjs']],
             rollup: ['rollup', ['rollup.config.js', 'rollup.config.cjs']],
             tsc: ['tsc', ['tsconfig.json']],
+            lan: ['lan', ['lan.config.js']],
         };
-        const searchModule = map[moduleName];
+        const searchModule = map[CliConfigModule];
         return { module: searchModule[0], searchPlaces: searchModule[1] };
     }
-    return moduleName;
+    return CliConfigModule;
 };
 
 export class ConfigurationLoader {
-    static async load(moduleName: ModuleName, configPath?: string) {
-        const { module, searchPlaces } = getConfigOptions(moduleName);
+    static async load(CliConfigModule: CliConfigModule, configPath?: string) {
+        const { module, searchPlaces } = getConfigOptions(CliConfigModule);
         const result = await cosmiconfig(module, { searchPlaces }).search(configPath);
         if (!result || result?.isEmpty) {
             return {} as Record<string, any>;

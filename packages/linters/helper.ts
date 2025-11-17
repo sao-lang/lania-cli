@@ -49,6 +49,7 @@ export const getFileTypes = (linter: string) => {
             'vue',
             'svelte',
             'astro',
+            'scss',
         ] as StyleLinterSupportFileType[];
     }
     if (linter === 'textlint') {

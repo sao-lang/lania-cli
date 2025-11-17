@@ -35,9 +35,13 @@ export type ConfigurationLoadType =
     | 'vite'
     | 'gulp'
     | 'rollup'
-    | 'textlint';
+    | 'textlint'
+    | 'lan';
 
-export type ModuleName = ConfigurationLoadType | { module: string; searchPlaces?: string[] };
+export type ConfigurationGetType = ConfigurationLoadType | Record<string, any>;
+
+
+export type CliConfigModule = ConfigurationLoadType | { module: string; searchPlaces?: string[] };
 
 export type TaskStatus = 'pending' | 'running' | 'success' | 'error' | 'timeout';
 export type TaskEventType = TaskStatus | 'retry' | 'start' | 'cancel';
@@ -200,7 +204,7 @@ export interface LaniaConfig {
     dependencies?: Record<string, any>;
     lintAdaptors: {
         eslint: any;
-    }
+    };
 }
 
 export interface RunnerRunOptions {
@@ -227,7 +231,7 @@ export interface PackageManagerCommands {
     update: string;
     remove: string;
     init: string;
-    run: string
+    run: string;
 }
 
 export type PackageManagerName = 'npm' | 'yarn' | 'pnpm';

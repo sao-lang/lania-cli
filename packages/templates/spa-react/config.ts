@@ -99,7 +99,7 @@ export default [
         outputPath: '/.gitignore',
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/.eslintrc.cjs',
+        outputPath: '/eslint.config.js',
         hide: !options.lintTools.includes(LintToolEnum.eslint),
     }),
     (options: InteractionConfig) => {

@@ -1,8 +1,8 @@
 import { ConfigurationLoadType } from '../shared';
-export * from './eslint';
 export interface LinterHandleDirOptions {
     fix?: boolean;
     ignorePath?: string;
+    outerLinter?: any;
 }
 
 export type LinterConfiguration = ConfigurationLoadType | Record<string, any>;
@@ -66,5 +66,6 @@ export type StyleLinterSupportFileType =
     | 'less'
     | 'vue'
     | 'svelte'
-    | 'astro';
+    | 'astro'
+    | 'scss';
 export type TextLinterSupportFileType = 'txt' | 'md';

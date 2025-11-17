@@ -116,7 +116,6 @@ export const traverseFiles = async (
             }
 
             const stats = await stat(fullPath);
-
             if (stats.isDirectory()) {
                 await _traverse(fullPath);
             } else if (stats.isFile()) {

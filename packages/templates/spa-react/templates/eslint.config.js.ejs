@@ -1,0 +1,94 @@
+<%
+    const hasPrettier = lintTools.includes('prettier');
+%>
+import js from '@eslint/js';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
+<% if (useTs) { %>
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+<% } %>
+<% if (hasPrettier) { %>
+import prettierPlugin from 'eslint-plugin-prettier';
+import prettierConfig from 'eslint-config-prettier';
+<% } %>
+<% if (useTs) { %>
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+<% } %>
+
+export default [
+    js.configs.recommended,
+    <% if (hasPrettier) { %>
+    {
+        plugins: {
+            prettier: prettierPlugin,
+        },
+        rules: {
+            'prettier/prettier': [
+                'error',
+                {
+                    singleQuote: true,
+                    semi: true,
+                },
+            ],
+        },
+    },
+    <% } %>
+    <% if (useTs) { %>
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                project: './tsconfig.json',
+                tsconfigRootDir: __dirname,
+            },
+        },
+        plugins: {
+            '@typescript-eslint': tsPlugin,
+        },
+        rules: {
+            'no-undef': 'error',
+            'no-redeclare': 'error',
+            'no-const-assign': 'error',
+            'no-unused-vars': 'off',
+            '@typescript-eslint/no-unused-vars': 'warn',
+            '@typescript-eslint/ban-ts-ignore': 'off',
+            '@typescript-eslint/explicit-function-return-type': 'off',
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-var-requires': 'off',
+            'no-with': 'error',
+            'no-sparse-arrays': 'off',
+            'prettier/prettier': [
+                'error',
+                {
+                    singleQuote: true,
+                    semi: true,
+                },
+            ],
+        },
+    },
+    <% } %>
+    {
+        files: ['**/*.jsx'<% if (useTs) { %> ,'**/*.tsx'<% } %>],
+        plugins: {
+            react: reactPlugin,
+            'react-hooks': reactHooksPlugin,
+        },
+        settings: {
+            react: {
+                version: 'detect',
+            },
+        },
+        rules: {
+            'react-hooks/rules-of-hooks': 'error',
+            'react-hooks/exhaustive-deps': 'warn',
+        },
+    },
+    <% if (hasPrettier) { %>
+    prettierConfig,
+    <% } %>
+];

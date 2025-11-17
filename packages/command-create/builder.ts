@@ -82,7 +82,8 @@ export class Builder {
     ) {
         const isStringDep = typeof dependency === 'string';
         const depName = isStringDep ? dependency : dependency.key;
-        const depVersion = isStringDep ? await latestVersion(dependency) : dependency.version;
+        const getVersionFlag = isStringDep || (!isStringDep && !dependency.version);
+        const depVersion = getVersionFlag ? await latestVersion(depName) : dependency.version;
         if (depVersion) {
             dependencyMap[depName] = depVersion;
         }

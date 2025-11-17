@@ -16,10 +16,10 @@ import {
     LintActionHandleConfigsParam,
     LintActionOptions,
     LintToolEnum,
-    LinterConfigItem,
     PrettierOutput,
     TaskResult,
     LaniaConfig,
+    LinterConfiguration,
 } from '@lania-cli/types';
 
 type LinterMap = {
@@ -28,113 +28,98 @@ type LinterMap = {
     stylelint: StyleLinter;
 };
 
-class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
-    private laniaConfig: LaniaConfig;
-    public async handle(options: LintActionOptions) {
-        const { linters, fix = false } = options;
-        this.laniaConfig = await getLanConfig();
-        const transformedLinters = await this.transformLinterParams(linters);
-        if (!transformedLinters.length) {
-            throw new Error('Please specify linter!');
-        }
-        const taskProgressManager = new TaskProgressManager('spinner');
-        taskProgressManager.init('LintFiles', 1);
-        const taskExecutor = new TaskExecutor([], { maxConcurrency: 1 });
-        taskExecutor.addTasks(
-            transformedLinters.map((linter) => {
-                return {
-                    task: async () => {
-                        const checkLinter = this.switchLinter(
-                            linter as keyof LinterMap,
-                            (linter as LinterConfigItem)?.config,
-                            fix,
-                        );
-                        return await checkLinter.lint(process.cwd());
-                    },
-                    group: linter,
-                };
-            }),
-        );
-        const results: TaskResult<LinterOutput[][]>[] = await taskExecutor.run();
-        taskProgressManager.increment('LintFiles');
-        this.printResults(results);
-    }
-    private printResults(results: TaskResult<(LinterOutput | PrettierOutput)[][]>[]) {
-        let hasError = false;
-        let hasWarning = false;
-        const groupedResults = new Map<string, TaskResult<(LinterOutput | PrettierOutput)[][]>[]>();
-        // 按 group 分组
-        for (const result of results) {
-            const group = result.group || 'default';
-            if (!groupedResults.has(group)) {
-                groupedResults.set(group, []);
-            }
-            groupedResults.get(group)!.push(result);
-        }
-        for (const [group, groupResults] of groupedResults) {
-            logger.log(
-                styleText(`\n=== Group: ${group} ===\n`, { color: '#9b59b6', bold: true }).render(),
-            );
-
-            for (const task of groupResults) {
+class LinterResultPrinter {
+    private hasError = false;
+    private hasWarning = false;
+    public print(results: TaskResult<(LinterOutput | PrettierOutput)[][]>[]) {
+        /** 分组结果 */
+        const grouped = this.groupByLinter(results);
+        /** 遍历每个分组并打印 */
+        for (const [group, tasks] of grouped) {
+            this.printGroupHeader(group);
+            for (const task of tasks) {
                 if (!task.success || !task.data) {
                     logger.error(`❌ Task failed: ${task.error?.message || 'Unknown error'}\n`);
-                    hasError = true;
+                    this.hasError = true;
                     continue;
                 }
-
                 for (const resultGroup of task.data) {
                     for (const result of resultGroup) {
                         if ('isFormatted' in result) {
-                            // Prettier 结果
-                            if (result.isFormatted) {
-                                logger.success(`Formatted: ${result.filePath}`);
-                            } else {
-                                logger.info(`Already formatted: ${result.filePath}`);
-                            }
+                            this.printPrettierResult(result);
                         } else {
-                            const { filePath, output, errorCount, warningCount, lintType } =
-                                result as LinterOutput;
-                            const header = styleText(`${lintType.toUpperCase()} → ${filePath}`, {
-                                color: '#00bcd4',
-                                bold: true,
-                            }).render();
-
-                            logger.log(header);
-
-                            if (!output || output.length === 0) {
-                                logger.success('✓ No problems found');
-                                continue;
-                            }
-
-                            if (errorCount > 0) hasError = true;
-                            if (warningCount > 0) hasWarning = true;
-
-                            for (const item of output) {
-                                const { line, column, type, description } = item;
-                                const pos =
-                                    line != null && column != null ? `${line}:${column}` : '';
-                                const jumpHint = `${filePath}:${pos}`; // for editor jump
-
-                                const styledMessage = styleText(
-                                    `${
-                                        type === 'error' ? '✖' : '⚠'
-                                    } [${type.toUpperCase()}] ${jumpHint} - ${description}`,
-                                    {
-                                        color: type === 'error' ? '#e74c3c' : '#f39c12',
-                                        bold: true,
-                                    },
-                                ).render();
-                                console.log('  ' + styledMessage);
-                            }
-                            console.log(''); // spacer between files
+                            const { errorCount, warningCount } = this.printLinterResult(result);
+                            if (errorCount > 0) this.hasError = true;
+                            if (warningCount > 0) this.hasWarning = true;
                         }
                     }
                 }
             }
-
-            logger.log(styleText(`=== End of Group: ${group} ===\n`).render());
+            this.printGroupFooter(group);
         }
+        this.printSummary(this.hasError, this.hasWarning);
+        this.hasError = this.hasWarning = false;
+    }
+    private groupByLinter(results: TaskResult<any>[]) {
+        const grouped = new Map<string, TaskResult<any>[]>();
+
+        for (const r of results) {
+            const name = r.group || 'default';
+            if (!grouped.has(name)) grouped.set(name, []);
+            grouped.get(name)!.push(r);
+        }
+        return grouped;
+    }
+    private printGroupHeader(group: string) {
+        logger.log(
+            styleText(`\n=== Group: ${group} ===\n`, {
+                color: '#9b59b6',
+                bold: true,
+            }).render(),
+        );
+    }
+    private printGroupFooter(group: string) {
+        logger.log(styleText(`=== End of Group: ${group} ===\n`).render());
+    }
+    private printLinterResult(result: LinterOutput) {
+        const { filePath, output, lintType } = result;
+        // 标题
+        logger.log(
+            styleText(`${lintType.toUpperCase()} → ${filePath}`, {
+                color: '#00bcd4',
+                bold: true,
+            }).render(),
+        );
+        // 无问题
+        if (!output || output.length === 0) {
+            logger.success('✓ No problems found\n');
+            return { errorCount: 0, warningCount: 0 };
+        }
+        // 输出每个错误 / 警告
+        for (const item of output) {
+            const { line, column, type, description } = item;
+            const icon = type === 'error' ? '✖' : '⚠';
+            const message = `${icon} [${type.toUpperCase()}] ${filePath}:${line}:${column} - ${description}`;
+            const styled = styleText(message, {
+                color: type === 'error' ? '#e74c3c' : '#f39c12',
+                bold: true,
+            }).render();
+            console.log('  ' + styled);
+        }
+        console.log('');
+        return {
+            errorCount: result.errorCount,
+            warningCount: result.warningCount,
+        };
+    }
+    private printPrettierResult(result: PrettierOutput) {
+        if (result.isFormatted) {
+            logger.success(`Formatted: ${result.filePath}`);
+        } else {
+            logger.info(`Already formatted: ${result.filePath}`);
+        }
+    }
+    private printSummary(hasError: boolean, hasWarning: boolean) {
         console.log('\n');
         if (hasError) {
             logger.error('Linting completed with errors.');
@@ -144,17 +129,43 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
             logger.success('All files passed linting!');
         }
     }
+}
+
+class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
+    private laniaConfig: LaniaConfig;
+    private resultPrinter: LinterResultPrinter;
+    constructor() {
+        this.resultPrinter = new LinterResultPrinter();
+    }
+    public async handle(options: LintActionOptions) {
+        const { linters, fix = false } = options;
+        this.laniaConfig = await getLanConfig();
+        const transformedLinters = await this.transformLinterParams(linters);
+        if (!transformedLinters.length) {
+            throw new Error('Please specify linter!');
+        }
+        const taskProgressManager = new TaskProgressManager('spinner');
+        taskProgressManager.init('LintFiles', 1);
+        const tasks = transformedLinters.map((linter: keyof LinterMap) => {
+            return {
+                task: async () => {
+                    const checkLinter = this.switchLinter(linter, linter, fix);
+                    return await checkLinter.lint(process.cwd());
+                },
+                group: linter,
+            };
+        });
+        const taskExecutor = new TaskExecutor(tasks, { maxConcurrency: 1 });
+        const results: TaskResult<LinterOutput[][]>[] = await taskExecutor.run();
+        taskProgressManager.increment('LintFiles');
+        this.resultPrinter.print(results);
+    }
     private async transformLinterParams(linterConfigs: LintActionHandleConfigsParam) {
         const finalLinterConfigs = await this.getLinterConfigs(linterConfigs as string[]);
         if (!Array.isArray(finalLinterConfigs)) {
             return [];
         }
-        return finalLinterConfigs.filter((linter) =>
-            LINTERS.includes(
-                // (typeof linter === 'string' ? linter : linter?.linter) as LintToolEnum,
-                linter as LintToolEnum,
-            ),
-        );
+        return finalLinterConfigs.filter((linter) => LINTERS.includes(linter as LintToolEnum));
     }
     private async getLinterConfigs(linter?: string[]) {
         if (linter.length) {
@@ -164,32 +175,23 @@ class LintAction implements LaniaCommandActionInterface<[LintActionOptions]> {
     }
     private switchLinter<T extends keyof LinterMap>(
         linter: T,
-        config?: Record<string, any>,
+        config?: LinterConfiguration,
         fix?: boolean,
     ): LinterMap[T] | undefined {
         const linterOptions = {
             ignorePath: this.createIgnoreFilePath(linter),
             fix,
         };
-        // const linterMap = {
-        //     prettier: Prettier,
-        //     eslint: EsLinter,
-        //     stylelint: StyleLinter,
-        // };
-        // const LinterCtr = linterMap[linter];
-        // if (!LinterCtr) {
-        //     return undefined;
-        // }
-        // return new LinterCtr(config || 'prettier', linterOptions) as LinterMap[T];
-        if (!this.laniaConfig.lintAdaptors?.eslint) {
-            throw new Error('Lack of external lint tools!');
+        const linterMap = {
+            prettier: Prettier,
+            eslint: EsLinter,
+            stylelint: StyleLinter,
+        };
+        const LinterCtr = linterMap[linter];
+        if (!LinterCtr) {
+            return undefined;
         }
-        // @ts-ignore
-        return new EsLinter(
-            'eslint',
-            this.laniaConfig.lintAdaptors?.eslint,
-            linterOptions,
-        ) as LinterMap[T];
+        return new LinterCtr(config || 'prettier', linterOptions) as LinterMap[T];
     }
     private createIgnoreFilePath(linter: keyof LinterMap) {
         const fileExtMap = {

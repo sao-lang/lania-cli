@@ -1,30 +1,30 @@
 import stylelint from 'stylelint';
 import Linter from './linter.base';
 import {
-    LinterConfiguration,
+    ConfigurationGetType,
     LinterHandleDirOptions,
     LinterOutput,
     StyleLinterSupportFileType,
 } from '@lania-cli/types';
-import { getFileExt, getLinterModuleConfig } from '@lania-cli/common';
+import { getStylelintConfig } from '@lania-cli/common';
 import { getFileTypes } from './helper';
 
 export class StyleLinter extends Linter<
     StyleLinterSupportFileType,
     LinterOutput,
-    { stylelint: typeof stylelint }
+    typeof stylelint
 > {
-    private config: LinterConfiguration;
-    protected fileTypes: StyleLinterSupportFileType[];
-    protected base = { stylelint };
-    constructor(config: LinterConfiguration = 'stylelint', options?: LinterHandleDirOptions) {
-        super(options, (filePath) => this.getFileTypes().includes(getFileExt(filePath)));
+    private config: ConfigurationGetType;
+    protected fileTypes = getFileTypes('stylelint') as StyleLinterSupportFileType[];
+    protected base: typeof stylelint;
+    constructor(config: ConfigurationGetType = 'stylelint', options?: LinterHandleDirOptions) {
+        super(options);
         this.config = config;
-        this.fileTypes = this.getFileTypes();
+        this.base = options?.outerLinter ?? stylelint;
     }
     public async lintFile(path: string) {
-        const config = await getLinterModuleConfig(this.config);
-        const { results } = await this.base.stylelint.lint({
+        const config = await getStylelintConfig(this.config);
+        const { results } = await this.base.lint({
             files: path,
             config,
             fix: this.options?.fix,
@@ -37,9 +37,6 @@ export class StyleLinter extends Linter<
             errorCount: parseErrors.length,
             lintType: 'stylelint',
         } as LinterOutput;
-    }
-    private getFileTypes() {
-        return getFileTypes('stylelint') as StyleLinterSupportFileType[];
     }
     private createOutput(result: stylelint.LintResult) {
         const { warnings, parseErrors } = result;

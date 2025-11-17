@@ -1,5 +1,5 @@
 import Linter from './linter.base';
-import { getFileExt, getLinterModuleConfig } from '@lania-cli/common';
+import { getFileExt, getPrettierConfig } from '@lania-cli/common';
 
 import prettier from 'prettier';
 import stylus from 'prettier-plugin-stylus';
@@ -7,7 +7,7 @@ import ejs from 'prettier-plugin-ejs';
 import svelte from 'prettier-plugin-svelte';
 import { readFile, writeFile } from 'fs/promises';
 import {
-    LinterConfiguration,
+    ConfigurationGetType,
     LinterHandleDirOptions,
     PrettierOutput,
     PrettierSupportFileType,
@@ -48,32 +48,28 @@ const transformPlugin = (fileType: PrettierSupportFileType) => {
     }
 };
 
-export class Prettier extends Linter<
-    PrettierSupportFileType,
-    PrettierOutput,
-    { prettier: typeof prettier }
-> {
-    private config: LinterConfiguration;
-    protected fileTypes: PrettierSupportFileType[];
-    protected base = { prettier };
-    constructor(config: LinterConfiguration = 'prettier', options?: LinterHandleDirOptions) {
-        super(options, (filePath) => this.getFileTypes().includes(getFileExt(filePath)));
+export class Prettier extends Linter<PrettierSupportFileType, PrettierOutput, typeof prettier> {
+    private config: ConfigurationGetType;
+    protected fileTypes = getFileTypes('prettier') as PrettierSupportFileType[];
+    protected base: typeof prettier;
+    constructor(config: ConfigurationGetType = 'prettier', options?: LinterHandleDirOptions) {
+        super(options);
         this.config = config;
-        this.fileTypes = this.getFileTypes();
+        this.base = options?.outerLinter ?? prettier;
     }
     public async lintFile(path: string) {
-        const configObject = await getLinterModuleConfig(this.config);
+        const configObject = await getPrettierConfig(this.config);
         const fileType = getFileExt<PrettierSupportFileType>(path);
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);
         const content = await readFile(path, 'utf-8');
-        const isFormatted = await this.base.prettier.check(content, {
+        const isFormatted = await this.base.check(content, {
             parser,
             plugins,
             ...configObject,
         });
         if (!isFormatted && this.options?.fix) {
-            const code = await this.base.prettier.format(content, {
+            const code = await this.base.format(content, {
                 parser,
                 plugins,
                 ...configObject,
@@ -89,21 +85,18 @@ export class Prettier extends Linter<
             lintType: 'prettier',
         };
     }
-    private getFileTypes() {
-        return getFileTypes('prettier') as PrettierSupportFileType[];
-    }
     public async formatContent(
         content: string,
-        config: LinterConfiguration,
+        config: ConfigurationGetType,
         fileType: PrettierSupportFileType,
     ) {
-        if (!this.getFileTypes().includes(fileType)) {
+        if (!this.fileTypes.includes(fileType)) {
             return content;
         }
-        const configObject = await getLinterModuleConfig(config);
+        const configObject = await getPrettierConfig(config);
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);
-        const code = await this.base.prettier.format(content, { ...configObject, plugins, parser });
+        const code = await this.base.format(content, { ...configObject, plugins, parser });
         return code;
     }
 }

@@ -11,11 +11,9 @@ export default abstract class Linter<
     protected abstract lintFile(path: string): Promise<LintOutput>;
     protected abstract fileTypes: SupportFileType[];
     protected abstract base: Base;
-    private fileFilter: (filePath: string) => boolean | Promise<boolean>;
-    constructor(options = {}, fileFilter?: (filePath: string) => boolean | Promise<boolean>) {
+    constructor(options = {}) {
         this.setBase();
         this.options = options;
-        this.fileFilter = fileFilter;
     }
 
     private async setBase() {
@@ -49,7 +47,7 @@ export default abstract class Linter<
             '.parcel-cache',
             'out',
             '__tests__',
-            '__mocks__'
+            '__mocks__',
         ];
 
         await traverseFiles(
@@ -65,7 +63,7 @@ export default abstract class Linter<
                 ignoreFilePath: this.options.ignorePath,
                 ignorePatterns: defaultIgnoreDirs,
             },
-            this.fileFilter,
+            (filePath: string) => this.fileTypes.includes(getFileExt(filePath)),
         );
         return results;
     }
