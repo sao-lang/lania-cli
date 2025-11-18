@@ -5,4 +5,3 @@ export * from './fs';
 export * from './to';
 export * from './register-command';
 export * from './simple-prompt-interaction';
-export * from './merge-config';

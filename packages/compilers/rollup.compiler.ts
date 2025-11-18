@@ -1,13 +1,17 @@
-import { styleText, logger, mergeConfig } from '@lania-cli/common';
+import { styleText, logger } from '@lania-cli/common';
 import { Compiler } from './compiler.base';
 import { to } from '@lania-cli/common';
 import fs from 'fs';
 import path from 'path';
 
 import { type RollupOptions, rollup, OutputBundle } from 'rollup';
-// import { mergeConfig } from 'vite';
 import { logOnBuildRollupPlugin } from './compiler.plugin';
-import { CompilerHandleOptions, ConfigOption, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
+import {
+    CompilerHandleOptions,
+    ConfigOption,
+    LogOnBuildRollupPluginOptions,
+} from '@lania-cli/types';
+import deepmerge from 'deepmerge';
 
 export class RollupCompiler extends Compiler<RollupOptions, null, typeof rollup> {
     protected configOption: ConfigOption;
@@ -41,7 +45,7 @@ export class RollupCompiler extends Compiler<RollupOptions, null, typeof rollup>
             },
         };
         const configuration = await this.mergeBaseConfig(
-            mergeConfig(config, { plugins: [logOnBuildRollupPlugin(logOnBuildOptions)] }, 'rollup'),
+            deepmerge(config, { plugins: [logOnBuildRollupPlugin(logOnBuildOptions)] }),
         );
         const [buildErr] = await to(this.base(configuration));
         if (buildErr) {

@@ -7,7 +7,7 @@ import {
     simplePromptInteraction,
     NpmPackageManager,
 } from '@lania-cli/common';
-import { SpaReactTemplate, TemplateFactory } from '@lania-cli/templates';
+import { SpaReactTemplate, SpaVueTemplate, TemplateFactory } from '@lania-cli/templates';
 import latestVersion from 'latest-version';
 import getPort from 'get-port';
 import {
@@ -23,7 +23,7 @@ import { Prettier } from '@lania-cli/linters';
 
 export class Builder {
     private options: InteractionConfig = {} as any;
-    private template: SpaReactTemplate;
+    private template: SpaReactTemplate | SpaVueTemplate;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
         const { projectType } = await simplePromptInteraction({
@@ -32,7 +32,6 @@ export class Builder {
             name: 'projectType',
             choices: templateList,
         });
-        // @ts-ignore
         this.template = TemplateFactory.create(projectType);
         const choices = this.template.createPromptQuestions({ ...options, projectType });
         const answers = await simplePromptInteraction(choices as Question[]);
@@ -92,14 +91,15 @@ export class Builder {
     private async outputFiles(options: InteractionConfig) {
         this.options.port = await getPort();
         const engine = new EjsRenderer(async (code, fileType) => {
+            const prettierConfig = {
+                tabWidth: 4,
+                useTabs: false,
+                semi: true,
+                singleQuote: true,
+            };
             return await new Prettier().formatContent(
                 code,
-                {
-                    tabWidth: 4,
-                    useTabs: false,
-                    semi: true,
-                    singleQuote: true,
-                },
+                prettierConfig,
                 fileType as PrettierSupportFileType,
             );
         });

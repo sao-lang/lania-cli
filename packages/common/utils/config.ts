@@ -32,14 +32,6 @@ export const getTextlintConfig = async (config?: ConfigurationGetType, lanConfig
     return (await getCliConfig(config ?? 'textlint', lanConfigPath));
 };
 
-export const getViteConfig = async (config?: ConfigurationGetType, lanConfigPath?: string) => {
-    return (await getCliConfig(config ?? 'vite', lanConfigPath));
-};
-
-export const getWebpackConfig = async (config?: ConfigurationGetType, lanConfigPath?: string) => {
-    return (await getCliConfig(config ?? 'webpack', lanConfigPath));
-};
-
 export const getEslintConfig = async (config?: ConfigurationGetType, lanConfigPath?: string) => {
     return (await getCliConfig(config ?? 'eslint', lanConfigPath));
 };

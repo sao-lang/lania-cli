@@ -1,9 +1,9 @@
-import { ConfigurationLoader, getLanConfig } from '@lania-cli/common';
-import path from 'path';
-import { mergeConfig as mergeViteConfig } from 'vite';
+import { ConfigurationLoader } from '@lania-cli/common';
+import { mergeConfig as mergeViteConfig, loadConfigFromFile } from 'vite';
 import * as mergeWebpackConfig from 'webpack-merge';
 import deepmerge from 'deepmerge';
 import { ConfigOption } from '@lania-cli/types';
+import {} from 'rollup';
 
 const createMergeConfig = <Config>(module: ConfigOption['module']) => {
     switch (module) {
@@ -16,43 +16,32 @@ const createMergeConfig = <Config>(module: ConfigOption['module']) => {
             return deepmerge as (base: Config, config: Config) => Config;
     }
 };
+const createGetConfig = (module: ConfigOption['module'], configPath?: string, options?: any) => {
+    const loaders = {
+        vite: (file: string) => {
+            return loadConfigFromFile(options, file);
+        },
+    };
+    return () => ConfigurationLoader.load(module, undefined, loaders[module as string]);
+};
 
 export abstract class Compiler<Config extends Record<string, any> = any, Server = any, Base = any> {
-    constructor() {
-        this.setBase();
-    }
     protected abstract server: Server;
     protected abstract configOption: ConfigOption;
     protected abstract base: Base;
 
-    protected async getConfig() {
+    protected async getBaseConfig(options?: any) {
         const { module, configPath } = this.configOption;
         if (!module) {
             return {} as Config;
         }
-
-        if (configPath && typeof module === 'string') {
-            const dirname = path.dirname(configPath);
-            const basename = path.basename(configPath);
-            const configResult = await ConfigurationLoader.load(
-                { module, searchPlaces: [basename] },
-                dirname,
-            );
-            return configResult as Config;
-        }
-        const result = await ConfigurationLoader.load(module, configPath);
-        return (result || {}) as Config;
+        const getConfig = createGetConfig(module, configPath, options);
+        return await getConfig() as Config;
     }
-    protected async mergeBaseConfig(baseConfig?: Config): Promise<Config> {
+    protected async mergeBaseConfig(baseConfig?: Config, options?: any): Promise<Config> {
         const mergeConfig = createMergeConfig<Config>(this.configOption.module);
-        const config = await this.getConfig();
+        const config = await this.getBaseConfig(options);
         return baseConfig ? mergeConfig(config, baseConfig) : config;
-    }
-    private async setBase() {
-        const config = await getLanConfig();
-        if (config?.dependencies) {
-            this.base = config?.dependencies as Base;
-        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
