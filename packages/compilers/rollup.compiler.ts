@@ -41,7 +41,7 @@ export class RollupCompiler extends Compiler<RollupOptions, null, typeof rollup>
             },
         };
         const configuration = await this.mergeBaseConfig(
-            mergeConfig(config, { plugins: [logOnBuildRollupPlugin(logOnBuildOptions)] }),
+            mergeConfig(config, { plugins: [logOnBuildRollupPlugin(logOnBuildOptions)] }, 'rollup'),
         );
         const [buildErr] = await to(this.base(configuration));
         if (buildErr) {

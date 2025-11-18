@@ -1,10 +1,12 @@
 import { readdir } from 'fs/promises';
 import { SpaReactTemplate } from './spa-react';
+import { SpaVueTemplate } from './spa-vue';
 import { statSync } from 'fs';
 export class TemplateFactory {
     public static create(name: string) {
         const templateMap = {
             [SpaReactTemplate.__name]: SpaReactTemplate,
+            [SpaVueTemplate.__name]: SpaVueTemplate
         };
         for (const key in templateMap) {
             if (name && name === key) {

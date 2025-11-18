@@ -1,6 +1,6 @@
 
-<% const postProcessors = ['sass', 'less', 'stylus']; %>
 <%
+    const postProcessors = ['sass', 'less', 'stylus'];
     const cssProcessorRegMap = {
         sass: /\.s[ac]ss$/,
         less: /\.less$/,
@@ -58,7 +58,7 @@ module.exports = {
                         use: getStyleLoaders(),
                     },
                     // 可选的 CSS 预处理器（sass/less/stylus）
-                    <% if (useCssProcessor && postProcessors.includes(cssProcessor)) { %>
+                    <% if (postProcessors.includes(cssProcessor)) { %>
                     {
                         test: new RegExp(<%= cssProcessorRegMap[cssProcessor] %>),
                         use: getStyleLoaders('<%= cssProcessor %>-loader'),

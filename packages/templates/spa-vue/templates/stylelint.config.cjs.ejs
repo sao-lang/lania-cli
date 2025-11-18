@@ -5,9 +5,8 @@
             'stylelint-config-standard-scss',
         ],
         less: [
-            "stylelint-config-standard-less",
-        ],
-        stylus: 'styl',
+            'stylelint-config-standard-less',
+        ]
     };
     const extendsArr = extendsArrMap[cssProcessor];
     extendsArr && hasPrettier && extendsArr.push('stylelint-prettier/recommended')
@@ -16,13 +15,10 @@
 %>
 module.exports = {
     <% if (extendsArr) { %>
-    extends: <%= JSON.stringify(extendsArr) %>,
+    extends: <%- JSON.stringify(extendsArr) %>,
     <% } %>
     <% if (hasPrettier) { %>
     plugins: ['stylelint-prettier'],
-    <% } %>
-    <% if (isLess) { %>
-    customSyntax: "postcss-less",
     <% } %>
     rules: {
         <% if (hasPrettier) { %>
@@ -45,4 +41,16 @@ module.exports = {
         'alpha-value-notation': 'number',
         'color-function-notation': 'modern',
     },
+    overrides: [
+        {
+            files: ['**/*.vue'], // 针对 Vue 文件的特殊规则
+            customSyntax: 'postcss-html',
+        },
+        <% if (isLess) { %>
+        {
+            files: ['**/*.less'],
+            customSyntax: 'postcss-less', // Less 文件
+        },
+        <% } %>
+    ],
 };

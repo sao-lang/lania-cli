@@ -29,6 +29,10 @@ export default [
         hide: options.language !== LangEnum.TypeScript,
     }),
     (options: InteractionConfig) => ({
+        outputPath: '/src/shims-vue.d.ts',
+        hide: options.language !== LangEnum.TypeScript,
+    }),
+    (options: InteractionConfig) => ({
         outputPath: '/tailwind.css',
         hide: !options.cssTools?.includes(CssToolEnum.tailwindcss),
     }),
@@ -42,11 +46,11 @@ export default [
     }),
     () => ({ outputPath: '/package.json' }),
     (options: InteractionConfig) => ({
-        outputPath: '/src/main.tsx',
+        outputPath: '/src/main.ts',
         hide: options.language !== LangEnum.TypeScript,
     }),
     (options: InteractionConfig) => ({
-        outputPath: '/src/main.jsx',
+        outputPath: '/src/main.js',
         hide: options.language !== LangEnum.JavaScript,
     }),
     () => ({
@@ -71,9 +75,8 @@ export default [
         outputPath: '/src/index.css',
         hide: options.cssProcessor !== CssProcessorEnum.css,
     }),
-    (options: InteractionConfig) => ({
-        outputPath: '/src/App.tsx',
-        hide: options.language !== LangEnum.TypeScript,
+    () => ({
+        outputPath: '/src/App.vue',
     }),
     (options: InteractionConfig) => ({
         outputPath: '/src/App.styl',
@@ -86,10 +89,6 @@ export default [
     (options: InteractionConfig) => ({
         outputPath: '/src/App.less',
         hide: options.cssProcessor !== CssProcessorEnum.less,
-    }),
-    (options: InteractionConfig) => ({
-        outputPath: '/src/App.jsx',
-        hide: options.language !== LangEnum.JavaScript,
     }),
     (options: InteractionConfig) => ({
         outputPath: '/src/App.css',

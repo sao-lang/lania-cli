@@ -47,9 +47,9 @@ class LinterResultPrinter {
                 for (const resultGroup of task.data) {
                     for (const result of resultGroup) {
                         if (result?.lintType === 'prettier') {
-                            this.printPrettierResult(result);
+                            this.printPrettierResult(result as PrettierOutput);
                         } else {
-                            const { errorCount, warningCount } = this.printLinterResult(result);
+                            const { errorCount, warningCount } = this.printLinterResult(result as LinterOutput);
                             if (errorCount > 0) this.hasError = true;
                             if (warningCount > 0) this.hasWarning = true;
                         }
@@ -61,8 +61,8 @@ class LinterResultPrinter {
         this.printSummary(this.hasError, this.hasWarning);
         this.hasError = this.hasWarning = false;
     }
-    private groupByLinter(results: TaskResult<any>[]) {
-        const grouped = new Map<string, TaskResult<any>[]>();
+    private groupByLinter(results: TaskResult<(LinterOutput | PrettierOutput)[][]>[]) {
+        const grouped = new Map<string, TaskResult<(LinterOutput | PrettierOutput)[][]>[]>();
 
         for (const r of results) {
             const name = r.group || 'default';

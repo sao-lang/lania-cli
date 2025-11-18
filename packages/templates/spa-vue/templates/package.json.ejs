@@ -1,0 +1,75 @@
+<%
+    const devDependencyKeys = Object.keys(devDependencies);
+    const hasHusky = devDependencyKeys.includes('husky');
+    const hasLintStaged = devDependencyKeys.includes('lint-staged');
+    const hasEslint = lintTools.includes('eslint');
+    const hasStylelint = lintTools.includes('stylelint');
+    const hasPrettier = lintTools.includes('prettier');
+    const hasCommitlint = lintTools.includes('commitlint');
+    const cssProcessorExtMap = {
+        sass: 'scss',
+        less: 'less',
+        stylus: 'styl',
+    };
+    const stagedCssProcessor = cssProcessorExtMap[cssProcessor];
+%>
+{
+    "name": "<%= name %>",
+    "version": "1.0.0",
+    "main": "index.js",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        <% if (buildTool === 'webpack') { %>"analyzer": "npx webpack-bundle-analyzer ./dist/stats.json",<% } %>
+        "dev": "lan dev",
+        <% if (hasHusky) { %>"prepare": "husky install",<% } %>
+        "build": "lan build --mode production"
+    },
+    <% if (hasLintStaged) { %>
+        "lint-staged": {
+            <% if (hasEslint) { %>
+                "*.{js,jsx<% if (useTs) { %>,ts,tsx<% } %>}": [
+                    "eslint --fix"
+                    <% if (hasPrettier) { %>
+                        ,
+                        "prettier --write"
+                    <% } %>
+                ],
+            <% } %>
+            <% if (hasStylelint) { %>
+                "*.{css<% if (useTs) { %>,<%= stagedCssProcessor %><% } %>}": [
+                    "stylelint --fix"
+                    <% if (hasPrettier) { %>
+                        ,
+                        "prettier --write"
+                    <% } %>
+                ],
+            <% } %>
+            <% if (hasPrettier) { %>
+                "*.{md,json}": "prettier --write"
+            <% } %>
+        },
+    <% } %>
+    <% if (hasCommitlint) { %>
+        "config": {
+            "commitizen": {
+                "path": "./node_modules/cz-customizable"
+            },
+            "cz-customizable": {
+                "config": ".czrc.cjs"
+            }
+        },
+    <% } %>
+    "dependencies": {
+        <% const dependenciesArray = Object.entries(dependencies); %>
+        <% dependenciesArray.forEach(([key, value], index) => { -%>
+            "<%= key %>": "<%= value %>"<% if(dependenciesArray.length - 1 !== index) { %>,<% } -%>
+        <% }) -%>
+    },
+    "devDependencies": {
+        <% const devDependenciesArray = Object.entries(devDependencies); %>
+        <% devDependenciesArray.forEach(([key, value], index) => { -%>
+            "<%= key %>": "<%= value %>"<% if(devDependenciesArray.length - 1 !== index) { %>,<% } -%>
+        <% }) -%>
+    }
+}

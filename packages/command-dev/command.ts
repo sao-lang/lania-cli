@@ -21,7 +21,7 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
         const buildAdaptor = buildAdaptors?.[buildTool];
         switch (buildTool) {
             case 'vite': {
-                const compiler = new ViteCompiler(configPath, buildAdaptor);
+                const compiler = new ViteCompiler(configPath, { outerCompiler: buildAdaptor });
                 process.env.NODE_ENV = mode;
                 await compiler.createServer({
                     server: { port: availablePort, hmr, open, host },
@@ -33,7 +33,7 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
                 break;
             }
             case 'webpack': {
-                const compiler = new WebpackCompiler(configPath, buildAdaptor);
+                const compiler = new WebpackCompiler(configPath, { outerCompiler: buildAdaptor });
                 const devServer = { port: availablePort, hot: hmr, open, host };
                 process.env.NODE_ENV = mode;
                 await compiler.createServer({
@@ -70,7 +70,7 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
         {
             flags: '--hmr',
             description: 'Whether to turn on HMR or not.',
-            defaultValue: true,
+            defaultValue: false,
         },
         {
             flags: '--host',
@@ -82,7 +82,7 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
         {
             flags: '-o, --open',
             description: 'Automatically open projects in the browser after starting the server.',
-            defaultValue: true,
+            defaultValue: false,
         },
     ],
     alias: '-d',

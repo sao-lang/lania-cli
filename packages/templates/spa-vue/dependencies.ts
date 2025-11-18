@@ -6,17 +6,7 @@ import {
     LintToolEnum,
 } from '@lania-cli/types';
 
-export const TYPESCRIPT_DEV_DEPENDENCIES = [
-    '@types/react',
-    '@types/react-dom',
-    'typescript',
-    '@types/node',
-];
-
-export const ESLINT_PRETTIER_DEV_DEPENDENCIES = [
-    'eslint-config-prettier',
-    'eslint-plugin-prettier',
-];
+export const TYPESCRIPT_DEV_DEPENDENCIES = ['vue-tsc', 'typescript', '@types/node'];
 
 export const TAILWIND_DEV_DEPENDENCIES = ['tailwindcss', 'postcss', 'autoprefixer'];
 
@@ -28,7 +18,7 @@ export const STYLELINT_PRETTIER_DEV_DEPENDENCIES = ['stylelint-config-prettier']
 
 export const STYLELINT_LESS_DEV_DEPENDENCIES = ['postcss-less'];
 export const STYLELINT_STYLUS_DEV_DEPENDENCIES = [];
-export const REACT_DEPENDENCIES = ['react', 'react-dom'];
+export const VUE_DEPENDENCIES = ['vue'];
 
 export const createCssProcessorLoader = (options: InteractionConfig) => {
     switch (options.cssProcessor) {
@@ -45,35 +35,36 @@ export const createCssProcessorLoader = (options: InteractionConfig) => {
 
 export const getWebpackDevDependencies = (options: InteractionConfig) =>
     [
-        '@babel/plugin-transform-runtime',
-        '@babel/runtime',
-        '@babel/preset-env',
         '@babel/core',
-        options.language === LangEnum.TypeScript ? '@babel/preset-typescript' : '',
-        'html-webpack-plugin',
-        'mini-css-extract-plugin',
+        '@babel/preset-env',
         'babel-loader',
         'copy-webpack-plugin',
+        'cross-env',
         'css-loader',
         'css-minimizer-webpack-plugin',
-        'style-loader',
-        'postcss',
-        'postcss-loader',
+        'html-webpack-plugin',
+        'mini-css-extract-plugin',
         'postcss-preset-env',
-        '@pmmmwh/react-refresh-webpack-plugin',
-        '@babel/preset-react',
+        'vue-loader',
+        'vue-style-loader',
+        'postcss-loader',
         'webpack-bundle-analyzer',
-        'react-refresh',
+        '@vue/babel-plugin-jsx',
+        'terser-webpack-plugin',
+        ...(options.language === LangEnum.TypeScript
+            ? ['ts-loader', '@babel/preset-typescript']
+            : []),
         createCssProcessorLoader(options),
         'thread-loader',
-        'terser-webpack-plugin',
     ].filter(Boolean);
 
 export const VITE_DEV_DEPENDENCIES = [
-    '@vitejs/plugin-react',
+    '@vitejs/plugin-vue',
     'vite-plugin-compression',
+    'vite-plugin-vue-setup-extend',
     'terser',
     'rollup-plugin-visualizer',
+    '@vitejs/plugin-vue-jsx',
 ];
 
 export const getLintDevPenpencies = (
@@ -95,10 +86,10 @@ export const getLintDevPenpencies = (
     > = {
         [LintToolEnum.eslint]: [
             '@eslint/js',
-            'eslint-plugin-react',
-            'eslint-plugin-react-hooks',
+            'eslint-plugin-vue',
             'eslint',
             'globals',
+            'vue-eslint-parser',
         ],
         [LintToolEnum.prettier]: ['prettier'],
         [LintToolEnum.commitlint]: [
@@ -125,8 +116,8 @@ export const getLintDevPenpencies = (
         if (useTs) {
             [
                 'typescript-eslint',
-                '@typescript-eslint/eslint-plugin',
                 '@typescript-eslint/parser',
+                '@typescript-eslint/eslint-plugin',
             ].forEach(addDep);
         }
 
@@ -142,8 +133,13 @@ export const getLintDevPenpencies = (
             addDep('stylelint-prettier');
         }
         const stylelintCssProcessorDeps: Partial<Record<CssProcessorEnum, string[]>> = {
-            [CssProcessorEnum.less]: ['postcss', 'postcss-less', 'stylelint-config-standard-less'],
-            [CssProcessorEnum.sass]: ['stylelint-config-standard-scss'],
+            [CssProcessorEnum.less]: [
+                'postcss',
+                'postcss-less',
+                'stylelint-config-standard-less',
+                'postcss-html',
+            ],
+            [CssProcessorEnum.sass]: ['postcss', 'stylelint-config-standard-scss', 'postcss-html'],
             [CssProcessorEnum.stylus]: [],
         };
         stylelintCssProcessorDeps[cssProcessor]?.forEach(addDep);

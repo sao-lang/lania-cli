@@ -11,7 +11,7 @@ class BuildAction implements LaniaCommandActionInterface<[BuildActionOptions]> {
         const buildAdaptor = buildAdaptors?.[buildTool];
         switch (buildTool) {
             case 'vite': {
-                const compiler = new ViteCompiler(configPath, buildAdaptor);
+                const compiler = new ViteCompiler(configPath, { outerCompiler: buildAdaptor });
                 process.env.NODE_ENV = mode;
                 await compiler.build({
                     build: { watch: watch ? {} : null },
@@ -23,7 +23,7 @@ class BuildAction implements LaniaCommandActionInterface<[BuildActionOptions]> {
                 break;
             }
             case 'webpack': {
-                const compiler = new WebpackCompiler(configPath, buildAdaptor);
+                const compiler = new WebpackCompiler(configPath, { outerCompiler: buildAdaptor });
                 process.env.NODE_ENV = mode;
                 const pluginOptions: Configuration = {
                     watch,
@@ -49,6 +49,7 @@ class BuildAction implements LaniaCommandActionInterface<[BuildActionOptions]> {
                 await compiler.build({ watch: watch ? {} : null });
                 break;
             }
+            case 'tsc':
             default: {
                 throw new Error('Unknown build tool!');
             }

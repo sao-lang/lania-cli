@@ -32,10 +32,11 @@ export class Builder {
             name: 'projectType',
             choices: templateList,
         });
+        // @ts-ignore
         this.template = TemplateFactory.create(projectType);
         const choices = this.template.createPromptQuestions({ ...options, projectType });
         const answers = await simplePromptInteraction(choices as Question[]);
-        answers.useCssProcessor = answers.cssProcessor === CssProcessorEnum.css;
+        answers.useCssProcessor = answers.cssProcessor !== CssProcessorEnum.css;
         answers.useTs = true;
         return { ...answers, projectType } as InteractionConfig;
     }
