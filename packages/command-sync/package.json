@@ -1,8 +1,11 @@
 {
     "name": "@lania-cli/command-sync",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "",
     "commandName": "lan-sync",
+    "publishConfig": {
+        "access": "public"
+    },
     "bin": {
         "lan-sync": "./bin/index.js"
     },

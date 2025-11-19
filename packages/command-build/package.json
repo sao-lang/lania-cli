@@ -1,10 +1,13 @@
 {
     "name": "@lania-cli/command-build",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "",
     "commandName": "lan-build",
     "bin": {
         "lan-build": "./bin/index.js"
+    },
+    "publishConfig": {
+        "access": "public"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

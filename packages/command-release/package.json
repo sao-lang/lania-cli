@@ -1,8 +1,11 @@
 {
     "name": "@lania-cli/command-release",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "",
     "commandName": "lan-release",
+    "publishConfig": {
+        "access": "public"
+    },
     "bin": {
         "lan-release": "./bin/index.js"
     },

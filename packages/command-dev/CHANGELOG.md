@@ -1,4 +1,4 @@
-# @lania-cli/templates
+# @lania-cli/command-dev
 
 ## 1.0.0
 
@@ -10,16 +10,5 @@
 
 - Updated dependencies
   - @lania-cli/common@1.0.0
+  - @lania-cli/compilers@1.0.0
   - @lania-cli/types@1.0.0
-
-## 0.0.3
-
-### Patch Changes
-
-- 修改一些问题
-
-## 0.0.2
-
-### Patch Changes
-
-- 发布第一个版本

@@ -1,8 +1,11 @@
 {
     "name": "@lania-cli/command-lint",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "",
     "commandName": "lan-lint",
+    "publishConfig": {
+        "access": "public"
+    },
     "bin": {
         "lan-lint": "./bin/index.js"
     },
