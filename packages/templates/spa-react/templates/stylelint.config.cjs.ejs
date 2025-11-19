@@ -1,3 +1,4 @@
+const path = require('path');
 <%
     const hasPrettier = lintTools.includes('prettier');
     const extendsArrMap = {
@@ -17,9 +18,6 @@
 module.exports = {
     <% if (extendsArr) { %>
     extends: <%= JSON.stringify(extendsArr) %>,
-    <% } %>
-    <% if (hasPrettier) { %>
-    plugins: ['stylelint-prettier'],
     <% } %>
     <% if (isLess) { %>
     customSyntax: "postcss-less",
@@ -45,4 +43,12 @@ module.exports = {
         'alpha-value-notation': 'number',
         'color-function-notation': 'modern',
     },
+    overrides: [
+        <% if (isLess) { %>
+        {
+            files: ['**/*.less'],
+            customSyntax: path.resolve(process.cwd(), 'node_modules/postcss-less/lib/index.js'), // Less 文件
+        },
+        <% } %>
+    ],
 };

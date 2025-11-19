@@ -1,6 +1,15 @@
 import { stat } from 'fs/promises';
-import { getFileExt, getLanConfig, traverseFiles } from '@lania-cli/common';
-import { LinterHandleDirOptions } from '@lania-cli/types';
+import {
+    getEslintConfig,
+    getFileExt,
+    getLanConfig,
+    getPrettierConfig,
+    getStylelintConfig,
+    getTextlintConfig,
+    traverseFiles,
+} from '@lania-cli/common';
+import { ConfigurationGetType, LinterHandleDirOptions } from '@lania-cli/types';
+import { getFileTypes } from './helper';
 
 export default abstract class Linter<
     SupportFileType extends string,
@@ -8,11 +17,16 @@ export default abstract class Linter<
     Base extends Record<string, any>,
 > {
     protected options: LinterHandleDirOptions;
+    private baseConfig: Record<string, any>;
     protected abstract lintFile(path: string): Promise<LintOutput>;
-    protected abstract fileTypes: SupportFileType[];
-    protected abstract base: Base;
-    constructor(options = {}) {
+    protected fileTypes: SupportFileType[];
+    private linterType: string;
+    protected base: Base;
+    constructor(options = {}, linterType: string, base: Base) {
         this.options = options;
+        this.fileTypes = getFileTypes(linterType) as SupportFileType[];
+        this.base = base;
+        this.linterType = linterType;
     }
     public async lintDir(dir: string) {
         const results: LintOutput[] = [];
@@ -72,5 +86,18 @@ export default abstract class Linter<
             results.push(result);
         }
         return results;
+    }
+    protected getBaseConfig(config: ConfigurationGetType) {
+        if (this.baseConfig) {
+            return this.baseConfig;
+        }
+        const loaders = {
+            stylelint: getStylelintConfig,
+            prettier: getPrettierConfig,
+            eslint: getEslintConfig,
+            textlint: getTextlintConfig,
+        };
+        this.baseConfig = loaders[this.linterType]?.(config) ?? {};
+        return this.baseConfig;
     }
 }

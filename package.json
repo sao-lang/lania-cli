@@ -3,6 +3,7 @@
     "version": "0.0.1",
     "type": "module",
     "scripts": {
+        "changeset-init": "changeset init",
         "lint-staged": "lint-staged",
         "changeset": "changeset",
         "vp": "changeset version",

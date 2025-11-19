@@ -6,11 +6,7 @@ import fs from 'fs';
 import { to, styleText, logger } from '@lania-cli/common';
 import type { OutputBundle } from 'rollup';
 import { logOnBuildRollupPlugin } from './compiler.plugin';
-import {
-    CompilerHandleOptions,
-    ConfigOption,
-    LogOnBuildRollupPluginOptions,
-} from '@lania-cli/types';
+import { CompilerHandleOptions, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
 
 interface PartialVite {
     build: typeof build;
@@ -20,18 +16,17 @@ interface PartialVite {
 }
 
 export class ViteCompiler extends Compiler<InlineConfig, ViteDevServer, PartialVite> {
-    protected configOption: ConfigOption;
     protected server: ViteDevServer;
-    protected base: PartialVite
     constructor(configPath?: string, options?: CompilerHandleOptions) {
-        super();
-        this.configOption = { module: 'vite', configPath };
-        this.base = options?.outerCompiler?.vite ?? {
-            build,
-            createServer,
-            createLogger,
-            mergeConfig,
-        };
+        super(
+            options?.outerCompiler?.vite ?? {
+                build,
+                createServer,
+                createLogger,
+                mergeConfig,
+            },
+            { module: 'vite', configPath },
+        );
     }
     public async createServer(config?: InlineConfig) {
         await this.closeServer();

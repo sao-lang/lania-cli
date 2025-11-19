@@ -1,11 +1,14 @@
+const path = require('path');
 <%
     const hasPrettier = lintTools.includes('prettier');
     const extendsArrMap = {
         sass:  [
             'stylelint-config-standard-scss',
+            'stylelint-config-standard-vue',
         ],
         less: [
             'stylelint-config-standard-less',
+            'stylelint-config-standard-vue',
         ]
     };
     const extendsArr = extendsArrMap[cssProcessor];
@@ -17,13 +20,11 @@ module.exports = {
     <% if (extendsArr) { %>
     extends: <%- JSON.stringify(extendsArr) %>,
     <% } %>
-    <% if (hasPrettier) { %>
-    plugins: ['stylelint-prettier'],
-    <% } %>
     rules: {
         <% if (hasPrettier) { %>
         'prettier/prettier': true,
         <% } %>
+        'at-rule-no-unknown': null,
         <% if (isSass) { %>
         'scss/at-rule-no-unknown': [
             true,
@@ -44,12 +45,12 @@ module.exports = {
     overrides: [
         {
             files: ['**/*.vue'], // 针对 Vue 文件的特殊规则
-            customSyntax: 'postcss-html',
+            customSyntax: path.resolve(process.cwd(), 'node_modules/postcss-html/lib/index.js'),
         },
         <% if (isLess) { %>
         {
             files: ['**/*.less'],
-            customSyntax: 'postcss-less', // Less 文件
+            customSyntax: path.resolve(process.cwd(), 'node_modules/postcss-less/lib/index.js'), // Less 文件
         },
         <% } %>
     ],

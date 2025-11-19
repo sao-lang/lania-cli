@@ -7,18 +7,12 @@ import {
     ConfigurationGetType,
     LinterHandleDirOptions,
 } from '@lania-cli/types';
-import { getEslintConfig } from '@lania-cli/common';
-import { getFileTypes } from './helper';
-
 export class EsLinter extends Linter<EsLinterSupportFileType, LinterOutput, typeof ESLint> {
-    private config: ConfigurationGetType;
-    protected base: typeof ESLint;
-    protected fileTypes = getFileTypes('eslint') as EsLinterSupportFileType[];
+    private configType: ConfigurationGetType;
     private innerLinter: ESLint;
-    constructor(config: ConfigurationGetType = 'eslint', options?: LinterHandleDirOptions) {
-        super(options);
-        this.config = config;
-        this.base = options?.outerLinter?.eslint ?? ESLint;
+    constructor(configType: ConfigurationGetType = 'eslint', options?: LinterHandleDirOptions) {
+        super(options, 'eslint', options?.outerLinter?.eslint ?? ESLint);
+        this.configType = configType;
     }
     public async lintFile(path: string) {
         const eslint = await this.createInnerLinter();
@@ -49,7 +43,7 @@ export class EsLinter extends Linter<EsLinterSupportFileType, LinterOutput, type
     }
     private async createInnerLinter() {
         if (!this.innerLinter) {
-            const overrideConfig = await getEslintConfig(this.config);
+            const overrideConfig = await this.getBaseConfig(this.configType);
             this.innerLinter = new this.base({
                 overrideConfig,
                 fix: this.options?.fix,

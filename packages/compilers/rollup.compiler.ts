@@ -6,21 +6,13 @@ import path from 'path';
 
 import { type RollupOptions, rollup, OutputBundle } from 'rollup';
 import { logOnBuildRollupPlugin } from './compiler.plugin';
-import {
-    CompilerHandleOptions,
-    ConfigOption,
-    LogOnBuildRollupPluginOptions,
-} from '@lania-cli/types';
+import { CompilerHandleOptions, LogOnBuildRollupPluginOptions } from '@lania-cli/types';
 import deepmerge from 'deepmerge';
 
 export class RollupCompiler extends Compiler<RollupOptions, null, typeof rollup> {
-    protected configOption: ConfigOption;
     protected server: null;
-    protected base: typeof rollup;
     constructor(configPath?: string, options?: CompilerHandleOptions) {
-        super();
-        this.configOption = { module: 'rollup', configPath };
-        this.base = options?.outerCompiler ?? rollup;
+        super(options?.outerCompiler ?? rollup, { module: 'rollup', configPath });
     }
     public async build(config: RollupOptions = {}) {
         const prevDate = new Date().getTime();

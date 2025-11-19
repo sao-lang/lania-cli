@@ -1,7 +1,5 @@
 import { CliConfigModule } from '@lania-cli/types';
 import { cosmiconfig } from 'cosmiconfig';
-import path from 'path';
-import { pathToFileURL } from 'url';
 const getConfigOptions = (CliConfigModule: CliConfigModule) => {
     if (typeof CliConfigModule === 'string') {
         const map = {
@@ -83,17 +81,6 @@ const getConfigOptions = (CliConfigModule: CliConfigModule) => {
     return CliConfigModule;
 };
 
-async function defaultLoadConfigFile(filePath: string) {
-    const ext = path.extname(filePath);
-    if (['.mjs', '.js', '.ts', '.cjs'].includes(ext)) {
-        const fileUrl = pathToFileURL(filePath).href;
-        const mod = await import(fileUrl);
-        return mod.default ?? mod;
-    }
-
-    throw new Error(`Unsupported config type: ${ext}`);
-}
-
 export class ConfigurationLoader {
     static async load(
         CliConfigModule: CliConfigModule,
@@ -105,11 +92,9 @@ export class ConfigurationLoader {
         const result = await (configPath ? explorer.search(configPath) : explorer.search());
         if (!result || result.isEmpty) return {};
         const file = result.filepath;
-        if (/\.(js|cjs|mjs|ts)$/.test(file)) {
-            const loader = loadConfigFile ?? defaultLoadConfigFile;
-            return loader(file);
+        if (loadConfigFile) {
+            return loadConfigFile(file);
         }
-
         return result.config ?? {};
     }
 }

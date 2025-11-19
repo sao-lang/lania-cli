@@ -27,16 +27,25 @@ const createGetConfig = (module: ConfigOption['module'], configPath?: string, op
 
 export abstract class Compiler<Config extends Record<string, any> = any, Server = any, Base = any> {
     protected abstract server: Server;
-    protected abstract configOption: ConfigOption;
-    protected abstract base: Base;
+    protected configOption: ConfigOption;
+    protected base: Base;
+    private baseConfig: Config;
 
+    constructor(base: any, configOption: ConfigOption) {
+        this.base = base;
+        this.configOption = configOption;
+    }
     protected async getBaseConfig(options?: any) {
+        if (this.baseConfig) {
+            return this.baseConfig;
+        }
         const { module, configPath } = this.configOption;
         if (!module) {
             return {} as Config;
         }
         const getConfig = createGetConfig(module, configPath, options);
-        return await getConfig() as Config;
+        this.baseConfig = (await getConfig()) as Config;
+        return this.baseConfig;
     }
     protected async mergeBaseConfig(baseConfig?: Config, options?: any): Promise<Config> {
         const mergeConfig = createMergeConfig<Config>(this.configOption.module);

@@ -10,13 +10,10 @@ import { CompilerHandleOptions, ConfigOption } from '@lania-cli/types';
 export class WebpackCompiler extends Compiler<Configuration, DevServer, typeof webpack> {
     protected server!: DevServer;
     protected configOption: ConfigOption;
-    protected base: typeof webpack;
     private devServer: typeof DevServer;
 
     constructor(configPath?: string, options?: CompilerHandleOptions) {
-        super();
-        this.configOption = { module: 'webpack', configPath };
-        this.base = options?.outerCompiler?.webpack ?? webpack;
+        super(options?.outerCompiler?.webpack ?? webpack, { module: 'webpack', configPath });
         this.devServer = options?.outerCompiler?.webpackDevServer ?? DevServer;
     }
 

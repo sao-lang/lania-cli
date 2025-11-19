@@ -6,28 +6,46 @@ import {
     LinterOutput,
     StyleLinterSupportFileType,
 } from '@lania-cli/types';
-import { getStylelintConfig } from '@lania-cli/common';
-import { getFileTypes } from './helper';
+import { createRequire } from 'module';
 
 export class StyleLinter extends Linter<
     StyleLinterSupportFileType,
     LinterOutput,
     typeof stylelint
 > {
-    private config: ConfigurationGetType;
-    protected fileTypes = getFileTypes('stylelint') as StyleLinterSupportFileType[];
-    protected base: typeof stylelint;
-    constructor(config: ConfigurationGetType = 'stylelint', options?: LinterHandleDirOptions) {
-        super(options);
-        this.config = config;
-        this.base = options?.outerLinter?.stylelint ?? stylelint;
+    private configType: ConfigurationGetType;
+    constructor(configType: ConfigurationGetType = 'stylelint', options?: LinterHandleDirOptions) {
+        super(options, 'stylelint', options?.outerLinter?.stylelint ?? stylelint);
+        this.configType = configType;
     }
+    public async runStylelint(projectRoot, fix = false) {
+        const requireFromProject = createRequire(projectRoot + '/index.js');
+        const config = {
+            extends: ['stylelint-config-standard-scss', 'stylelint-prettier/recommended'],
+            plugins: ['stylelint-prettier'],
+            overrides: [
+                {
+                    files: ['**/*.vue'],
+                    customSyntax: requireFromProject.resolve('postcss-html'),
+                },
+            ],
+        };
+        return await stylelint.lint({
+            config,
+            fix,
+            cwd: projectRoot,
+            files: ['**/*.{vue,css,scss,sass,less}'],
+        });
+    }
+
     public async lintFile(path: string) {
-        const config = await getStylelintConfig(this.config);
+        const config = await this.getBaseConfig(this.configType);
+        const cwd = process.cwd();
         const { results } = await this.base.lint({
             files: path,
             config,
             fix: this.options?.fix,
+            cwd,
         });
         const { warnings, parseErrors } = results[0];
         return {

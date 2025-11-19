@@ -12,7 +12,6 @@ import {
     PrettierOutput,
     PrettierSupportFileType,
 } from '@lania-cli/types';
-import { getFileTypes } from './helper';
 
 const transformParser = (fileType: PrettierSupportFileType) => {
     switch (fileType) {
@@ -49,16 +48,13 @@ const transformPlugin = (fileType: PrettierSupportFileType) => {
 };
 
 export class Prettier extends Linter<PrettierSupportFileType, PrettierOutput, typeof prettier> {
-    private config: ConfigurationGetType;
-    protected fileTypes = getFileTypes('prettier') as PrettierSupportFileType[];
-    protected base: typeof prettier;
-    constructor(config: ConfigurationGetType = 'prettier', options?: LinterHandleDirOptions) {
-        super(options);
-        this.config = config;
-        this.base = options?.outerLinter?.prettier ?? prettier;
+    private configType: ConfigurationGetType;
+    constructor(configType: ConfigurationGetType = 'prettier', options?: LinterHandleDirOptions) {
+        super(options, 'prettier', options?.outerLinter?.prettier ?? prettier);
+        this.configType = configType;
     }
     public async lintFile(path: string) {
-        const configObject = await getPrettierConfig(this.config);
+        const configObject = await this.getBaseConfig(this.configType);
         const fileType = getFileExt<PrettierSupportFileType>(path);
         const plugins = transformPlugin(fileType);
         const parser = transformParser(fileType);

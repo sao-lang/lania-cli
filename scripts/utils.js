@@ -233,6 +233,7 @@ export const resolvedExterns = (() => {
             'yargs/helpers',
             'url',
             'os',
+            'module',
             ...Object.values(BUILD_CONFIG_MAP)
                 .map((item) => {
                     const { dependencies, devDependencies } = getPackageJson(item.value);
