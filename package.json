@@ -19,7 +19,14 @@
         "build-types": "gulp --gulpfile scripts/gulpfile.cjs buildTypes",
         "build-core-lib": "gulp --gulpfile scripts/gulpfile.cjs buildCoreLib",
         "build-compilers": "gulp --gulpfile scripts/gulpfile.cjs buildCompilers",
-        "dev": "node packages/core/bin/index.js"
+        "dev": "node packages/core/bin",
+        "dev:create": "node packages/core/bin create",
+        "dev:add": "node packages/core/bin add",
+        "dev:sync": "node packages/core/bin sync",
+        "dev:lint": "node packages/core/bin lint",
+        "dev:dev": "node packages/core/bin dev",
+        "dev:build": "node packages/core/bin build",
+        "cz-init": "npx commitizen init cz-customizable --save-dev --save-exact"
     },
     "dependencies": {
         "@lania-cli/common": "workspace:^",
@@ -34,9 +41,7 @@
         "@commitlint/config-conventional": "^17.7.0",
         "@rollup/plugin-alias": "^5.1.0",
         "@rollup/plugin-json": "^6.0.1",
-        "@rollup/plugin-typescript": "^11.1.5",
         "@rollup/pluginutils": "^5.1.4",
-        "@types/figlet": "^1.5.6",
         "@types/inquirer": "^9.0.3",
         "@types/node": "^20.4.10",
         "@types/semver": "^7.5.0",
