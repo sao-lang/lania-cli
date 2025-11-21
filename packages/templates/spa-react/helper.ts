@@ -54,13 +54,13 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
         type: 'checkbox',
         default: null,
     },
-    {
-        message: 'Please select a unit testing tool',
-        name: 'unitTestTool',
-        choices: [...UNIT_TEST_TOOLS, { name: 'skip', value: null }],
-        type: 'list',
-        default: null,
-    },
+    // {
+    //     message: 'Please select a unit testing tool',
+    //     name: 'unitTestTool',
+    //     choices: [...UNIT_TEST_TOOLS, { name: 'skip', value: null }],
+    //     type: 'list',
+    //     default: null,
+    // },
     {
         name: 'buildTool',
         message: 'Please select a build tool:',

@@ -135,28 +135,28 @@ class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]
 })
 class MergeCommand extends LaniaCommand {}
 
-@ProgressGroup('lania:commit', { type: 'spinner' })
-class CommitAction implements LaniaCommandActionInterface<[SubCommitActionOptions]> {
-    private git: GitRunner = new GitRunner();
-    @ProgressStep('commit-msg', { total: 1, manual: true })
-    async handle(options: SubCommitActionOptions = {}) {
-        if (!options.message) {
-            throw new Error('Please enter the message you want to commit.');
-        }
-    }
-}
-@LaniaCommandConfig(new CommitAction(), {
-    name: 'commit',
-    description: 'Commit changes to the workspace.',
-    options: [
-        {
-            flags: '-m, --message <message>',
-            description: 'The message you need to submit.',
-        },
-    ],
-    helpDescription: 'display help for command.',
-})
-class CommitCommand extends LaniaCommand {}
+// @ProgressGroup('lania:commit', { type: 'spinner' })
+// class CommitAction implements LaniaCommandActionInterface<[SubCommitActionOptions]> {
+//     private git: GitRunner = new GitRunner();
+//     @ProgressStep('commit-msg', { total: 1, manual: true })
+//     async handle(options: SubCommitActionOptions = {}) {
+//         if (!options.message) {
+//             throw new Error('Please enter the message you want to commit.');
+//         }
+//     }
+// }
+// @LaniaCommandConfig(new CommitAction(), {
+//     name: 'commit',
+//     description: 'Commit changes to the workspace.',
+//     options: [
+//         {
+//             flags: '-m, --message <message>',
+//             description: 'The message you need to submit.',
+//         },
+//     ],
+//     helpDescription: 'display help for command.',
+// })
+// class CommitCommand extends LaniaCommand {}
 
 @ProgressGroup('lania:sync', { type: 'spinner' })
 class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
@@ -295,6 +295,6 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         ],
         alias: '-g',
     },
-    [new MergeCommand(), new AddCommand(), new CommitCommand()],
+    [new MergeCommand(), new AddCommand()],
 )
 export class SyncCommand extends LaniaCommand {}

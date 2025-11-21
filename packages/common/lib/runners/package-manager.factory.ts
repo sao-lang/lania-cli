@@ -1,10 +1,10 @@
-import { PackageManagerName } from '@lania-cli/types';
+import { PackageManagerEnum } from '@lania-cli/types';
 import NpmPackageManager from './npm.package-manager';
 import PnpmPackageManager from './pnpm.package-manager';
 import YarnPackageManager from './yarn.package-manager';
 import { detect } from 'detect-package-manager';
 export class PackageManagerFactory {
-    public static async create(name: PackageManagerName) {
+    public static create(name: PackageManagerEnum) {
         switch (name) {
             case 'npm':
                 return new NpmPackageManager();

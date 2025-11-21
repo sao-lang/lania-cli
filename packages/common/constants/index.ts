@@ -96,7 +96,10 @@ export const LINT_TOOLS = [
     LintToolEnum.editorconfig,
 ];
 
-export const CSS_TOOLS = [CssToolEnum.tailwindcss, CssToolEnum.windicss];
+export const CSS_TOOLS = [
+    CssToolEnum.tailwindcss,
+    // CssToolEnum.windicss
+];
 
 export const LINTERS = [LintToolEnum.eslint, LintToolEnum.prettier, LintToolEnum.stylelint];
 
@@ -112,7 +115,11 @@ export const BUILD_TOOLS = [
     BuildToolEnum.tsc,
 ];
 
-export const PACKAGES_MANAGERS = [PackageManagerEnum.yarn, PackageManagerEnum.npm, PackageManagerEnum.pnpm];
+export const PACKAGES_MANAGERS = [
+    PackageManagerEnum.yarn,
+    PackageManagerEnum.npm,
+    PackageManagerEnum.pnpm,
+];
 
 export const ROUTER_MANAGEMENT_TOOLS = [
     RouterManagementToolEnum['vue-router'],

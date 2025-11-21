@@ -157,6 +157,8 @@ export class Builder {
             throw getErr;
         }
         Object.assign(this.options, result);
+        const packageManager = PackageManagerFactory.create(this.options.packageManager);
+        await packageManager.init();
         await this.outputFiles(this.options);
         !options.skipInstall && (await this.downloadDependencies());
         result.devDependencies['husky'] && new NpmPackageManager().runScript('prepare');

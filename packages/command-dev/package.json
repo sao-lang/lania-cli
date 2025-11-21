@@ -1,6 +1,6 @@
 {
     "name": "@lania-cli/command-dev",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "",
     "commandName": "lan-dev",
     "bin": {
