@@ -32,11 +32,18 @@ export default defineConfig({
         open: true,
     },
     build: {
-        minify: "terser", // 必须开启：使用terserOptions才有效果
+        minify: 'terser',
         terserOptions: {
             compress: {
                 drop_console: true,
                 drop_debugger: true,
+            },
+        } as any,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['vue', 'vue-router'],
+                },
             },
         },
     },
@@ -45,9 +52,4 @@ export default defineConfig({
             "@": path.resolve(__dirname, "./src"),
         },
     },
-    // manualChunks(id) {
-    //     if (id.includes('node_modules')) {
-    //         return id.toString().split('node_modules/')[1].split('/')[0].toString();
-    //     }
-    // },
 })

@@ -26,7 +26,8 @@
         "dev:lint": "node packages/core/bin lint",
         "dev:dev": "node packages/core/bin dev",
         "dev:build": "node packages/core/bin build",
-        "cz-init": "npx commitizen init cz-customizable --save-dev --save-exact"
+        "cz-init": "npx commitizen init cz-customizable --save-dev --save-exact",
+        "commit": "git add . && git cz"
     },
     "dependencies": {
         "@lania-cli/common": "workspace:^",
