@@ -2,25 +2,33 @@ import ora from 'ora';
 import cliProgress from 'cli-progress';
 import { ProgressCallback, ProgressInfo } from '@lania-cli/types';
 
+// 定义 cliProgress.SingleBar 的类型，因为它在运行时需要实例化
+type SingleBar = cliProgress.SingleBar;
+
 export class TaskProgressManager {
     private totalMap = new Map<string, number>();
     private completedMap = new Map<string, number>();
     private callbacks: ProgressCallback[] = [];
-    private useSpinner = true;
-    private useBar = false;
+
+    // ⭐️ 优化点 1: 明确声明并初始化为布尔值
+    private useSpinner: boolean;
+    private useBar: boolean;
 
     private spinners = new Map<string, ReturnType<typeof ora>>();
-    private bars = new Map<string, cliProgress.SingleBar>();
+    private bars = new Map<string, SingleBar>();
 
     private failedGroups = new Set<string>();
     private failMessages = new Map<string, string>();
 
     constructor(type: 'bar' | 'spinner' = 'spinner') {
-        type === 'spinner' ? (this.useSpinner = true) : (this.useBar = true);
+        // ⭐️ 优化点 1: 明确设置互斥性
+        this.useSpinner = type === 'spinner';
+        this.useBar = type === 'bar';
     }
 
     public init(group: string, total: number) {
-        if (this.totalMap.has(group)) return;
+        // ⭐️ 优化点 4: 确保在初始化新进度之前，清理可能的旧 UI 资源
+        this.destroyUI(group);
 
         this.totalMap.set(group, total);
         this.completedMap.set(group, 0);
@@ -38,6 +46,7 @@ export class TaskProgressManager {
         this.totalMap.set(group, newTotal);
 
         const bar = this.bars.get(group);
+        // 如果 bar 存在，更新其 total
         if (bar) bar.setTotal(newTotal, this.completedMap.get(group) ?? 0);
 
         this.emit(group, this.buildProgress(group)!);
@@ -80,6 +89,9 @@ export class TaskProgressManager {
         const spinner = this.spinners.get(group);
         if (spinner && spinner.isSpinning) {
             spinner.fail(`[${group}] Failed${message ? ': ' + message : ''}`);
+            this.spinners.delete(group); // 失败后清理
+        } else if (spinner) {
+            // 如果 spinner 存在但没在转，也清理掉
             this.spinners.delete(group);
         }
 
@@ -101,13 +113,7 @@ export class TaskProgressManager {
             this.failedGroups.delete(g);
             this.failMessages.delete(g);
 
-            const spinner = this.spinners.get(g);
-            if (spinner && spinner.isSpinning) {
-                spinner.stop();
-            }
-            this.spinners.delete(g);
-
-            this.destroyBar(g);
+            this.destroyUI(g);
         }
     }
 
@@ -134,11 +140,14 @@ export class TaskProgressManager {
         const completed = this.completedMap.get(group);
         if (total === undefined || completed === undefined) return null;
 
+        // ⭐️ 优化点 5: total=0 时百分比设为 100 是可接受的设计，但保留。
+        const percent = total === 0 ? 100 : Math.round((completed / total) * 100);
+
         return {
             group,
             completed,
             total,
-            percent: total === 0 ? 100 : Math.round((completed / total) * 100),
+            percent,
             failed: this.failedGroups.has(group),
             failMessage: this.failMessages.get(group),
         };
@@ -149,24 +158,14 @@ export class TaskProgressManager {
         if (this.useSpinner) {
             const spinner = this.spinners.get(group);
             if (spinner) {
-                // ✅ 强制更新一次文本（无论是否 spinning）
                 spinner.text = `[${group}] ${info.completed}/${info.total} (${info.percent}%)`;
+
+                // ⭐️ 优化点 3: 简化 Spinner 完成逻辑
                 if (info.completed >= info.total) {
-                    if (!this.useBar) {
-                        // ✅ 如果 spinner 还在转，就触发 succeed
-                        if (spinner.isSpinning) {
-                            spinner.succeed(
-                                `[${group}] ${info.completed}/${info.total} (${info.percent}%) Done.`,
-                            );
-                        } else {
-                            // ✅ 没在转，也触发一遍 succeed（保险）
-                            spinner.start();
-                            spinner.succeed(
-                                `[${group}] ${info.completed}/${info.total} (${info.percent}%) Done.`,
-                            );
-                        }
-                    } else {
-                        spinner.stop();
+                    if (spinner.isSpinning) {
+                        spinner.succeed(
+                            `[${group}] ${info.completed}/${info.total} (${info.percent}%) Done.`,
+                        );
                     }
                     this.spinners.delete(group);
                 }
@@ -192,7 +191,10 @@ export class TaskProgressManager {
         }
     }
 
+    // ⭐️ 优化点 2: 确保只创建一次 Spinner 实例
     private createSpinner(group: string, total: number) {
+        if (this.spinners.has(group)) return; // 防止重复创建
+
         const spinner = ora({
             text: `[${group}] 0/${total} (0%)`,
             spinner: 'dots',
@@ -200,7 +202,10 @@ export class TaskProgressManager {
         this.spinners.set(group, spinner);
     }
 
+    // ⭐️ 优化点 2: 确保只创建一次 Bar 实例
     private createBar(group: string, total: number) {
+        if (this.bars.has(group)) return; // 防止重复创建
+
         const bar = new cliProgress.SingleBar(
             {
                 format: `[${group}] [{bar}] {percentage}% | {value}/{total}`,
@@ -213,11 +218,27 @@ export class TaskProgressManager {
         this.bars.set(group, bar);
     }
 
+    // ⭐️ 新增 helper: 销毁并清理 Spinner
+    private destroySpinner(group: string) {
+        const spinner = this.spinners.get(group);
+        if (spinner && spinner.isSpinning) {
+            spinner.stop(); // 停止活动中的 spinner
+        }
+        this.spinners.delete(group);
+    }
+
+    // ⭐️ 优化点 4: 封装销毁 Bar 的逻辑
     private destroyBar(group: string) {
         const bar = this.bars.get(group);
         if (bar) {
             bar.stop();
             this.bars.delete(group);
         }
+    }
+
+    // ⭐️ 优化点 4: 统一清理所有 UI 资源
+    private destroyUI(group: string) {
+        this.destroySpinner(group);
+        this.destroyBar(group);
     }
 }

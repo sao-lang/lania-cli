@@ -8,7 +8,7 @@
         "changeset": "changeset",
         "vp": "changeset version",
         "release": "pnpm build && pnpm release:only",
-        "release:only": "nrm use npm && changeset publish --registry=https://registry.npmjs.org",
+        "release:only": "nrm use npm && changeset publish --registry=https://registry.npmjs.org && nrm use taobao",
         "prepare": "husky install",
         "eslint": "eslint ./**/*.ts --fix",
         "build-core": "gulp --gulpfile scripts/gulpfile.cjs buildCore",
@@ -27,7 +27,8 @@
         "dev:dev": "node packages/core/bin dev",
         "dev:build": "node packages/core/bin build",
         "cz-init": "npx commitizen init cz-customizable --save-dev --save-exact",
-        "commit": "git add . && git cz"
+        "commit": "git add . && git cz",
+        "push": "git push github main"
     },
     "dependencies": {
         "@lania-cli/common": "workspace:^",

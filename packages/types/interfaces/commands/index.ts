@@ -1,4 +1,7 @@
+import type { LaniaCommand } from '@lania-cli/common';
 import { AddCommandSupportTemplate } from '../../enum';
+import { CommandActionInstruction } from './hooks';
+export * from './hooks';
 
 export interface AddCommandOptions {
     filepath?: string;
@@ -54,6 +57,27 @@ export interface CommandNeededArgsInterface {
     helpDescription?: string;
     args?: string[];
     overrideNoPrefixParsing?: boolean; // 单个选项覆盖
+}
+
+export interface LaniaCommandMetadata {
+    actor: LaniaCommandActionInterface;
+    commandNeededArgs: CommandNeededArgsInterface;
+    subcommands?: LaniaCommand[];
+    // subcommands?: any[];
+}
+
+export interface LaniaCommandConfigInterface<ActionArgs extends any[] = any[]> {
+    actor: LaniaCommandActionInterface<ActionArgs>;
+    commandNeededArgs: CommandNeededArgsInterface;
+    subcommands?: LaniaCommand[];
+    parent?: LaniaCommand;
+    hooks?: {
+        beforeExecute?: CommandHook;
+        afterExecute?: CommandHook;
+        onError?: CommandHook;
+    };
+    plugins?: { name: string; config?: any }[];
+    autoActions?: CommandActionInstruction[];
 }
 
 export type CommandHook = () => Promise<void> | void;

@@ -12,9 +12,10 @@ const STYLE_FLAGS = {
     hidden: 'hidden',
 } as const;
 
+// 移除对 Alpha 通道的捕获，因为 chalk 不支持终端透明度
 const COLOR_REGEX = {
-    RGB: /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/i,
-    HSL: /^hsla?\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*([\d.]+))?\)$/i,
+    RGB: /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/i, // 简化为 RGB
+    HSL: /^hsl\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%\)$/i, // 简化为 HSL
 };
 
 class ColorParser {
@@ -24,16 +25,37 @@ class ColorParser {
         return `#${component(r)}${component(g)}${component(b)}`;
     }
 
+    // ⭐️ 优化点 1: 使用更标准、易读的 HSL 到 RGB 转换
     static hslToRgb({ h, s, l }: HSL): RGB {
-        s /= 100;
-        l /= 100;
-        const k = (n: number) => (n + h / 30) % 12;
-        const a = s * Math.min(l, 1 - l);
-        const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+        const hue2rgb = (p: number, q: number, t: number): number => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        };
+
+        const H = h / 360;
+        const S = s / 100;
+        const L = l / 100;
+
+        let r: number, g: number, b: number;
+
+        if (S === 0) {
+            r = g = b = L; // achromatic (灰色)
+        } else {
+            const q = L < 0.5 ? L * (1 + S) : L + S - L * S;
+            const p = 2 * L - q;
+            r = hue2rgb(p, q, H + 1 / 3);
+            g = hue2rgb(p, q, H);
+            b = hue2rgb(p, q, H - 1 / 3);
+        }
+
         return {
-            r: Math.round(255 * f(0)),
-            g: Math.round(255 * f(8)),
-            b: Math.round(255 * f(4)),
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255),
         };
     }
 
@@ -42,25 +64,27 @@ class ColorParser {
 
         const rgbMatch = color.match(COLOR_REGEX.RGB);
         if (rgbMatch) {
-            const [, r, g, b, a] = rgbMatch.map(Number);
-            const hex = this.rgbToHex(r, g, b);
-            return a ? `${hex}${Math.round(a * 255).toString(16)}` : hex;
+            const [, r, g, b] = rgbMatch.map(Number);
+            // ⭐️ 优化点 2: 移除对 Alpha 通道的处理
+            return this.rgbToHex(r, g, b);
         }
 
         const hslMatch = color.match(COLOR_REGEX.HSL);
         if (hslMatch) {
-            const [, h, s, l, a] = hslMatch.map(Number);
+            const [, h, s, l] = hslMatch.map(Number);
             const rgb = this.hslToRgb({ h, s, l });
-            const hex = this.rgbToHex(rgb.r, rgb.g, rgb.b);
-            return a ? `${hex}${Math.round(a * 255).toString(16)}` : hex;
+            // ⭐️ 优化点 2: 移除对 Alpha 通道的处理
+            return this.rgbToHex(rgb.r, rgb.g, rgb.b);
         }
 
+        // 如果不是标准格式，直接返回原字符串，让 chalk 尝试解析
         return color;
     }
 }
 
 export class StyledTextModefier {
-    private chain: (text: string) => string;
+    // 将 chain 初始化为 undefined，表示需要构建
+    private chain: ((text: string) => string) | undefined;
     private _options: StyleOptions;
 
     constructor(
@@ -68,7 +92,7 @@ export class StyledTextModefier {
         options: StyleOptions = {},
     ) {
         this._options = { ...options };
-        this.chain = this.createStyleFunction();
+        // 构造函数不再调用 createStyleFunction，延迟构建
     }
 
     private createStyleFunction(): (text: string) => string {
@@ -115,6 +139,7 @@ export class StyledTextModefier {
         };
     }
 
+    // ⭐️ 优化点 3: 静态缓存，但调用时不重建 chain
     private static _chainMethods?: Record<keyof StyleFlags, () => StyledTextModefier>;
 
     static getChainMethods(): Record<keyof StyleFlags, () => StyledTextModefier> {
@@ -124,7 +149,8 @@ export class StyledTextModefier {
                 this._chainMethods[key] = function (this: StyledTextModefier) {
                     if (!this._options) this._options = {};
                     this._options[key] = true;
-                    this.ensureChainInitialized();
+                    // ⭐️ 优化点 4: 移除 ensureChainInitialized() 调用，避免重复构建
+                    this.chain = undefined; // 标记为需要重建
                     return this;
                 };
             }
@@ -133,6 +159,7 @@ export class StyledTextModefier {
     }
 
     private ensureChainInitialized(): void {
+        // 仅在 chain 未定义时才构建
         if (typeof this.chain !== 'function') {
             this.chain = this.createStyleFunction();
         }
@@ -140,14 +167,18 @@ export class StyledTextModefier {
 
     public config(options: Partial<StyleOptions>): StyledTextModefier {
         this._options = { ...this._options, ...options };
-        this.chain = this.createStyleFunction();
+        // 标记为需要重建
+        this.chain = undefined;
         return this;
     }
 
     public render() {
+        // ⭐️ 优化点 5: 在 render 时保证 chain 被构建
         this.ensureChainInitialized();
         const { prefix = '', suffix = '' } = this._options;
         const text = `${prefix}${this.content}${suffix}`;
-        return typeof this.chain === 'function' ? this.chain(text) : text;
+
+        // 此时 this.chain 必然是 function
+        return (this.chain as (text: string) => string)(text);
     }
 }

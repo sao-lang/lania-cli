@@ -5,7 +5,6 @@ import {
     CommitlintPlugin,
     logger,
     to,
-    CliInteraction,
     LaniaCommandConfig,
     ProgressGroup,
     ProgressStep,
@@ -16,6 +15,7 @@ import {
     SubMergeActionOptions,
     LaniaCommandActionInterface,
     SubAddActionOptions,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     SubCommitActionOptions,
     ScopedManager,
 } from '@lania-cli/types';
@@ -23,16 +23,20 @@ import {
 @ProgressGroup('lania:sync:add', { type: 'spinner' }) // 声明这个类属于哪个进度组
 class AddAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
     private git = new GitRunner();
-    @ProgressStep('add-files', { total: 1 }) // 手动进度控制
+    private __progressManager: ScopedManager;
+    @ProgressStep('AddFiles', { total: 1 }) // 手动进度控制
     async handle({ files }: SubAddActionOptions = {}) {
         if (!files?.length) {
+            this.__progressManager.complete();
             throw new Error('Please enter the files you will add.');
         }
         if (files.length === 1 && files[0] === '.') {
+            this.__progressManager.complete();
             await this.git.stage.addAllFiles();
             return;
         }
         await this.git.stage.add(files);
+        this.__progressManager.complete();
     }
 }
 @LaniaCommandConfig(new AddAction(), {
@@ -45,11 +49,13 @@ class AddCommand extends LaniaCommand {}
 @ProgressGroup('lania:sync:merge', { type: 'spinner' })
 class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]> {
     private git: GitRunner = new GitRunner();
-    @ProgressStep('merge-branch', { total: 1 })
+    private __progressManager: ScopedManager;
+    @ProgressStep('MergeBranch', { total: 1 })
     async handle(options: SubMergeActionOptions = {}): Promise<void> {
         const { branch: selectedBranch, message, strategy, ...rest } = options;
         const promptBranch = await this.getPromptBranch(selectedBranch);
         if (!promptBranch) {
+            this.__progressManager.complete();
             throw new Error('Please select a branch you will push!');
         }
         const flags = Object.keys(rest).reduce((acc, key: keyof typeof rest) => {
@@ -64,21 +70,21 @@ class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]
         }, [] as string[]);
         const [err] = await to(this.git.branch.merge(promptBranch, { flags, strategy, message }));
         if (err) {
+            this.__progressManager.complete();
             throw err;
         }
+        this.__progressManager.complete();
     }
 
     private async getPromptBranch(selectedBranch?: string) {
         const branches = await this.git.branch.listLocal();
         if (!selectedBranch) {
-            const { branch: promptBranch } = await new CliInteraction()
-                .addQuestion({
-                    name: 'branch',
-                    message: 'Please select the branch you will merge:',
-                    choices: branches.map((branch) => ({ name: branch, value: branch })),
-                    type: 'list',
-                })
-                .execute();
+            const { branch: promptBranch } = await simplePromptInteraction({
+                name: 'branch',
+                message: 'Please select the branch you will merge:',
+                choices: branches.map((branch) => ({ name: branch, value: branch })),
+                type: 'list',
+            });
             return promptBranch as string;
         }
         if (!branches.find((branch) => branch === selectedBranch)) {
@@ -176,8 +182,6 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         const noUnpushedCommits = !(await this.git.branch.hasUnpushedCommits());
         if (isClean && noUnpushedCommits) {
             throw new Error('There are no files to sync!');
-            // process.exit(0);
-            return;
         }
         const currentBranch = await this.git.branch.getCurrent();
         const { message, remote, branch = currentBranch, normatively } = options;
@@ -210,7 +214,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         await this.git.workspace.commit(commitMessage);
         await this.handlePush(remote, branch);
     }
-    @ProgressStep('push-code', { total: 1, manual: true })
+    @ProgressStep('PushCode', { total: 1, manual: true })
     private async handlePush(remote?: string, branch?: string) {
         const promptRemote = await this.getPromptRemote(remote);
         if (!promptRemote) {
@@ -230,6 +234,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             })(),
         );
         if (err) {
+            this.__progressManager.complete();
             throw err;
         }
         this.__progressManager.complete();

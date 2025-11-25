@@ -2,6 +2,7 @@ import { CliOptions, Question, Answer, Context } from '@lania-cli/types';
 import inquirer from 'inquirer';
 import { logger } from './logger';
 
+// 辅助函数：解析可能是值或函数的配置项
 function resolve<T, C extends Context>(
     value: T | ((answers: Answer, ctx: C) => T),
     answers: Answer,
@@ -110,15 +111,17 @@ export class CliInteraction<TCtx extends Context = Context> {
             }
 
             const message = resolve(q.message ?? q.name, answers, this.context);
+            // ⭐️ 优化点：在提问前解析默认值，避免在 promptWithTimeout 中重复解析
             const def = resolve(q.default, answers, this.context);
 
             const qResolved = {
                 ...q,
                 message: this.translate(message),
-                default: def,
+                default: def, // 使用已解析的默认值
             };
 
-            const result = await this.promptWithTimeout(qResolved, q.timeout, answers);
+            // ⭐️ 优化点：传递已解析的默认值 def
+            const result = await this.promptWithTimeout(qResolved, q.timeout, answers, def);
             const value = result[q.name];
 
             if (value === EXIT_SIGNAL) {
@@ -132,6 +135,8 @@ export class CliInteraction<TCtx extends Context = Context> {
             }
 
             if (value === BACK_SIGNAL && q.returnable && step > 0) {
+                // ⭐️ 优化点：删除当前问题的答案，确保后退后状态干净
+                delete answers[q.name];
                 step--;
                 continue;
             }
@@ -176,7 +181,10 @@ export class CliInteraction<TCtx extends Context = Context> {
     private promptWithTimeout(
         question: Question<TCtx>,
         timeoutSec: number | undefined,
+        // answers 参数保留，因为 validate 函数可能用到
         answers: Answer,
+        // ⭐️ 优化点：接收已解析的默认值
+        resolvedDefault: any,
     ): Promise<Answer> {
         const prompt = inquirer.prompt([
             {
@@ -198,20 +206,9 @@ export class CliInteraction<TCtx extends Context = Context> {
 
         const timeout = new Promise<Answer>((resolve) => {
             setTimeout(() => {
-                logger.warn(`\n超时跳过，使用默认值: ${question.default}`);
-                // 动态解析 default
-                let defVal: any;
-                try {
-                    defVal =
-                        question.default !== undefined
-                            ? typeof question.default === 'function'
-                                ? (question.default as any)(answers, this.context)
-                                : question.default
-                            : undefined;
-                } catch {
-                    defVal = undefined;
-                }
-                resolve({ [question.name]: defVal });
+                logger.warn(`\n超时跳过，使用默认值: ${resolvedDefault}`);
+                // ⭐️ 优化点：直接使用传入的已解析默认值，不再重复解析逻辑
+                resolve({ [question.name]: resolvedDefault });
             }, timeoutSec * 1000);
         });
 

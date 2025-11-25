@@ -1,35 +1,20 @@
+import { CommitData, CommitizenConfig, CommitType, SkipKey } from '@lania-cli/types';
 import inquirer from 'inquirer';
 
-type CommitType = string;
 
-interface CommitizenConfig {
-    types: { value: CommitType; name: string }[];
-    messages: {
-        type: string;
-        customScope: string;
-        subject: string;
-        body: string;
-        footer: string;
-        confirmCommit: string;
-        breakingChange: string;
-    };
-    skipQuestions?: ('type' | 'scope' | 'subject' | 'body' | 'footer' | 'breakingChange')[];
-    subjectLimit: number;
-    scopes: string[];
-    allowCustomScopes: boolean;
-    scopeOverrides?: Record<CommitType, string[]>;
-    allowBreakingChanges: CommitType[];
-    footerPrefix: string;
+// 'type' 不在列表中，因为它在规范中是必需的。
+
+/**
+ * 当用户在确认步骤拒绝提交时抛出的错误。
+ */
+export class CommitAbortedError extends Error {
+    constructor(message: string = 'Commit process aborted by user.') {
+        super(message);
+        this.name = 'CommitAbortedError';
+    }
 }
 
-interface CommitData {
-    type: CommitType;
-    scope: string;
-    subject: string;
-    body?: string;
-    footer?: string;
-    breakingChange?: boolean;
-}
+
 
 const DEFAULT_CONFIG: CommitizenConfig = {
     types: [
@@ -58,6 +43,7 @@ const DEFAULT_CONFIG: CommitizenConfig = {
     allowCustomScopes: true,
     allowBreakingChanges: ['feat', 'fix'],
     footerPrefix: 'BREAKING CHANGES:',
+    skipQuestions: [],
 };
 
 export class CommitizenPlugin {
@@ -67,10 +53,15 @@ export class CommitizenPlugin {
         this.config = { ...DEFAULT_CONFIG, ...config };
     }
 
+    /**
+     * 运行交互式流程，生成提交信息。
+     * @throws {CommitAbortedError} 如果用户在确认步骤拒绝提交。
+     * @returns {Promise<string>} 最终的提交信息字符串。
+     */
     async run(): Promise<string> {
         const { type } = await this.promptForType();
         const { scope } = await this.promptForScope(type);
-        const { subject } = await this.promptForSubject();
+        const { subject } = await this.promptForSubject(type, scope);
         const breakingChange = await this.promptForBreakingChange(type);
         const body = await this.promptForBody();
         const footer = await this.promptForFooter();
@@ -87,8 +78,17 @@ export class CommitizenPlugin {
         return await this.confirmCommit(commitMessage);
     }
 
-    private shouldSkip(key: keyof CommitData | 'breakingChange'): boolean {
-        return this.config.skipQuestions?.includes(key as any);
+    /**
+     * 检查是否应该跳过某个问题。
+     * @param key 要检查的问题键名。
+     * @returns 如果问题被跳过，返回 true。
+     */
+    private shouldSkip(key: SkipKey | 'type'): boolean {
+        // 'type' 是必需的，始终不可跳过
+        if (key === 'type') return false;
+
+        // 修复点: 约束 key 的类型，确保与 skipQuestions 数组的元素类型兼容
+        return this.config.skipQuestions?.includes(key as SkipKey) ?? false;
     }
 
     private async promptInput(
@@ -140,7 +140,6 @@ export class CommitizenPlugin {
     }
 
     private async promptForType(): Promise<{ type: CommitType }> {
-        if (this.shouldSkip('type')) throw new Error('提交类型不可跳过');
         const type = await this.promptList('type', this.config.messages.type, this.config.types);
         return { type };
     }
@@ -153,8 +152,13 @@ export class CommitizenPlugin {
             return { scope: '' };
         }
 
-        const choices = [...scopes];
-        if (this.config.allowCustomScopes) choices.push('Custom...');
+        const choices = scopes.map((s) => ({ name: s, value: s }));
+        if (this.config.allowCustomScopes) {
+            choices.push({ name: 'Custom... (自定义)', value: 'Custom...' });
+            choices.push({ name: 'None (无作用域)', value: '' });
+        } else {
+            choices.push({ name: 'None (无作用域)', value: '' });
+        }
 
         const scope = await this.promptList('scope', this.config.messages.customScope, choices);
         if (scope === 'Custom...') {
@@ -165,12 +169,21 @@ export class CommitizenPlugin {
         return { scope };
     }
 
-    private async promptForSubject(): Promise<{ subject: string }> {
+    private async promptForSubject(type: CommitType, scope: string): Promise<{ subject: string }> {
         if (this.shouldSkip('subject')) return { subject: '' };
+
+        const headerPrefix = `${type}${scope ? `(${scope})` : ''}: `;
+        const maxSubjectLength = this.config.subjectLimit - headerPrefix.length;
+
         const subject = await this.promptInput(
             'subject',
-            this.config.messages.subject,
-            (input) => input.length > 0 || 'Subject is required',
+            `${this.config.messages.subject} (限${maxSubjectLength}字符):`,
+            (input) => {
+                if (input.length === 0) return 'Subject is required';
+                if (input.length > maxSubjectLength)
+                    return `Subject 超过限制 (${maxSubjectLength} 字符)`;
+                return true;
+            },
         );
         return { subject };
     }
@@ -197,25 +210,34 @@ export class CommitizenPlugin {
         const { type, scope, subject, body, footer, breakingChange } = data;
 
         const header = `${type}${scope ? `(${scope})` : ''}: ${subject}`;
-        const sections = [header];
+        const sections: string[] = [header];
 
         if (body) sections.push(body);
-        if (breakingChange) sections.push(`${this.config.footerPrefix} ${subject}`);
-        if (footer) sections.push(footer);
 
-        let message = sections.join('\n\n');
-        if (message.length > this.config.subjectLimit) {
-            message = `${message.substring(0, this.config.subjectLimit)}...`;
+        if (breakingChange) {
+            sections.push(`${this.config.footerPrefix} ${subject}`);
         }
 
-        return message;
+        if (footer) sections.push(footer);
+
+        return sections.join('\n\n');
     }
 
+    /**
+     * 确认提交信息，如果用户拒绝，则抛出 CommitAbortedError。
+     * @param commitMessage 待确认的提交信息
+     * @throws {CommitAbortedError}
+     */
     private async confirmCommit(commitMessage: string): Promise<string> {
         const confirmed = await this.promptConfirm(
             'confirm',
             `${this.config.messages.confirmCommit}\n\n提交信息：\n${commitMessage}\n`,
         );
-        return confirmed ? commitMessage : undefined;
+
+        if (!confirmed) {
+            throw new CommitAbortedError();
+        }
+
+        return commitMessage;
     }
 }

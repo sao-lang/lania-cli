@@ -9,6 +9,7 @@ import {
     getLanConfig,
     mkDirs,
     simplePromptInteraction,
+    to,
 } from '@lania-cli/common';
 import { isUnixAbsoluteDirPath, isUnixAbsoluteFilePath } from '@lania-cli/common';
 import { defineEnumMap } from '@lania-cli/common';
@@ -68,7 +69,7 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
         }
         return filepath;
     }
-    @ProgressStep('generate-file', { total: 1, manual: true })
+    @ProgressStep('GenerateFile', { total: 1, manual: true })
     private async generateFiles(filepath: string, template: string, name: string = 'index') {
         const {
             language = LangEnum.TypeScript,
@@ -87,7 +88,7 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
             .readdirSync(path.resolve(__dirname, './templates'))
             .filter((file) => file === `${template}.ejs`)
             .map((file) => path.resolve(__dirname, `./templates/${file}`));
-        await new EjsRenderer().renderFromFile(
+        const [genErr] = await to(new EjsRenderer().renderFromFile(
             files[0],
             {
                 cssProcessor,
@@ -95,7 +96,11 @@ class AddAction implements LaniaCommandActionInterface<[AddCommandOptions]> {
                 name: projectName,
             },
             fullPath,
-        );
+        ));
+        if (genErr) {
+            this.__progressManager.complete();
+            throw genErr;
+        }
         this.__progressManager.complete();
     }
     private getFileExtname(template: string = this.templatesSet.rcc.value, language: LangEnum) {

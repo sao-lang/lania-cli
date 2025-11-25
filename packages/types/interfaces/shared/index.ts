@@ -1,4 +1,3 @@
-import type { LaniaCommand } from '@lania-cli/common';
 import {
     BuildToolEnum,
     CssProcessorEnum,
@@ -15,8 +14,6 @@ import {
     StoreManagementToolEnum,
     UnitTestFrameEnum,
 } from '../../enum';
-
-import { CommandHook, CommandNeededArgsInterface, LaniaCommandActionInterface } from '../commands';
 
 import type { Question as InquirerQuestion } from 'inquirer';
 export type ConfigurationLoadType =
@@ -74,12 +71,7 @@ export interface TaskEvent {
     error?: Error;
 }
 
-export interface LaniaCommandMetadata {
-    actor: LaniaCommandActionInterface;
-    commandNeededArgs: CommandNeededArgsInterface;
-    subcommands?: LaniaCommand[];
-    // subcommands?: any[];
-}
+
 
 export type ProgressInfo = {
     group: string;
@@ -288,18 +280,6 @@ export interface TaskItem {
     group?: string;
     priority?: number;
     timeout?: number;
-}
-
-export interface LaniaCommandConfigInterface<ActionArgs extends any[] = any[]> {
-    actor: LaniaCommandActionInterface<ActionArgs>;
-    commandNeededArgs: CommandNeededArgsInterface;
-    subcommands?: LaniaCommand[];
-    parent?: LaniaCommand;
-    hooks?: {
-        beforeExecute?: CommandHook;
-        afterExecute?: CommandHook;
-        onError?: CommandHook;
-    };
 }
 
 export interface OutputFileTask {
