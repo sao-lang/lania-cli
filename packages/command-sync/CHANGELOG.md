@@ -1,5 +1,13 @@
 # @lania-cli/command-sync
 
+## 1.0.2
+
+### Patch Changes
+
+- 修正sync命令-n参数不生效问题
+- Updated dependencies
+  - @lania-cli/common@1.0.2
+
 ## 1.0.1
 
 ### Patch Changes

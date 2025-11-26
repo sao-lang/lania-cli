@@ -30,16 +30,33 @@ const camelCase = (input: string) => {
     // 确保处理如 'no-cache' -> 'noCache'
     return input.replace(/[-_]+(\w)/g, (_, c) => c.toUpperCase());
 };
-
+// ⭐️ 修改 1: 增强类型推断，特别是对布尔类型的处理
 const inferTypeFromFlags = (flags: string, defaultValue: any): YargsOption['type'] => {
+    // 检查是否有值占位符，例如 <number>, [string]
     if (flags.includes('<number>')) return 'number';
-    if (flags.includes('<string>')) return 'string';
+    // 检查 [message] 或 <string> 形式
+    if (flags.includes('<string>') || flags.includes('[')) return 'string';
     if (flags.includes('<')) return 'string';
+
+    // 检查默认值类型
     if (typeof defaultValue === 'number') return 'number';
+
+    // 检查是否为布尔类型（如果标志中没有值占位符，且没有默认值，则视为布尔）
+    // 由于我们稍后会在 commanderToYargsOption 中做更严格的判断，这里可以保持简单
     if (typeof defaultValue === 'boolean') return 'boolean';
+
+    // ⭐️ 核心修改：如果标志没有值占位符 (如 [message], <number>)，则很可能是布尔
+    // 但为了确保，我们先返回 string，并在 commanderToYargsOption 中进行最终确认
+    // 为什么：如果这里返回了'string'，而用户输入是-n，yargs会认为缺少值而返回 undefined。
+    // 因此，对于不带值占位符且无默认值的选项，应该推断为 'boolean'。
+    if (!flags.match(/<.+>|\[.+\]/)) {
+        return 'boolean'; // 假设不带值的选项是布尔类型
+    }
+
     return 'string';
 };
 
+// ⭐️ 修改 2: 确保将无值占位符的选项强制设置为 'boolean' type
 const commanderToYargsOption = (option: CommandOption) => {
     const { flags, description, defaultValue, parser, choices } = option;
 
@@ -64,7 +81,8 @@ const commanderToYargsOption = (option: CommandOption) => {
             if (nameMatch) {
                 long = nameMatch[1];
             }
-            valueRequired = /<.+>/.test(part);
+            // 检查是否有值占位符：<...> 或 [...]
+            valueRequired = /<.+>|\[.+\]/.test(part);
         } else if (part.startsWith('-') && part.length === 2) {
             short = part[1];
         }
@@ -76,11 +94,21 @@ const commanderToYargsOption = (option: CommandOption) => {
 
     const key = long;
 
+    // ⭐️ 核心修改逻辑：判断是否为布尔开关
+    let type: YargsOption['type'] = inferTypeFromFlags(flags, defaultValue);
+
+    // 如果标志没有值占位符 (如 -n, --normatively)，且不是取反标志，则强制设置为 boolean
+    const isSwitch = !valueRequired && !isNegated && !flags.match(/<.+>|\[.+\]/);
+
+    if (isSwitch) {
+        type = 'boolean';
+    }
+
     const config: YargsOption = {
         describe: description,
         alias: short,
         default: defaultValue,
-        type: inferTypeFromFlags(flags, defaultValue),
+        type: type, // 使用经过修正的类型
         choices,
     };
 
@@ -90,7 +118,8 @@ const commanderToYargsOption = (option: CommandOption) => {
     }
 
     if (parser) config.coerce = parser;
-    if (valueRequired && !isNegated) config.demandOption = true;
+    // 只有当参数是强制要求值 (<value>) 时，才设置 demandOption
+    if (valueRequired && !isNegated && flags.includes('<')) config.demandOption = true;
 
     return { key, config } as { key: string; config: YargsOption };
 };
