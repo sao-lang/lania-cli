@@ -17,6 +17,7 @@ import {
 
 import type { Question as InquirerQuestion } from 'inquirer';
 export type ConfigurationLoadType =
+    | 'package'
     | 'npm'
     | 'pnpm'
     | 'yarn'
@@ -33,7 +34,9 @@ export type ConfigurationLoadType =
     | 'gulp'
     | 'rollup'
     | 'textlint'
-    | 'lan';
+    | 'lan'
+    | 'cz' // 新增 Commitizen 别名
+    | 'commitizen'; // 新增 Commitizen 模块名;
 
 export type ConfigurationGetType = ConfigurationLoadType | Record<string, any>;
 
@@ -70,8 +73,6 @@ export interface TaskEvent {
     attempts?: number;
     error?: Error;
 }
-
-
 
 export type ProgressInfo = {
     group: string;

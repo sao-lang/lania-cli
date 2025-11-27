@@ -9,6 +9,8 @@ import {
     ProgressGroup,
     ProgressStep,
     simplePromptInteraction,
+    getCommitizenConfig,
+    getCommitlintConfig,
 } from '@lania-cli/common';
 import {
     SyncActionOptions,
@@ -196,12 +198,10 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             await this.handlePush(remote, branch);
             return;
         }
-        const commitMessage = await new CommitizenPlugin().run();
-        const lintResult = await new CommitlintPlugin({
-            rules: {
-                'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style']], // ✅ 合法
-            },
-        } as Record<string, any>).run(commitMessage);
+        const commitizenCfg = await getCommitizenConfig();
+        const commitMessage = await new CommitizenPlugin(commitizenCfg).run();
+        const commitlintCfg = await getCommitlintConfig();
+        const lintResult = await new CommitlintPlugin(commitlintCfg).run(commitMessage);
         lintResult.errors.forEach((error) => {
             logger.error(error.message);
         });

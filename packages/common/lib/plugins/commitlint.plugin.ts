@@ -13,7 +13,11 @@ export class CommitlintPlugin {
 
     constructor(options: CommitlintPluginConfig = {}) {
         // 使用 configSource 区分配置的来源或内容
-        this.configSource = options.config ?? {};
+        this.configSource = options.config ?? {
+            rules: {
+                'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style']], // ✅ 合法
+            },
+        };
     }
 
     /**

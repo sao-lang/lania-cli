@@ -5,8 +5,8 @@ export type SkipKey = 'scope' | 'subject' | 'body' | 'footer' | 'breakingChange'
 
 export interface CommitizenConfig {
     skipQuestions?: SkipKey[];
-    types: { value: CommitType; name: string }[];
-    messages: {
+    types?: { value: CommitType; name: string }[];
+    messages?: {
         type: string;
         customScope: string;
         subject: string;
@@ -15,12 +15,12 @@ export interface CommitizenConfig {
         confirmCommit: string;
         breakingChange: string;
     };
-    subjectLimit: number;
-    scopes: string[];
-    allowCustomScopes: boolean;
+    subjectLimit?: number;
+    scopes?: string[];
+    allowCustomScopes?: boolean;
     scopeOverrides?: Record<CommitType, string[]>;
-    allowBreakingChanges: CommitType[];
-    footerPrefix: string;
+    allowBreakingChanges?: CommitType[];
+    footerPrefix?: string;
 }
 
 export interface CommitData {

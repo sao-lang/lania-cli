@@ -21,17 +21,31 @@ export const getLanConfig = async (config?: ConfigurationGetType, lanConfigPath?
 };
 
 export const getStylelintConfig = async (config?: ConfigurationGetType, lanConfigPath?: string) => {
-    return (await getCliConfig(config ?? 'stylelint', lanConfigPath));
+    return await getCliConfig(config ?? 'stylelint', lanConfigPath);
 };
 
 export const getPrettierConfig = async (config?: ConfigurationGetType, lanConfigPath?: string) => {
-    return (await getCliConfig(config ?? 'prettier', lanConfigPath));
+    return await getCliConfig(config ?? 'prettier', lanConfigPath);
 };
 
 export const getTextlintConfig = async (config?: ConfigurationGetType, lanConfigPath?: string) => {
-    return (await getCliConfig(config ?? 'textlint', lanConfigPath));
+    return await getCliConfig(config ?? 'textlint', lanConfigPath);
 };
 
 export const getEslintConfig = async (config?: ConfigurationGetType, lanConfigPath?: string) => {
-    return (await getCliConfig(config ?? 'eslint', lanConfigPath));
+    return await getCliConfig(config ?? 'eslint', lanConfigPath);
+};
+
+export const getCommitizenConfig = async (
+    config?: ConfigurationGetType,
+    lanConfigPath?: string,
+) => {
+    return await getCliConfig(config ?? 'commitizen', lanConfigPath);
+};
+
+export const getCommitlintConfig = async (
+    config?: ConfigurationGetType,
+    lanConfigPath?: string,
+) => {
+    return await getCliConfig(config ?? 'commitlint', lanConfigPath);
 };

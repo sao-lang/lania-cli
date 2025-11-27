@@ -39,11 +39,11 @@ const DEFAULT_CONFIG: CommitizenConfig = {
         breakingChange: '此提交包含 BREAKING CHANGE 吗？',
     },
     subjectLimit: 72,
-    scopes: ['frontend', 'backend', 'api'],
-    allowCustomScopes: true,
-    allowBreakingChanges: ['feat', 'fix'],
-    footerPrefix: 'BREAKING CHANGES:',
-    skipQuestions: [],
+    // scopes: ['frontend', 'backend', 'api'],
+    // allowCustomScopes: true,
+    // allowBreakingChanges: ['feat', 'fix'],
+    // footerPrefix: 'BREAKING CHANGES:',
+    // skipQuestions: [],
 };
 
 export class CommitizenPlugin {
