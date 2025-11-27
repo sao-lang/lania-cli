@@ -1,9 +1,9 @@
-[![GitHub License](https://img.shields.io/github/license/sao-lang/lania-tools)](https://github.com/sao-lang/lania-tools/blob/main/LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/sao-lang/lania-tools)](https://github.com/sao-lang/lania-tools/stargazers)
+[![GitHub License](https://img.shields.io/github/license/sao-lang/lania-cli)](https://github.com/sao-lang/lania-cli/blob/main/LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/sao-lang/lania-cli)](https://github.com/sao-lang/lania-cli/stargazers)
 
 **Lania CLI** 是一个模块化命令行工具集，旨在简化日常开发、项目构建、代码质量管理和 Git 工作流程。
 
-主命令入口：`lan-cli`
+主命令入口：`lan`
 
 ## 🚀 快速开始
 
@@ -12,16 +12,16 @@
 您可以通过 npm 全局安装 Lania CLI：
 
 ```bash
-# 假设您的包名是 lania-cli
-npm install -g lania-cli
+# 假设您的包名是 @lania-cli/core
+npm install -g @lania-cli/core
 ```
 
 2. 使用方法
 
-所有命令都通过主入口命令 lan-cli 调用：
+所有命令都通过主入口命令 lan 调用：
 
 ```bash
-lan-cli <command> [options]
+lan <command> [options]
 ```
 
 📋 命令参考
@@ -32,11 +32,12 @@ I. 基础命令 (Project/Dev/Quality)
 
 | 命令 (Command) | 别名 (Alias) | 描述 (Description) |
 |---|---|---|
-| lan-cli create [name] | -c | 生成一个新的应用程序。 |
-| lan-cli build | -b | 构建应用程序以进行生产部署。 |
-| lan-cli dev | -d | 启动应用程序的开发服务器。 |
-| lan-cli lint | -l | 对项目代码执行 Linter 检查。 |
-1. lan-cli create [name] (别名: -c)
+| lan create [name] | -c | 生成一个新的应用程序。 |
+| lan build | -b | 构建应用程序以进行生产部署。 |
+| lan dev | -d | 启动应用程序的开发服务器。 |
+| lan lint | -l | 对项目代码执行 Linter 检查。 |
+
+1. lan create [name] (别名: -c)
 
 描述: 生成一个新的应用程序。[name] 是新项目的名称。
 
@@ -48,7 +49,7 @@ I. 基础命令 (Project/Dev/Quality)
 | -p, --package-manager [packageManager] | 指定要使用的包管理器。 | 交互式选择 |
 | -l, --language [language] | 指定编程语言 (TypeScript 或 JavaScript)。 | TypeScript |
 
-2. lan-cli build (别名: -b)
+2. lan build (别名: -b)
 
 描述: 构建应用程序。
 
@@ -60,7 +61,7 @@ I. 基础命令 (Project/Dev/Quality)
 | -m, --mode [mode] | 指定服务器运行模式（production 或 development）。 | development |
 | --mode | 模式 of initiating the project。 | 无 |
 
-3. lan-cli dev (别名: -d)
+3. lan dev (别名: -d)
 
 描述: 启动应用程序的开发服务器。
 
@@ -74,7 +75,7 @@ I. 基础命令 (Project/Dev/Quality)
 | --mode | 项目启动模式。 | 无 |
 | -o, --open | 启动服务器后自动在浏览器中打开项目。 | false |
 
-4. lan-cli lint (别名: -l)
+4. lan lint (别名: -l)
 
 描述: 对代码执行 Linter 检查。
 
@@ -85,10 +86,10 @@ I. 基础命令 (Project/Dev/Quality)
 
 II. Git 工作流命令
 
-lan-cli sync 是一个集合了提交和推送操作的主命令，它还包含两个可独立使用的子命令：add 和 merge。
+lan sync 是一个集合了提交和推送操作的主命令，它还包含两个可独立使用的子命令：add 和 merge。
 
-5. lan-cli sync (别名: -g)
-   
+5. lan sync (别名: -g)
+
 描述: 一键操作 Git 推送代码。该命令会自动 git add . 所有文件，然后提交并推送到远程仓库。
 
 | 选项 (Flags) | 描述 |
@@ -98,7 +99,7 @@ lan-cli sync 是一个集合了提交和推送操作的主命令，它还包含�
 | -n, --normatively | 是否强制规范化提交信息 (使用 Commitizen 交互式流程并经过 Commitlint 检查)。 |
 | -r, --remote [remote] | 代码推送时使用的远程仓库名称。 |
 
-5.1. 子命令: lan-cli add [files...]
+5.1 子命令: lan add [files...]
 
 描述: 将更改添加到暂存区 (git add)。
 
@@ -110,7 +111,7 @@ lan-cli sync 是一个集合了提交和推送操作的主命令，它还包含�
 | -t, --template [template] | 要添加的文件模板。 |
 | -n, --name [name] | 要添加的文件名称。 |
 
-5.2. 子命令: lan-cli merge <branch>
+5.2 子命令: lan merge <branch>
 
 描述: 用于 Git 分支合并 (git merge)。
 
