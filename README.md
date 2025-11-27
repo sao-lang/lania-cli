@@ -19,7 +19,9 @@ npm install -g lania-cli
 
 所有命令都通过主入口命令 lan-cli 调用：
 
+```bash
 lan-cli <command> [options]
+```
 
 📋 命令参考
 
@@ -81,6 +83,7 @@ I. 基础命令 (Project/Dev/Quality)
 | -f, --fix | 检查代码是否需要修改，并尝试自动修复。 | false |
 
 II. Git 工作流命令
+
 lan-cli sync 是一个集合了提交和推送操作的主命令，它还包含两个可独立使用的子命令：add 和 merge。
 
 5. lan-cli sync (别名: -g)
