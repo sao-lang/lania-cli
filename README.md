@@ -105,6 +105,7 @@ lan-cli sync 是一个集合了提交和推送操作的主命令，它还包含�
 | -p, --filepath [directory] | 要添加的文件路径。 |
 | -t, --template [template] | 要添加的文件模板。 |
 | -n, --name [name] | 要添加的文件名称。 |
+
 5.2. 子命令: lan-cli merge <branch>
 
 描述: 用于 Git 分支合并 (git merge)。
