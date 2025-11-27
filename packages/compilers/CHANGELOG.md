@@ -1,5 +1,14 @@
 # @lania-cli/compilers
 
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @lania-cli/common@1.0.3
+  - @lania-cli/types@1.0.1
+  - @lania-cli/templates@1.0.3
+
 ## 1.0.2
 
 ### Patch Changes

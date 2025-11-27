@@ -1,5 +1,13 @@
 # @lania-cli/common
 
+## 1.0.3
+
+### Patch Changes
+
+- 修复LaniaCommand中Hook异常导入的问题、
+- Updated dependencies
+  - @lania-cli/types@1.0.1
+
 ## 1.0.2
 
 ### Patch Changes

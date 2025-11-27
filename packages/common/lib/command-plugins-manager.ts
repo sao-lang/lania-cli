@@ -6,7 +6,6 @@
 // 导入所有类型，确保类型正确性
 import {
     AnyPlugin,
-    Hook,
     WaterfallHook as IWaterfallHook,
     ParallelHook as IParallelHook,
     HookFnWaterfall,
@@ -15,6 +14,14 @@ import {
 } from '@lania-cli/types';
 
 // --- 具体的 Hook 实现 ---
+
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export abstract class Hook<T extends Function> {
+    public abstract tap(name: string, fn: T): void;
+    public abstract call(...args: any[]): Promise<any>;
+}
+
 
 export class WaterfallHook<Result, Args extends any[]>
     extends Hook<HookFnWaterfall<Result, Args>>

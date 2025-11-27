@@ -25,22 +25,22 @@ export function LaniaCommandConfig(
     commandNeededArgs: CommandNeededArgsInterface,
     subcommands: LaniaCommand[] = [],
 ): ClassDecorator {
-    
     // 实际的装饰器函数，使用 LaniaCommandConstructor 类型确保类型安全
+    // @ts-ignore
     return function (target: LaniaCommandConstructor) {
-        
         // 1. 明确的参数校验
         if (!actor || !commandNeededArgs?.name) {
             throw new Error('@LaniaCommandConfig requires actor and commandNeededArgs.name');
         }
 
         // 2. 构造元数据对象，确保类型兼容性（假定 LaniaCommandMetadata 匹配此结构）
-        const metadata: LaniaCommandMetadata = { 
-            actor, 
-            commandNeededArgs, 
-            subcommands 
+        const metadata: LaniaCommandMetadata = {
+            actor,
+            commandNeededArgs,
+            // @ts-ignore
+            subcommands,
         };
-        
+
         // 3. 使用 Reflect API 附加元数据
         // key 和 target 都使用 target (构造函数)
         Reflect.defineMetadata(target, metadata, target);
