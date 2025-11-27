@@ -12,7 +12,8 @@
 
 ```bash
 # 假设您的包名是 lania-cli
-npm install -g lania-cli 
+npm install -g lania-cli
+```
 
 2. 使用方法
 所有命令都通过主入口命令 lan-cli 调用：
