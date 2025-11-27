@@ -1,7 +1,6 @@
 import { CommitData, CommitizenConfig, CommitType, SkipKey } from '@lania-cli/types';
 import inquirer from 'inquirer';
 
-
 // 'type' 不在列表中，因为它在规范中是必需的。
 
 /**
@@ -13,8 +12,6 @@ export class CommitAbortedError extends Error {
         this.name = 'CommitAbortedError';
     }
 }
-
-
 
 const DEFAULT_CONFIG: CommitizenConfig = {
     types: [
@@ -140,7 +137,7 @@ export class CommitizenPlugin {
     }
 
     private async promptForType(): Promise<{ type: CommitType }> {
-        const type = await this.promptList('type', this.config.messages.type, this.config.types);
+        const type = await this.promptList('type', this.config.messages?.type, this.config.types);
         return { type };
     }
 
@@ -148,7 +145,7 @@ export class CommitizenPlugin {
         if (this.shouldSkip('scope')) return { scope: '' };
 
         const scopes = this.config.scopeOverrides?.[type] || this.config.scopes;
-        if (scopes.length === 0 && !this.config.allowCustomScopes) {
+        if (scopes?.length === 0 && !this.config.allowCustomScopes) {
             return { scope: '' };
         }
 
@@ -160,7 +157,7 @@ export class CommitizenPlugin {
             choices.push({ name: 'None (无作用域)', value: '' });
         }
 
-        const scope = await this.promptList('scope', this.config.messages.customScope, choices);
+        const scope = await this.promptList('scope', this.config.messages?.customScope, choices);
         if (scope === 'Custom...') {
             const customScope = await this.promptInput('customScope', '请输入自定义作用域:');
             return { scope: customScope };
@@ -177,7 +174,7 @@ export class CommitizenPlugin {
 
         const subject = await this.promptInput(
             'subject',
-            `${this.config.messages.subject} (限${maxSubjectLength}字符):`,
+            `${this.config.messages?.subject} (限${maxSubjectLength}字符):`,
             (input) => {
                 if (input.length === 0) return 'Subject is required';
                 if (input.length > maxSubjectLength)
@@ -190,24 +187,24 @@ export class CommitizenPlugin {
 
     private async promptForBreakingChange(type: CommitType): Promise<boolean> {
         if (this.shouldSkip('breakingChange')) return false;
-        if (!this.config.allowBreakingChanges.includes(type)) return false;
-        return await this.promptConfirm('breakingChange', this.config.messages.breakingChange);
+        if (!this.config.allowBreakingChanges?.includes(type)) return false;
+        return await this.promptConfirm('breakingChange', this.config.messages?.breakingChange);
     }
 
     private async promptForBody(): Promise<string | undefined> {
         if (this.shouldSkip('body')) return undefined;
-        const body = await this.promptInput('body', this.config.messages.body);
+        const body = await this.promptInput('body', this.config.messages?.body);
         return body || undefined;
     }
 
     private async promptForFooter(): Promise<string | undefined> {
         if (this.shouldSkip('footer')) return undefined;
-        const footer = await this.promptInput('footer', this.config.messages.footer);
+        const footer = await this.promptInput('footer', this.config.messages?.footer);
         return footer || undefined;
     }
 
     private createCommitMessage(data: CommitData): string {
-        const { type, scope, subject, body, footer, breakingChange } = data;
+        const { type, scope, subject, body, footer, breakingChange } = data ?? {};
 
         const header = `${type}${scope ? `(${scope})` : ''}: ${subject}`;
         const sections: string[] = [header];
@@ -231,7 +228,7 @@ export class CommitizenPlugin {
     private async confirmCommit(commitMessage: string): Promise<string> {
         const confirmed = await this.promptConfirm(
             'confirm',
-            `${this.config.messages.confirmCommit}\n\n提交信息：\n${commitMessage}\n`,
+            `${this.config.messages?.confirmCommit}\n\n提交信息：\n${commitMessage}\n`,
         );
 
         if (!confirmed) {
