@@ -16,7 +16,7 @@ npm install -g lania-cli
 ```
 
 2. 使用方法
-3. 
+
 所有命令都通过主入口命令 lan-cli 调用：
 
 lan-cli <command> [options]
@@ -34,7 +34,7 @@ I. 基础命令 (Project/Dev/Quality)
 | lan-cli dev | -d | 启动应用程序的开发服务器。 |
 | lan-cli lint | -l | 对项目代码执行 Linter 检查。 |
 1. lan-cli create [name] (别名: -c)
-2. 
+
 描述: 生成一个新的应用程序。[name] 是新项目的名称。
 
 | 选项 (Flags) | 描述 | 默认值 |
@@ -46,7 +46,7 @@ I. 基础命令 (Project/Dev/Quality)
 | -l, --language [language] | 指定编程语言 (TypeScript 或 JavaScript)。 | TypeScript |
 
 2. lan-cli build (别名: -b)
-3. 
+
 描述: 构建应用程序。
 
 | 选项 (Flags) | 描述 | 默认值 |
