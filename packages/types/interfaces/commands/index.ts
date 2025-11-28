@@ -133,6 +133,7 @@ export type SyncActionOptions = {
     branch?: string;
     normatively?: boolean;
     remote?: string;
+    lint?: boolean;
 };
 
 export interface SubMergeActionOptions {
@@ -155,4 +156,6 @@ export type SubAddActionOptions = {
 
 export interface SubCommitActionOptions {
     message?: string;
+    normatively?: boolean;
+    lint?: boolean;
 }

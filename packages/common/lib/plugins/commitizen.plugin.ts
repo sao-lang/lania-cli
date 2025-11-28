@@ -1,5 +1,5 @@
 import { CommitData, CommitizenConfig, CommitType, SkipKey } from '@lania-cli/types';
-import inquirer from 'inquirer';
+import { simplePromptInteraction } from '../../utils/simple-prompt-interaction';
 
 // 'type' 不在列表中，因为它在规范中是必需的。
 
@@ -93,7 +93,7 @@ export class CommitizenPlugin {
         message: string,
         validate?: (input: string) => boolean | string,
     ): Promise<string> {
-        const { [name]: result } = await inquirer.prompt([
+        const { [name]: result } = await simplePromptInteraction([
             {
                 type: 'input',
                 name,
@@ -109,7 +109,7 @@ export class CommitizenPlugin {
         message: string,
         choices: { name: string; value: T }[] | T[],
     ): Promise<T> {
-        const { [name]: result } = await inquirer.prompt([
+        const { [name]: result } = await simplePromptInteraction([
             {
                 type: 'list',
                 name,
@@ -125,7 +125,7 @@ export class CommitizenPlugin {
         message: string,
         defaultValue = false,
     ): Promise<boolean> {
-        const { [name]: result } = await inquirer.prompt([
+        const { [name]: result } = await simplePromptInteraction([
             {
                 type: 'confirm',
                 name,
@@ -149,7 +149,7 @@ export class CommitizenPlugin {
             return { scope: '' };
         }
 
-        const choices = scopes.map((s) => ({ name: s, value: s }));
+        const choices = scopes?.map((s) => ({ name: s, value: s })) ?? [];
         if (this.config.allowCustomScopes) {
             choices.push({ name: 'Custom... (自定义)', value: 'Custom...' });
             choices.push({ name: 'None (无作用域)', value: '' });

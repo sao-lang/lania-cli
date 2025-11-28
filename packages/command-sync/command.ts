@@ -143,28 +143,111 @@ class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]
 })
 class MergeCommand extends LaniaCommand {}
 
-// @ProgressGroup('lania:commit', { type: 'spinner' })
-// class CommitAction implements LaniaCommandActionInterface<[SubCommitActionOptions]> {
-//     private git: GitRunner = new GitRunner();
-//     @ProgressStep('commit-msg', { total: 1, manual: true })
-//     async handle(options: SubCommitActionOptions = {}) {
-//         if (!options.message) {
-//             throw new Error('Please enter the message you want to commit.');
-//         }
-//     }
-// }
-// @LaniaCommandConfig(new CommitAction(), {
-//     name: 'commit',
-//     description: 'Commit changes to the workspace.',
-//     options: [
-//         {
-//             flags: '-m, --message <message>',
-//             description: 'The message you need to submit.',
-//         },
-//     ],
-//     helpDescription: 'display help for command.',
-// })
-// class CommitCommand extends LaniaCommand {}
+// ... (Your existing imports)
+
+// ----------------------------------------------------------------------
+// ⚡️ CommitAction Implementation
+// ----------------------------------------------------------------------
+
+class CommitAction implements LaniaCommandActionInterface<[SubCommitActionOptions]> {
+    private git: GitRunner = new GitRunner();
+
+    private async getCommitMessage(options: SubCommitActionOptions) {
+        const { message: inputMessage, normatively, lint } = options;
+        if (normatively) {
+            return this.getCommitizenMessage(lint);
+        }
+        const promptResult = (await this.getPromptMessage(inputMessage)) as { message: string };
+        const isError = await this.getLintResult(lint, promptResult.message);
+        if (isError) {
+            return {
+                message: '',
+                isError,
+            };
+        }
+        return {
+            message: promptResult.message,
+            isError: false,
+        };
+    }
+    private async getCommitizenMessage(lint: boolean) {
+        const commitizenCfg = await getCommitizenConfig();
+        const commitMessage = await new CommitizenPlugin(commitizenCfg).run();
+        if (this.getLintResult(lint, commitMessage)) {
+            return { message: '', isError: true };
+        }
+        return { message: commitMessage, isError: false };
+    }
+    private async getLintResult(lint: boolean, message: string) {
+        if (!lint) {
+            return false;
+        }
+        const commitlintCfg = await getCommitlintConfig();
+        const lintResult = await new CommitlintPlugin(commitlintCfg).run(message);
+        if (lintResult.errors.length) {
+            lintResult.errors.forEach((error) => {
+                logger.error(`[Commitlint Error] ${error.message}`);
+            });
+            lintResult.warnings.forEach((warning) => {
+                logger.warn(`[Commitlint Warning] ${warning.message}`);
+            });
+            return true;
+        }
+        return false;
+    }
+    private async getPromptMessage(inputMessage?: string) {
+        if (!inputMessage) {
+            const { message } = await simplePromptInteraction({
+                name: 'message',
+                message: 'Please input the message you will commit:',
+                type: 'input',
+            });
+            return message;
+        }
+        return inputMessage;
+    }
+
+    @ProgressStep('CommitChanges', { total: 1 })
+    async handle(options: SubCommitActionOptions = {}) {
+        const isClean = await this.git.workspace.isClean();
+        if (isClean) {
+            throw new Error('There are no files to commit. Please add changes first!');
+        }
+        const { message: commitMessage, isError } = await this.getCommitMessage(options);
+        if (isError) {
+            throw new Error('Commit failed with error.');
+        }
+        const [err] = await to(this.git.workspace.commit(commitMessage));
+        if (err) {
+            throw err;
+        }
+        logger.success(`Committing with message: ${commitMessage}`);
+    }
+}
+
+@LaniaCommandConfig(new CommitAction(), {
+    name: 'commit',
+    description: 'Commit changes to the workspace with an optional message.',
+    options: [
+        {
+            flags: '-m, --message <message>',
+            description: 'The message you need to submit.',
+        },
+        {
+            flags: '-n, --normatively',
+            description:
+                'Use Commitizen for interactive and normative submission message generation.',
+            defaultValue: false,
+        },
+        {
+            flags: '-l, --lint',
+            description: 'Lint the message you commit (only applies if --normatively is used).',
+            defaultValue: false,
+        },
+    ],
+    helpDescription: 'display help for command.',
+})
+export class CommitCommand extends LaniaCommand {}
 
 @ProgressGroup('lania:sync', { type: 'spinner' })
 class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
@@ -186,10 +269,10 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             throw new Error('There are no files to sync!');
         }
         const currentBranch = await this.git.branch.getCurrent();
-        const { message, remote, branch = currentBranch, normatively } = options;
+        const { message, remote, branch = currentBranch, normatively, lint } = options;
         if (!normatively) {
             if (!isClean) {
-                const promptMessage = await this.getPromptMessage(message);
+                const promptMessage = await this.getPromptMessage(message, lint);
                 if (!promptMessage) {
                     throw new Error('Please input the message you will commit!');
                 }
@@ -198,19 +281,8 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             await this.handlePush(remote, branch);
             return;
         }
-        const commitizenCfg = await getCommitizenConfig();
-        const commitMessage = await new CommitizenPlugin(commitizenCfg).run();
-        const commitlintCfg = await getCommitlintConfig();
-        const lintResult = await new CommitlintPlugin(commitlintCfg).run(commitMessage);
-        lintResult.errors.forEach((error) => {
-            logger.error(error.message);
-        });
-        lintResult.warnings.forEach((warning) => {
-            logger.warn(warning.message);
-        });
-        if (lintResult.errors.length) {
-            process.exit(0);
-        }
+        const commitMessage = await this.handleCommitizenPlugin();
+        lint && (await this.handleCommitlintPlugin(commitMessage));
         await this.git.workspace.commit(commitMessage);
         await this.handlePush(remote, branch);
     }
@@ -274,16 +346,37 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         }
         return selectedRemote;
     }
-    private async getPromptMessage(inputMessage?: string) {
+    private async getPromptMessage(inputMessage?: string, lint = false) {
+        const commitizen = (message: string) => lint && this.handleCommitlintPlugin(message);
         if (!inputMessage) {
             const { message } = await simplePromptInteraction({
                 name: 'message',
                 message: 'Please input the message you will commit:',
                 type: 'input',
             });
+            await commitizen(message);
             return message;
         }
+        await commitizen(inputMessage);
         return inputMessage;
+    }
+    private async handleCommitizenPlugin() {
+        const commitizenCfg = await getCommitizenConfig();
+        const commitMessage = await new CommitizenPlugin(commitizenCfg).run();
+        return commitMessage;
+    }
+    private async handleCommitlintPlugin(commitMessage: string) {
+        const commitlintCfg = await getCommitlintConfig();
+        const lintResult = await new CommitlintPlugin(commitlintCfg).run(commitMessage);
+        lintResult.errors.forEach((error) => {
+            logger.error(error.message);
+        });
+        lintResult.warnings.forEach((warning) => {
+            logger.warn(warning.message);
+        });
+        if (lintResult.errors.length) {
+            process.exit(0);
+        }
     }
 }
 
@@ -297,9 +390,10 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             { flags: '-b, --branch [branch]', description: 'Branch when code is pushed.' },
             { flags: '-n, --normatively', description: 'Whether to normalize submission message.' },
             { flags: '-r, --remote [remote]', description: 'Remote when code is pushed.' },
+            { flags: '-l, --lint', description: 'Lint the message you commit.' },
         ],
         alias: '-g',
     },
-    [new MergeCommand(), new AddCommand()],
+    [new MergeCommand(), new AddCommand(), new CommitCommand()],
 )
 export class SyncCommand extends LaniaCommand {}
