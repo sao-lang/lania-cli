@@ -300,7 +300,7 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
             })(),
         );
         if (err) {
-            this.__progressManager.complete();
+            this.__progressManager.fail();
             throw err;
         }
         this.__progressManager.complete();
