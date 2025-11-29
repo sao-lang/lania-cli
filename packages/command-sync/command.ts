@@ -143,12 +143,6 @@ class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]
 })
 class MergeCommand extends LaniaCommand {}
 
-// ... (Your existing imports)
-
-// ----------------------------------------------------------------------
-// ⚡️ CommitAction Implementation
-// ----------------------------------------------------------------------
-
 class CommitAction implements LaniaCommandActionInterface<[SubCommitActionOptions]> {
     private git: GitRunner = new GitRunner();
 

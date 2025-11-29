@@ -1,4 +1,5 @@
 import type { Hook } from '@lania-cli/common';
+import { DepencencyAndVresion } from '../shared';
 export type HookFnWaterfall<Result, Args extends any[]> = (
     result: Result,
     ...args: Args
@@ -24,7 +25,11 @@ export interface LaniaCommandHooks {
         { templateContent: string; context: Record<string, any> },
         [string]
     >;
-    onDependenciesModify: WaterfallHook<string[], []>;
+    onDependenciesModify: WaterfallHook<
+        { dependencies: DepencencyAndVresion[]; devDependencies: DepencencyAndVresion[] },
+        []
+    >;
+    onDependenciesInstall: WaterfallHook<any, []>;
     onInteractionPrompt: WaterfallHook<any, []>;
     onShellCommand: ParallelHook<[string, string]>;
 }
