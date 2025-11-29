@@ -78,7 +78,12 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
             defaultValue: '127.0.0.1',
         },
         { flags: '--path [path]', description: 'Path to lan configuration file.' },
-        { flags: '--mode', description: 'Mode of initiating the project.' },
+        {
+            flags: '-m, --mode [mode]',
+            description:
+                'Specify whether the running mode of the server is production or development.',
+            defaultValue: 'development',
+        },
         {
             flags: '-o, --open',
             description: 'Automatically open projects in the browser after starting the server.',
@@ -87,6 +92,6 @@ class DevAction implements LaniaCommandActionInterface<[DevActionOptions]> {
     ],
     alias: '-d',
 })
-export class DevCommand extends LaniaCommand<[DevActionOptions]> {}
+export class DevCommand extends LaniaCommand<[DevActionOptions]> { }
 
 export default DevCommand;

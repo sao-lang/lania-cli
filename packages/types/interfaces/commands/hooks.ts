@@ -1,37 +1,47 @@
-import type { Hook } from '@lania-cli/common';
-import { DepencencyAndVresion } from '../shared';
+
+import { DependencyAndVersion, InteractionConfig } from '../shared';
+/**
+ * 瀑布钩子的公共接口：用于串行执行函数链，每个函数的输出作为下一个函数的输入。
+ */
+export interface IWaterfallHook<Result, Args extends any[]> {
+    tap(name: string, fn: HookFnWaterfall<Result, Args>): void;
+    tapAsync(name: string, fn: HookFnWaterfall<Result, Args>): void;
+    // call 的第一个参数是初始结果 (Result)
+    call(...args: [Result, ...Args]): Promise<Result>;
+}
+
+/**
+ * 并行钩子的公共接口：用于并发执行函数，不关心返回值。
+ */
+export interface IParallelHook<Args extends any[]> {
+    tap(name: string, fn: HookFnParallel<Args>): void;
+    tapAsync(name: string, fn: HookFnParallel<Args>): void;
+    call(...args: Args): Promise<void>;
+}
 export type HookFnWaterfall<Result, Args extends any[]> = (
     result: Result,
     ...args: Args
 ) => Promise<Result> | Result;
 export type HookFnParallel<Args extends any[]> = (...args: Args) => Promise<void> | void;
-
-export interface WaterfallHook<Result, Args extends any[]>
-    extends Hook<HookFnWaterfall<Result, Args>> {}
-export interface ParallelHook<Args extends any[]> extends Hook<HookFnParallel<Args>> {}
-
 export interface LaniaCommandHooks {
-    onInitialize: ParallelHook<[]>;
-    onCommandPreInit: ParallelHook<[]>;
-    onSuccess: ParallelHook<[any]>;
-    onError: ParallelHook<[Error]>;
-    onArgsParsed: WaterfallHook<any, []>;
-    onFilesPrepare: WaterfallHook<string[], []>;
-    onConfigGet: WaterfallHook<any, [string]>;
-    onConfigResolve: WaterfallHook<any, [string]>;
-    onPluginApiCall: ParallelHook<[string, string, any[]]>;
-    onFileWrite: WaterfallHook<string, [string, string]>;
-    onTemplateParse: WaterfallHook<
+    onInitialize: IParallelHook<[]>;
+    onCommandPreInit: IParallelHook<[]>;
+    onSuccess: IParallelHook<[any]>;
+    onError: IParallelHook<[Error]>;
+    onArgsParsed: IWaterfallHook<any, []>;
+    onFilesPrepare: IWaterfallHook<string[], []>;
+    onConfigGet: IWaterfallHook<any, [string]>;
+    onConfigResolve: IWaterfallHook<any, [string]>;
+    onPluginApiCall: IParallelHook<[string, string, any[]]>;
+    onFileWrite: IWaterfallHook<string, [string, BufferEncoding]>;
+    onTemplateParse: IWaterfallHook<
         { templateContent: string; context: Record<string, any> },
         [string]
     >;
-    onDependenciesModify: WaterfallHook<
-        { dependencies: DepencencyAndVresion[]; devDependencies: DepencencyAndVresion[] },
-        []
-    >;
-    onDependenciesInstall: WaterfallHook<any, []>;
-    onInteractionPrompt: WaterfallHook<any, []>;
-    onShellCommand: ParallelHook<[string, string]>;
+    onDependenciesModify: IWaterfallHook<{ dependencies: DependencyAndVersion[], devDependencies: DependencyAndVersion[] }, [InteractionConfig]>;
+    onDependenciesInstall: IWaterfallHook<any, []>;
+    onInteractionPrompt: IWaterfallHook<any, []>;
+    onShellCommand: IParallelHook<string[]>;
 }
 
 export type AnyPlugin = any;

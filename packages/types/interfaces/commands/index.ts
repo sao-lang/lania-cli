@@ -1,8 +1,28 @@
-import type { LaniaCommand } from '@lania-cli/common';
 import { AddCommandSupportTemplate } from '../../enum';
 import { CommandActionInstruction } from './hooks';
+import { CommandModule } from 'yargs';
 export * from './hooks';
+export interface ILaniaCommand {
+    /**
+     * @description 加载命令模块，通常用于注册到 Yargs。
+     * @returns Yargs CommandModule
+     */
+    load(): CommandModule;
 
+    /**
+     * @description 添加命令生命周期钩子。
+     * @param type 钩子类型 (beforeExecute, afterExecute, onError)
+     * @param fn 钩子函数
+     */
+    addHook(type: 'beforeExecute' | 'afterExecute' | 'onError', fn: CommandHook): void;
+
+    /**
+     * @description 获取父命令配置。
+     */
+    getParent(): LaniaCommandConfigInterface['parent'] | undefined;
+
+    // 📢 注意：公共属性如 config 不需要暴露，除非外部需要读取它。
+}
 export interface AddCommandOptions {
     filepath?: string;
     template?: keyof {
@@ -62,15 +82,14 @@ export interface CommandNeededArgsInterface {
 export interface LaniaCommandMetadata {
     actor: LaniaCommandActionInterface;
     commandNeededArgs: CommandNeededArgsInterface;
-    subcommands?: LaniaCommand[];
-    // subcommands?: any[];
+    subcommands?: ILaniaCommand[];
 }
 
 export interface LaniaCommandConfigInterface<ActionArgs extends any[] = any[]> {
     actor: LaniaCommandActionInterface<ActionArgs>;
     commandNeededArgs: CommandNeededArgsInterface;
-    subcommands?: LaniaCommand[];
-    parent?: LaniaCommand;
+    subcommands?: ILaniaCommand[];
+    parent?: ILaniaCommand;
     hooks?: {
         beforeExecute?: CommandHook;
         afterExecute?: CommandHook;

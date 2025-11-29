@@ -14,7 +14,10 @@
             "@package-manager/*": ["./lib/package-managers/*"],
             "@configuration/*": ["./lib/configuration/*"],
             "@engines/*": ["./lib/engines/*"]
-        }
+        },
+        "rootDir": "../../",
+        // 🚨 关键修改 2: 保持 outDir 在当前包的 dist 目录下
+        "outDir": "./dist"
     },
     "include": ["../../global.d.ts", "./**/*.ts"]
 }

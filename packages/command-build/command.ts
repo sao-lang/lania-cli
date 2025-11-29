@@ -73,8 +73,7 @@ class BuildAction implements LaniaCommandActionInterface<[BuildActionOptions]> {
             description:
                 'Specify whether the running mode of the server is production or development.',
             defaultValue: 'development',
-        },
-        { flags: '--mode', description: 'Mode of initiating the project.' },
+        }
     ],
     alias: '-b',
 })

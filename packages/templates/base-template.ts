@@ -2,7 +2,7 @@ import type {
     CreateCommandOptions,
     OutputFileTask,
     InteractionConfig,
-    DepencencyAndVresion,
+    DependencyAndVersion,
 } from '@lania-cli/types';
 import type { PromptModule } from 'inquirer';
 export abstract class BaseTemplate {
@@ -12,8 +12,8 @@ export abstract class BaseTemplate {
         options: CreateCommandOptions,
     ): Parameters<PromptModule>[0];
     protected abstract getDependenciesArray(options: InteractionConfig): {
-        dependencies: (string | DepencencyAndVresion)[];
-        devDependencies: (string | DepencencyAndVresion)[];
+        dependencies: (string | DependencyAndVersion)[];
+        devDependencies: (string | DependencyAndVersion)[];
     };
     public createOutputTasks(options: InteractionConfig) {
         return this.config.map((taskFn) => {

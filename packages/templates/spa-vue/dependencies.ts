@@ -1,6 +1,6 @@
 import {
     CssProcessorEnum,
-    DepencencyAndVresion,
+    DependencyAndVersion,
     InteractionConfig,
     LangEnum,
     LintToolEnum,
@@ -69,11 +69,11 @@ export const VITE_DEV_DEPENDENCIES = [
 
 export const getLintDevPenpencies = (
     options: InteractionConfig,
-): (string | DepencencyAndVresion)[] => {
-    const depsMap = new Map<string, string | DepencencyAndVresion>();
+): (string | DependencyAndVersion)[] => {
+    const depsMap = new Map<string, string | DependencyAndVersion>();
     const { lintTools, useTs, cssProcessor } = options;
     const hasLintTool = (tool: LintToolEnum) => lintTools.includes(tool);
-    const addDep = (dep: string | DepencencyAndVresion) => {
+    const addDep = (dep: string | DependencyAndVersion) => {
         const key = typeof dep === 'string' ? dep : dep.key;
         depsMap.set(key, typeof dep === 'string' ? dep : { key, version: dep.version });
     };
@@ -82,7 +82,7 @@ export const getLintDevPenpencies = (
         | LintToolEnum.prettier
         | LintToolEnum.stylelint
         | LintToolEnum.commitlint,
-        (string | DepencencyAndVresion)[]
+        (string | DependencyAndVersion)[]
     > = {
         [LintToolEnum.eslint]: [
             '@eslint/js',

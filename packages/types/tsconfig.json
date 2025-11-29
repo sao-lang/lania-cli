@@ -1,7 +1,11 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "declaration": true
+        "declaration": true,
+        "outDir": "./dist",        // 明确输出目录
+        "rootDir": "./"            // 明确源码根目录是当前 types 包的根目录
     },
-    "include": ["./"]
+    "include": [
+        "./"
+    ]
 }

@@ -9,4 +9,4 @@ export * from './styled-text-modefier';
 export * from './task-executor';
 export * from './task-progress-manager';
 export * from './logger';
-export * from './command/command-plugins-manager';
+export * from './command/plugins-manager';

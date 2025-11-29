@@ -6,6 +6,7 @@ module.exports = {
         __filename: 'readonly',
         __version: 'readonly',
         __cwd: 'readonly',
+        BufferEncoding: 'readonly'
     },
     env: {
         browser: true,

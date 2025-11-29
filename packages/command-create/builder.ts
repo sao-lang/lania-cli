@@ -13,7 +13,7 @@ import getPort from 'get-port';
 import {
     CreateCommandOptions,
     CssProcessorEnum,
-    DepencencyAndVresion,
+    DependencyAndVersion,
     InteractionConfig,
     PackageManagerEnum,
     PrettierSupportFileType,
@@ -78,7 +78,7 @@ export class Builder {
     }
     private async insertDependencyVersion(
         dependencyMap: Record<string, string>,
-        dependency: string | DepencencyAndVresion,
+        dependency: string | DependencyAndVersion,
     ) {
         const isStringDep = typeof dependency === 'string';
         const depName = isStringDep ? dependency : dependency.key;

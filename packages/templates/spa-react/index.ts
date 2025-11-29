@@ -4,7 +4,7 @@ import {
     LangEnum,
     InteractionConfig,
     CssToolEnum,
-    DepencencyAndVresion,
+    DependencyAndVersion,
 } from '@lania-cli/types';
 import config from './config';
 import { BaseTemplate } from '../base-template';
@@ -30,14 +30,14 @@ export class SpaReactTemplate extends BaseTemplate {
     }
     public getDependenciesArray(options: InteractionConfig) {
         const dependenciesArray = REACT_DEPENDENCIES;
-        const devDependenciesArray: (string | DepencencyAndVresion)[] = this.getDevDependencies(options);
+        const devDependenciesArray: (string | DependencyAndVersion)[] = this.getDevDependencies(options);
         return {
             dependencies: dependenciesArray,
             devDependencies: devDependenciesArray,
         };
     }
     private getDevDependencies(options: InteractionConfig) {
-        const devDependencies: (string | DepencencyAndVresion)[] = [options.buildTool];
+        const devDependencies: (string | DependencyAndVersion)[] = [options.buildTool];
         const buildToolDevDependencies = this.getBuildToolDevDependencies(options);
         const lintToolDevDependencies = getLintDevPenpencies(options);
         devDependencies.push(...buildToolDevDependencies, ...lintToolDevDependencies);

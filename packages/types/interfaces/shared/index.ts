@@ -326,4 +326,4 @@ export type StyleOptions = {
 export type RGB = { r: number; g: number; b: number };
 export type HSL = { h: number; s: number; l: number };
 
-export type DepencencyAndVresion = { key: string; version?: string };
+export type DependencyAndVersion = { key: string; version?: string };
