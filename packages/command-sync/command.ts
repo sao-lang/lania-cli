@@ -22,23 +22,18 @@ import {
     ScopedManager,
 } from '@lania-cli/types';
 
-@ProgressGroup('lania:sync:add', { type: 'spinner' }) // 声明这个类属于哪个进度组
 class AddAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
     private git = new GitRunner();
-    private __progressManager: ScopedManager;
     @ProgressStep('AddFiles', { total: 1 }) // 手动进度控制
     async handle({ files }: SubAddActionOptions = {}) {
         if (!files?.length) {
-            this.__progressManager.complete();
             throw new Error('Please enter the files you will add.');
         }
         if (files.length === 1 && files[0] === '.') {
-            this.__progressManager.complete();
             await this.git.stage.addAllFiles();
             return;
         }
         await this.git.stage.add(files);
-        this.__progressManager.complete();
     }
 }
 @LaniaCommandConfig(new AddAction(), {
@@ -48,16 +43,13 @@ class AddAction implements LaniaCommandActionInterface<[SubAddActionOptions]> {
     helpDescription: 'display help for command.',
 })
 class AddCommand extends LaniaCommand {}
-@ProgressGroup('lania:sync:merge', { type: 'spinner' })
+
 class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]> {
     private git: GitRunner = new GitRunner();
-    private __progressManager: ScopedManager;
-    @ProgressStep('MergeBranch', { total: 1 })
     async handle(options: SubMergeActionOptions = {}): Promise<void> {
         const { branch: selectedBranch, message, strategy, ...rest } = options;
         const promptBranch = await this.getPromptBranch(selectedBranch);
         if (!promptBranch) {
-            this.__progressManager.complete();
             throw new Error('Please select a branch you will push!');
         }
         const flags = Object.keys(rest).reduce((acc, key: keyof typeof rest) => {
@@ -72,10 +64,8 @@ class MergeAction implements LaniaCommandActionInterface<[SubMergeActionOptions]
         }, [] as string[]);
         const [err] = await to(this.git.branch.merge(promptBranch, { flags, strategy, message }));
         if (err) {
-            this.__progressManager.complete();
             throw err;
         }
-        this.__progressManager.complete();
     }
 
     private async getPromptBranch(selectedBranch?: string) {
@@ -248,6 +238,24 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
     private git = new GitRunner();
     private __progressManager: ScopedManager;
     public async handle(options: SyncActionOptions) {
+        await this.ensureGitIsReady();
+        await this.git.stage.addAllFiles();
+        const [isClean, hasUnpushedCommits] = await Promise.all([
+            this.git.workspace.isClean(),
+            this.git.branch.hasUnpushedCommits(),
+        ]);
+        const currentBranch = await this.git.branch.getCurrent();
+        const { message, remote, branch = currentBranch, normatively, lint } = options;
+        if (isClean && !hasUnpushedCommits) {
+            throw new Error('There are no files to sync!');
+        }
+        if (!normatively) {
+            await this.handleNonNormativeSync(isClean, message, lint, remote, branch);
+            return;
+        }
+        await this.handleNormativeSync(isClean, lint, remote, branch);
+    }
+    private async ensureGitIsReady() {
         const isInstalled = await this.git.git.isInstalled();
         if (!isInstalled) {
             throw new Error('Please install Git first!');
@@ -256,22 +264,30 @@ class SyncAction implements LaniaCommandActionInterface<[SyncActionOptions]> {
         if (!isInit) {
             await this.git.git.init();
         }
-        await this.git.stage.addAllFiles();
-        const isClean = await this.git.workspace.isClean();
-        const noUnpushedCommits = !(await this.git.branch.hasUnpushedCommits());
-        if (isClean && noUnpushedCommits) {
-            throw new Error('There are no files to sync!');
-        }
-        const currentBranch = await this.git.branch.getCurrent();
-        const { message, remote, branch = currentBranch, normatively, lint } = options;
-        if (!normatively) {
-            if (!isClean) {
-                const promptMessage = await this.getPromptMessage(message, lint);
-                if (!promptMessage) {
-                    throw new Error('Please input the message you will commit!');
-                }
-                await this.git.workspace.commit(promptMessage);
+    }
+    private async handleNonNormativeSync(
+        isClean: boolean,
+        message: string | undefined,
+        lint: boolean,
+        remote: string | undefined,
+        branch: string | undefined,
+    ) {
+        if (!isClean) {
+            const promptMessage = await this.getPromptMessage(message, lint);
+            if (!promptMessage) {
+                throw new Error('Please input the message you will commit!');
             }
+            await this.git.workspace.commit(promptMessage);
+        }
+        await this.handlePush(remote, branch);
+    }
+    private async handleNormativeSync(
+        isClean: boolean,
+        lint: boolean,
+        remote: string | undefined,
+        branch: string | undefined,
+    ) {
+        if (isClean) {
             await this.handlePush(remote, branch);
             return;
         }
