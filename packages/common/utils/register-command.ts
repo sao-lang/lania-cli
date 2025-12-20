@@ -11,7 +11,7 @@ export const registerCommands = async (
     try {
         let cli = yargs(hideBin(process.argv))
             .scriptName(name)
-            .version('version', version, '显示版本')
+            .version(version, 'version', '显示版本')
             .usage('<command> [options]')
             .help('help', '显示帮助信息')
             .alias('h', 'help')
@@ -28,3 +28,4 @@ export const registerCommands = async (
         process.exit(1);
     }
 };
+

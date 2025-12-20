@@ -63,14 +63,14 @@ class GitBranch extends Runner<'git'> {
     // 列出所有本地分支 (优化：使用 --format 获取干净输出)
     public async listLocal(): Promise<string[]> {
         // 使用 --format="%(refname:short)" 确保只返回分支名
-        const result = await this.run('branch', ['--list', '--format=%(refname:short)']);
+        const result = await this.run('branch', ['--list', '--format=%\(refname:short\)']);
         return result.split('\n').filter(Boolean);
     }
 
     // 列出所有远程分支 (优化：使用 --format 获取干净输出)
     public async listRemote(): Promise<string[]> {
         // 使用 -r 和 --format
-        const result = await this.run('branch', ['-r', '--list', '--format=%(refname:short)']);
+        const result = await this.run('branch', ['-r', '--list', '--format=%\(refname:short\)']);
         // 远程分支格式为 'remote/branch'，这里不再需要额外的 `replace` 清理
         return result.split('\n').filter(Boolean);
     }
@@ -549,3 +549,4 @@ export class GitRunner extends Runner<'git'> {
 }
 
 export default GitRunner;
+
