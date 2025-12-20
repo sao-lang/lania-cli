@@ -1,12 +1,13 @@
 import { fileURLToPath } from 'url';
 import path, { dirname, resolve } from 'path';
+import * as glob from 'glob';
 import { readFileSync } from 'fs';
-import ts from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
+import ts from 'rollup-plugin-typescript2';
 import { globalReplacePlugin } from './inject-vars-plugin.js';
 import copy from 'rollup-plugin-copy';
-import * as glob from 'glob';
+import fs from 'fs';
 // 获取当前模块的文件路径
 export const __filename = fileURLToPath(import.meta.url);
 
@@ -68,8 +69,74 @@ export const BUILD_CONFIG_MAP = {
     },
 };
 
-export const resolvePath = (dir, subPath) => {
-    return resolve(resolve(__dirname, `../packages/${dir}`), subPath);
+// export const resolveSubPath = (dir, subPath) => {
+//     return resolve(resolve(__dirname, `../packages/${dir}`), subPath);
+// };
+
+export function getFiles(dirPath, options = {}) {
+    const { ext, maxDepth = Infinity, targetLevel, filterDir } = options;
+    const results = [];
+    const extArr = ext ? (Array.isArray(ext) ? ext : [ext]) : null;
+
+    function walk(currentPath, depth, insideFilteredDir) {
+        const list = fs.readdirSync(currentPath, { withFileTypes: true });
+
+        for (const item of list) {
+            const fullPath = path.join(currentPath, item.name);
+
+            if (item.isDirectory()) {
+                let enterDir = false;
+
+                if (!filterDir) {
+                    // 未设置 filterDir → 遍历所有目录
+                    enterDir = true;
+                } else if (typeof filterDir === 'string') {
+                    enterDir = item.name === filterDir;
+                } else if (typeof filterDir === 'function') {
+                    enterDir = filterDir(fullPath);
+                }
+
+                // 如果目录满足条件且未超过 maxDepth，则递归
+                if (enterDir && depth < maxDepth) {
+                    // 如果设置了 filterDir 且当前目录匹配，则 insideFilteredDir 设置为 true
+                    const newInsideFilteredDir = filterDir ? true : insideFilteredDir;
+                    walk(fullPath, depth + 1, newInsideFilteredDir);
+                }
+            } else if (item.isFile()) {
+                const matchExt = !extArr || extArr.some((suffix) => item.name.endsWith(suffix));
+                const matchLevel = targetLevel === undefined || targetLevel === depth;
+
+                // 文件是否收集：
+                // 1. 未设置 filterDir → 收集所有匹配文件
+                // 2. 设置了 filterDir → 只收集在匹配目录及其子目录下的文件
+                const collectFile = !filterDir || insideFilteredDir;
+
+                if (matchExt && matchLevel && collectFile) {
+                    results.push(fullPath);
+                }
+            }
+        }
+    }
+
+    walk(dirPath, 0, false);
+    return results;
+}
+
+export const resolveSubPath = (...subPaths) => {
+    const [firstSubPaths] = subPaths;
+    if (Array.isArray(firstSubPaths)) {
+        return firstSubPaths.reduce(
+            (acc, cur) => (cur && typeof cur === 'string' ? `${acc}/${cur}` : acc),
+            resolve(__dirname, '../'),
+        );
+    }
+    if (subPaths.length > 0) {
+        return subPaths.reduce(
+            (acc, cur) => (cur && typeof cur === 'string' ? `${acc}/${cur}` : acc),
+            resolve(__dirname, '../'),
+        );
+    }
+    return resolve(__dirname, `../${firstSubPaths}`);
 };
 
 export const getPackageJson = (packageName = BUILD_CONFIG_MAP.core.value) => {
@@ -100,10 +167,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
     if (packageName === BUILD_CONFIG_MAP.common.value) {
         return [
             ts({
-                tsconfig: path.resolve(
-                    __dirname,
-                    `../packages/${packageName}/tsconfig.json`,
-                ),
+                tsconfig: path.resolve(__dirname, `../packages/${packageName}/tsconfig.json`),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
@@ -111,7 +175,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
     if (packageName === BUILD_CONFIG_MAP.core.value) {
         return [
             json(),
-            ts({ tsconfig: resolvePath(BUILD_CONFIG_MAP.core.value, 'tsconfig.json') }),
+            ts({ tsconfig: resolveSubPath('packages', BUILD_CONFIG_MAP.core.value, 'tsconfig.json') }),
             alias({
                 entries: [
                     { find: '@commands', replacement: '../core/commands' },
@@ -131,7 +195,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
     }
     if (packageName === BUILD_CONFIG_MAP.templates.value) {
         const templatesBase = path.resolve(__dirname, '../packages/templates');
-        const srcDirs = glob.sync('**/templates', {
+        const srcDirs = glob.sync('**/ejs', {
             cwd: templatesBase,
             absolute: true,
         });
@@ -142,8 +206,9 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
                     const [pkgName] = relative.split(path.sep);
                     return {
                         src: [
-                            `../packages/templates/${pkgName}/templates/*.ejs`,
-                            `../packages/templates/${pkgName}/templates/.*.ejs`,
+                            `../packages/templates/${pkgName}/ejs/*.ejs`,
+                            `../packages/templates/${pkgName}/ejs/.*.ejs`,
+                            `../packages/templates/${pkgName}/name.json`,
                         ],
                         dest: `../packages/templates/dist/__lania-${pkgName}`,
                     };
@@ -159,10 +224,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
     if (packageName === BUILD_CONFIG_MAP.types.value) {
         return [
             ts({
-                tsconfig: path.resolve(
-                    __dirname,
-                    `../packages/${packageName}/tsconfig.json`,
-                ),
+                tsconfig: path.resolve(__dirname, `../packages/${packageName}/tsconfig.json`),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
@@ -179,10 +241,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
             }),
             json(),
             ts({
-                tsconfig: path.resolve(
-                    __dirname,
-                    `../packages/${packageName}/tsconfig.json`,
-                ),
+                tsconfig: path.resolve(__dirname, `../packages/${packageName}/tsconfig.json`),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];
@@ -202,10 +261,7 @@ export const resolvePlugins = (packageName = BUILD_CONFIG_MAP.core.value) => {
         return [
             json(),
             ts({
-                tsconfig: path.resolve(
-                    __dirname,
-                    `../packages/${packageName}/tsconfig.json`,
-                ),
+                tsconfig: path.resolve(__dirname, `../packages/${packageName}/tsconfig.json`),
             }),
             globalReplacePlugin(createCommonInjectVars()),
         ];

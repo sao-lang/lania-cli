@@ -1,4 +1,4 @@
-import { AddCommandSupportTemplate } from '../../enum';
+import { AddCommandSupportTemplate, LangEnum, PackageManagerEnum } from '../../enum';
 import { CommandActionInstruction } from './hooks';
 import { CommandModule } from 'yargs';
 export * from './hooks';
@@ -120,8 +120,8 @@ export interface CreateCommandOptions {
     directory: string;
     skipInstall: boolean;
     skipGit: boolean;
-    language: boolean;
-    packageManager: string;
+    language: LangEnum;
+    packageManager: PackageManagerEnum;
 }
 
 export type CreateActionOptions = Exclude<CreateCommandOptions, 'name'>;

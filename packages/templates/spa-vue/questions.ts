@@ -1,10 +1,4 @@
-import {
-    CSS_PROCESSORS,
-    CSS_TOOLS,
-    LINT_TOOLS,
-    UNIT_TEST_TOOLS,
-    PACKAGES_MANAGERS,
-} from '@lania-cli/common';
+import { CSS_PROCESSORS, CSS_TOOLS, LINT_TOOLS, PACKAGES_MANAGERS } from '@lania-cli/common';
 import {
     CssProcessorEnum,
     ProjectTypeEnum,
@@ -12,16 +6,16 @@ import {
     CreateCommandOptions,
 } from '@lania-cli/types';
 
-export const createQuestions = (options: CreateCommandOptions & { projectType: string }) => [
-    {
+export default [
+    (options: CreateCommandOptions & { projectType: string }) => ({
         message: 'Please select a css processor:',
         name: 'cssProcessor',
         choices: CSS_PROCESSORS,
         default: CssProcessorEnum.css,
         when: () => {
             if (
-                [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some(
-                    (item) => options.projectType?.includes(item),
+                [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some((item) =>
+                    options.projectType?.includes(item),
                 )
             ) {
                 return false;
@@ -29,16 +23,17 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
             return true;
         },
         type: 'list',
-    },
-    {
+    }),
+
+    (options: CreateCommandOptions & { projectType: string }) => ({
         message: 'Please select a css tool:',
         name: 'cssTools',
         choices: [...CSS_TOOLS],
         default: null,
         when: () => {
             if (
-                [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some(
-                    (item) => options.projectType?.includes(item),
+                [ProjectTypeEnum.nodejs, ProjectTypeEnum.toolkit].some((item) =>
+                    options.projectType?.includes(item),
                 )
             ) {
                 return false;
@@ -46,22 +41,25 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
             return true;
         },
         type: 'checkbox',
-    },
-    {
+    }),
+
+    () => ({
         message: 'Please select the lint tools:',
         name: 'lintTools',
         choices: [...LINT_TOOLS],
         type: 'checkbox',
         default: null,
-    },
-    // {
+    }),
+
+    // (options: CreateCommandOptions & { projectType: string }) => ({
     //     message: 'Please select a unit testing tool',
     //     name: 'unitTestTool',
     //     choices: [...UNIT_TEST_TOOLS, { name: 'skip', value: null }],
     //     type: 'list',
     //     default: null,
-    // },
-    {
+    // }),
+
+    (options: CreateCommandOptions & { projectType: string }) => ({
         name: 'buildTool',
         message: 'Please select a build tool:',
         choices: () => {
@@ -71,14 +69,16 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
                 ProjectTypeEnum.nodejs,
                 ProjectTypeEnum.vanilla,
             ].some((item) => options.projectType?.includes(item));
+
             if (flag) {
                 return [BuildToolEnum.webpack, BuildToolEnum.vite];
             }
             return [BuildToolEnum.rollup, BuildToolEnum.tsc];
         },
         type: 'list',
-    },
-    {
+    }),
+
+    (options: CreateCommandOptions & { projectType: string }) => ({
         name: 'packageManager',
         message: 'Please select a packaging tool:',
         choices: PACKAGES_MANAGERS,
@@ -89,8 +89,9 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
             return true;
         },
         type: 'list',
-    },
-    {
+    }),
+
+    (options: CreateCommandOptions & { projectType: string }) => ({
         name: 'repository',
         message: 'Please input the repository:',
         when: () => {
@@ -100,5 +101,5 @@ export const createQuestions = (options: CreateCommandOptions & { projectType: s
             return true;
         },
         type: 'input',
-    },
+    }),
 ];

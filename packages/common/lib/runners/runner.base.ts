@@ -151,4 +151,13 @@ export abstract class PackageManager<Command extends PackageManagerName> extends
         const args = ['run', scriptName, ...(scriptArgs.length ? ['--', ...scriptArgs] : [])];
         return await this.run('', args);
     }
+
+    public async isInstalled() {
+        try {
+            const version = await this.version();
+            return !!version;
+        } catch (e) {
+            return false;
+        }
+    }
 }

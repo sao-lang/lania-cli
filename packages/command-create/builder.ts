@@ -7,7 +7,7 @@ import {
     simplePromptInteraction,
     NpmPackageManager,
 } from '@lania-cli/common';
-import { SpaReactTemplate, SpaVueTemplate, TemplateFactory } from '@lania-cli/templates';
+import {  TemplateFactory } from '@lania-cli/templates';
 import latestVersion from 'latest-version';
 import getPort from 'get-port';
 import {
@@ -15,7 +15,7 @@ import {
     CssProcessorEnum,
     DependencyAndVersion,
     InteractionConfig,
-    PackageManagerEnum,
+    LangEnum,
     PrettierSupportFileType,
     Question,
 } from '@lania-cli/types';
@@ -23,7 +23,7 @@ import { Prettier } from '@lania-cli/linters';
 
 export class Builder {
     private options: InteractionConfig = {} as any;
-    private template: SpaReactTemplate | SpaVueTemplate;
+    private template: any;
     private async prompt(options: CreateCommandOptions) {
         const templateList = await TemplateFactory.list();
         const { projectType } = await simplePromptInteraction({
@@ -35,8 +35,9 @@ export class Builder {
         this.template = TemplateFactory.create(projectType);
         const choices = this.template.createPromptQuestions({ ...options, projectType });
         const answers = await simplePromptInteraction(choices as Question[]);
+        options.language && (answers.language = options.language);
         answers.useCssProcessor = answers.cssProcessor !== CssProcessorEnum.css;
-        answers.useTs = true;
+        answers.useTs = answers.language === LangEnum.TypeScript;
         return { ...answers, projectType } as InteractionConfig;
     }
     private async getDependencies(options: InteractionConfig) {
@@ -146,21 +147,25 @@ export class Builder {
     }
     public async build(options: CreateCommandOptions) {
         const answers = await this.prompt(options);
-        this.options = {
-            ...answers,
-            ...options,
-            packageManager: (options.packageManager ||
-                answers.packageManager) as PackageManagerEnum,
-        } as unknown as InteractionConfig;
+        this.assignOptions(answers, {
+            packageManager: options.packageManager || answers.packageManager,
+        });
         const [getErr, result] = await to(this.getDependencies(this.options));
         if (getErr) {
             throw getErr;
         }
-        Object.assign(this.options, result);
+        this.assignOptions(result);
         const packageManager = PackageManagerFactory.create(this.options.packageManager);
+        const isInstalled = await packageManager.isInstalled();
+        if (!isInstalled) {
+            throw new Error(`You have not installed ${this.options.packageManager}`);
+        }
         await packageManager.init();
         await this.outputFiles(this.options);
         !options.skipInstall && (await this.downloadDependencies());
         result.devDependencies['husky'] && new NpmPackageManager().runScript('prepare');
+    }
+    private assignOptions(...targets: Record<string, any>[]) {
+        this.options = Object.assign(this.options, ...targets);
     }
 }

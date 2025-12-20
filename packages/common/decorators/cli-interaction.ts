@@ -1,5 +1,5 @@
 // --- 1. Imports ---
-import 'reflect-metadata'; 
+import 'reflect-metadata';
 import type { Question, Answer } from '@lania-cli/types';
 import { CliInteraction } from '../lib';
 
@@ -22,13 +22,10 @@ const promiseCache = new WeakMap<any, Promise<Answer>>();
  * @param questions - 问题数组，可以是数组本身，也可以是返回数组的同步/异步函数。
  */
 export function PromptAnswers(questions: MaybeFunc<Question[]>): MethodDecorator {
-    
     // --- 5. Decorator Function ---
     return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
-
         // 覆盖原始方法 (descriptor.value)
         descriptor.value = function (this: any): Promise<Answer> {
-            
             // 5.1. 缓存检查
             if (promiseCache.has(this)) {
                 return promiseCache.get(this)!;
@@ -38,13 +35,11 @@ export function PromptAnswers(questions: MaybeFunc<Question[]>): MethodDecorator
             const promptPromise = (async (): Promise<Answer> => {
                 try {
                     // 解析 questions 参数
-                    const qs = typeof questions === 'function' 
-                        ? await questions() 
-                        : questions;
-                    
+                    const qs = typeof questions === 'function' ? await questions() : questions;
+
                     const cli = new CliInteraction();
                     cli.addQuestions(qs);
-                    
+
                     // 强制等待 CLI 交互完成
                     const answers = await cli.execute();
                     return answers;
@@ -58,7 +53,7 @@ export function PromptAnswers(questions: MaybeFunc<Question[]>): MethodDecorator
             promiseCache.set(this, promptPromise);
             return promptPromise;
         };
-        
+
         // --- 6. Return Modified Descriptor ---
         return descriptor;
     };

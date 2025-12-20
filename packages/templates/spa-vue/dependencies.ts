@@ -1,7 +1,7 @@
 import {
     CssProcessorEnum,
-    DependencyAndVersion,
-    InteractionConfig,
+    type DependencyAndVersion,
+    type InteractionConfig,
     LangEnum,
     LintToolEnum,
 } from '@lania-cli/types';

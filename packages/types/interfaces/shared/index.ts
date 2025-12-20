@@ -171,6 +171,7 @@ export interface InteractionConfig {
     cssTools?: CssToolEnum[];
     linters?: LintToolEnum[];
     projectType?: string;
+    isMonorepo?: boolean;
 }
 
 export interface LaniaConfig {

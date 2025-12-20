@@ -1,16 +1,17 @@
 // rollup.core.config.js
 import { defineConfig } from 'rollup';
-import { resolvePath, resolvePlugins, resolvedExterns, BUILD_CONFIG_MAP } from './utils.js';
+import { resolvePlugins, resolvedExterns, BUILD_CONFIG_MAP, resolveSubPath } from './utils.js';
 
-const resolveSubPath = (subPath) => resolvePath(BUILD_CONFIG_MAP.core.value, subPath);
+const resolveCorePath = (subPath) =>
+    resolveSubPath('packages', BUILD_CONFIG_MAP.core.value, subPath);
 
 const createConfig = () => {
-    const input = resolveSubPath('commands/index.ts');
+    const input = resolveCorePath('commands/index.ts');
     return [
         {
             input,
             output: {
-                dir: resolveSubPath('dist'),
+                dir: resolveCorePath('dist'),
                 format: 'es',
                 preserveModules: true, // 保留模块路径结构
                 entryFileNames: '[name].js',

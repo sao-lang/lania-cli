@@ -1,14 +1,14 @@
 import { defineConfig } from 'rollup';
-import { resolvePath, resolvePlugins, resolvedExterns, BUILD_CONFIG_MAP } from './utils.js';
+import { resolveSubPath, resolvePlugins, resolvedExterns, BUILD_CONFIG_MAP } from './utils.js';
 
-const resolveSubPath = (subPath) => resolvePath(BUILD_CONFIG_MAP.types.value, subPath);
-
+const resolveTypesPath = (subPath) => resolveSubPath('packages', BUILD_CONFIG_MAP.types.value, subPath);
+console.log({ resolveTypesPath: resolveTypesPath('index.ts') });
 const createConfig = () => {
     return [
         {
-            input: resolveSubPath('index.ts'),
+            input: resolveTypesPath('index.ts'),
             output: {
-                dir: resolveSubPath('dist'),
+                dir: resolveTypesPath('dist'),
                 format: 'es',
                 preserveModules: true,
                 entryFileNames: '[name].js',
